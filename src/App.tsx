@@ -3,24 +3,52 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import Index from "./pages/Index.tsx";
-import NotFound from "./pages/NotFound.tsx";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
+import LandingPage from "./pages/LandingPage";
+import AuthPage from "./pages/AuthPage";
+import AppLayout from "./components/AppLayout";
+import ProtectedRoute from "./components/ProtectedRoute";
+import DashboardPage from "./pages/DashboardPage";
+import LibraryPage from "./pages/LibraryPage";
+import StudyVaultPage from "./pages/StudyVaultPage";
+import ProfilePage from "./pages/ProfilePage";
+import AdminPage from "./pages/AdminPage";
+import AboutPage from "./pages/AboutPage";
+import ContributePage from "./pages/ContributePage";
+import AITestPage from "./pages/AITestPage";
+import AIChatWidget from "./components/AIChatWidget";
+import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/auth" element={<AuthPage />} />
+              <Route path="/app" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+                <Route index element={<><DashboardPage /><AIChatWidget /></>} />
+                <Route path="library" element={<><LibraryPage /><AIChatWidget /></>} />
+                <Route path="vault" element={<><StudyVaultPage /><AIChatWidget /></>} />
+                <Route path="tests" element={<><AITestPage /><AIChatWidget /></>} />
+                <Route path="profile" element={<ProfilePage />} />
+                <Route path="admin" element={<AdminPage />} />
+                <Route path="about" element={<AboutPage />} />
+                <Route path="contribute" element={<ContributePage />} />
+              </Route>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 
