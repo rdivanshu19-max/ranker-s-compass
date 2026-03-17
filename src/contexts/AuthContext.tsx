@@ -60,9 +60,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signUp = async (email: string, password: string, displayName: string) => {
+    // Use the current site URL for redirect so it works on any deployment (Netlify, Vercel, etc.)
+    const siteUrl = window.location.origin;
     return supabase.auth.signUp({
       email, password,
-      options: { data: { display_name: displayName }, emailRedirectTo: window.location.origin }
+      options: { 
+        data: { display_name: displayName }, 
+        emailRedirectTo: `${siteUrl}/auth` 
+      }
     });
   };
 

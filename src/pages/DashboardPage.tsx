@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { motion } from 'framer-motion';
-import { BookOpen, Download, TrendingUp, Pin, Star, ExternalLink, Clock } from 'lucide-react';
+import { BookOpen, Download, TrendingUp, Pin, Star, ExternalLink, Clock, Play, Pause, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { toast } from 'sonner';
 
 const quotes = [
   "Success is not final, failure is not fatal: it is the courage to continue that counts.",
@@ -29,6 +30,28 @@ export default function DashboardPage() {
   const [weeklyStats, setWeeklyStats] = useState<any[]>([]);
   const [quote] = useState(() => quotes[Math.floor(Math.random() * quotes.length)]);
 
+  // Timer state
+  const [timerSeconds, setTimerSeconds] = useState(0);
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const startTimeRef = useRef<number>(0);
+
+  const loadWeeklyStats = useCallback(async () => {
+    if (!user) return;
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const today = new Date();
+    const weekData = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
+      const { data } = await supabase.from('study_sessions').select('duration_minutes').eq('user_id', user.id).eq('date', dateStr);
+      const total = data?.reduce((sum, s) => sum + s.duration_minutes, 0) || 0;
+      weekData.push({ day: days[d.getDay()], minutes: total });
+    }
+    setWeeklyStats(weekData);
+  }, [user]);
+
   useEffect(() => {
     if (!user) return;
     const load = async () => {
@@ -42,23 +65,58 @@ export default function DashboardPage() {
       setDownloadCount(downloads.count || 0);
       setTestCount(tests.count || 0);
       setPinnedMaterials(pinned.data || []);
-
-      // Weekly study stats
-      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-      const today = new Date();
-      const weekData = [];
-      for (let i = 6; i >= 0; i--) {
-        const d = new Date(today);
-        d.setDate(d.getDate() - i);
-        const dateStr = d.toISOString().split('T')[0];
-        const { data } = await supabase.from('study_sessions').select('duration_minutes').eq('user_id', user.id).eq('date', dateStr);
-        const total = data?.reduce((sum, s) => sum + s.duration_minutes, 0) || 0;
-        weekData.push({ day: days[d.getDay()], minutes: total });
-      }
-      setWeeklyStats(weekData);
     };
     load();
-  }, [user]);
+    loadWeeklyStats();
+  }, [user, loadWeeklyStats]);
+
+  // Timer functions
+  const startTimer = () => {
+    if (isTimerRunning) return;
+    setIsTimerRunning(true);
+    startTimeRef.current = Date.now() - timerSeconds * 1000;
+    timerRef.current = setInterval(() => {
+      setTimerSeconds(Math.floor((Date.now() - startTimeRef.current) / 1000));
+    }, 1000);
+  };
+
+  const pauseTimer = () => {
+    setIsTimerRunning(false);
+    if (timerRef.current) clearInterval(timerRef.current);
+  };
+
+  const saveAndReset = async () => {
+    if (timerSeconds < 60) {
+      toast.error('Study at least 1 minute before saving');
+      return;
+    }
+    pauseTimer();
+    const minutes = Math.round(timerSeconds / 60);
+    const today = new Date().toISOString().split('T')[0];
+
+    if (user) {
+      const { error } = await supabase.from('study_sessions').insert({
+        user_id: user.id,
+        date: today,
+        duration_minutes: minutes,
+      });
+      if (error) { toast.error('Failed to save'); return; }
+      toast.success(`Saved ${minutes} minutes of study time!`);
+      setTimerSeconds(0);
+      loadWeeklyStats();
+    }
+  };
+
+  useEffect(() => {
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, []);
+
+  const formatTimer = (s: number) => {
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const sec = s % 60;
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+  };
 
   const statCards = [
     { icon: BookOpen, label: 'Library Materials', value: materialCount, color: 'text-primary' },
@@ -97,6 +155,35 @@ export default function DashboardPage() {
           </motion.div>
         ))}
       </div>
+
+      {/* Study Timer */}
+      <motion.div initial="hidden" animate="visible" variants={fadeUp} transition={{ delay: 0.4 }}
+        className="bg-card rounded-2xl border border-border p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Clock className="w-5 h-5 text-primary" />
+          <h3 className="text-lg font-bold font-display">Study Timer</h3>
+        </div>
+        <div className="flex flex-col sm:flex-row items-center gap-6">
+          <div className="text-5xl font-mono font-bold text-primary tracking-wider">
+            {formatTimer(timerSeconds)}
+          </div>
+          <div className="flex gap-2">
+            {!isTimerRunning ? (
+              <Button onClick={startTimer} className="gap-2">
+                <Play className="w-4 h-4" /> Start
+              </Button>
+            ) : (
+              <Button onClick={pauseTimer} variant="outline" className="gap-2">
+                <Pause className="w-4 h-4" /> Pause
+              </Button>
+            )}
+            <Button onClick={saveAndReset} variant="secondary" className="gap-2" disabled={timerSeconds < 60}>
+              <RotateCcw className="w-4 h-4" /> Save & Reset
+            </Button>
+          </div>
+        </div>
+        <p className="text-xs text-muted-foreground mt-3">Start the timer when you study. Save to track your progress in the weekly chart.</p>
+      </motion.div>
 
       {/* Weekly Study Chart */}
       <motion.div initial="hidden" animate="visible" variants={fadeUp} transition={{ delay: 0.5 }}
