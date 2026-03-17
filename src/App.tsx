@@ -18,6 +18,9 @@ import AboutPage from "./pages/AboutPage";
 import ContributePage from "./pages/ContributePage";
 import AITestPage from "./pages/AITestPage";
 import AIChatWidget from "./components/AIChatWidget";
+import TermsPage from "./pages/TermsPage";
+import PrivacyPage from "./pages/PrivacyPage";
+import AdSensePage from "./pages/AdSensePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,6 +36,9 @@ const App = () => (
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/auth" element={<AuthPage />} />
+              <Route path="/terms" element={<TermsPage />} />
+              <Route path="/privacy" element={<PrivacyPage />} />
+              <Route path="/adsense" element={<AdSensePage />} />
               <Route path="/app" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
                 <Route index element={<><DashboardPage /><AIChatWidget /></>} />
                 <Route path="library" element={<><LibraryPage /><AIChatWidget /></>} />
