@@ -10,6 +10,7 @@ interface AuthContextType {
   isAdmin: boolean;
   signUp: (email: string, password: string, displayName: string) => Promise<any>;
   signIn: (email: string, password: string) => Promise<any>;
+  requestPasswordReset: (email: string) => Promise<any>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -17,6 +18,22 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
 export const useAuth = () => useContext(AuthContext);
+
+const PRODUCTION_SITE_URL = 'https://rankers-stars.vercel.app';
+
+const normalizeUrl = (url: string) => url.replace(/\/+$/, '');
+
+const resolveAuthRedirectBase = () => {
+  const configuredUrl = import.meta.env.VITE_APP_SITE_URL?.trim();
+  if (configuredUrl) return normalizeUrl(configuredUrl);
+
+  if (typeof window !== 'undefined') {
+    if (window.location.hostname.endsWith('lovable.app')) return PRODUCTION_SITE_URL;
+    return window.location.origin;
+  }
+
+  return PRODUCTION_SITE_URL;
+};
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -37,11 +54,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        setTimeout(() => fetchProfile(session.user.id), 0);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, currentSession) => {
+      setSession(currentSession);
+      setUser(currentSession?.user ?? null);
+      if (currentSession?.user) {
+        setTimeout(() => fetchProfile(currentSession.user.id), 0);
       } else {
         setProfile(null);
         setIsAdmin(false);
@@ -49,10 +66,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
     });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) fetchProfile(session.user.id);
+    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
+      setSession(initialSession);
+      setUser(initialSession?.user ?? null);
+      if (initialSession?.user) fetchProfile(initialSession.user.id);
       setLoading(false);
     });
 
@@ -60,19 +77,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signUp = async (email: string, password: string, displayName: string) => {
-    // Use the current site URL for redirect so it works on any deployment (Netlify, Vercel, etc.)
-    const siteUrl = window.location.origin;
+    const redirectBase = resolveAuthRedirectBase();
     return supabase.auth.signUp({
-      email, password,
-      options: { 
-        data: { display_name: displayName }, 
-        emailRedirectTo: `${siteUrl}/auth` 
-      }
+      email,
+      password,
+      options: {
+        data: { display_name: displayName },
+        emailRedirectTo: `${redirectBase}/auth`,
+      },
     });
   };
 
   const signIn = async (email: string, password: string) => {
     return supabase.auth.signInWithPassword({ email, password });
+  };
+
+  const requestPasswordReset = async (email: string) => {
+    const redirectBase = resolveAuthRedirectBase();
+    return supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${redirectBase}/reset-password`,
+    });
   };
 
   const signOut = async () => {
@@ -84,7 +108,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, profile, isAdmin, signUp, signIn, signOut, refreshProfile }}>
+    <AuthContext.Provider
+      value={{ user, session, loading, profile, isAdmin, signUp, signIn, requestPasswordReset, signOut, refreshProfile }}
+    >
       {children}
     </AuthContext.Provider>
   );

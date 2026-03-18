@@ -1,8 +1,20 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { motion } from 'framer-motion';
-import { FlaskConical, Clock, CheckCircle, XCircle, MinusCircle, Flag, ArrowRight, BarChart3, Trophy } from 'lucide-react';
+import {
+  FlaskConical,
+  Clock,
+  CheckCircle,
+  XCircle,
+  MinusCircle,
+  Flag,
+  ArrowRight,
+  BarChart3,
+  Trophy,
+  AlertTriangle,
+  Sparkles,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
@@ -21,7 +33,7 @@ const SYLLABUS: Record<string, Record<string, Record<string, string[]>>> = {
       Physics: ['Electric Charges and Fields', 'Electrostatic Potential', 'Current Electricity', 'Moving Charges and Magnetism', 'Magnetism and Matter', 'Electromagnetic Induction', 'Alternating Current', 'Electromagnetic Waves', 'Ray Optics', 'Wave Optics', 'Dual Nature of Radiation', 'Atoms', 'Nuclei', 'Semiconductor Electronics'],
       Chemistry: ['Solid State', 'Solutions', 'Electrochemistry', 'Chemical Kinetics', 'Surface Chemistry', 'd and f Block Elements', 'Coordination Compounds', 'Haloalkanes and Haloarenes', 'Alcohols Phenols Ethers', 'Aldehydes Ketones Carboxylic Acids', 'Amines', 'Biomolecules', 'Polymers'],
       Mathematics: ['Relations and Functions', 'Inverse Trigonometric Functions', 'Matrices', 'Determinants', 'Continuity and Differentiability', 'Applications of Derivatives', 'Integrals', 'Applications of Integrals', 'Differential Equations', 'Vector Algebra', 'Three Dimensional Geometry', 'Probability'],
-    }
+    },
   },
   NEET: {
     '11th': {
@@ -33,12 +45,37 @@ const SYLLABUS: Record<string, Record<string, Record<string, string[]>>> = {
       Physics: ['Electric Charges and Fields', 'Electrostatic Potential', 'Current Electricity', 'Moving Charges', 'Magnetism and Matter', 'Electromagnetic Induction', 'Alternating Current', 'EM Waves', 'Ray Optics', 'Wave Optics', 'Dual Nature of Radiation', 'Atoms', 'Nuclei', 'Semiconductors'],
       Chemistry: ['Solid State', 'Solutions', 'Electrochemistry', 'Chemical Kinetics', 'Surface Chemistry', 'd and f Block', 'Coordination Compounds', 'Haloalkanes', 'Alcohols Phenols Ethers', 'Aldehydes Ketones Acids', 'Amines', 'Biomolecules', 'Polymers', 'Chemistry in Everyday Life'],
       Biology: ['Reproduction in Organisms', 'Sexual Reproduction in Plants', 'Human Reproduction', 'Reproductive Health', 'Principles of Inheritance', 'Molecular Basis of Inheritance', 'Evolution', 'Human Health and Disease', 'Strategies for Enhancement', 'Microbes in Human Welfare', 'Biotechnology Principles', 'Biotechnology Applications', 'Organisms and Populations', 'Ecosystem', 'Biodiversity', 'Environmental Issues'],
-    }
-  }
+    },
+  },
 };
 
 type TestState = 'config' | 'loading' | 'test' | 'result';
-type Question = { id: number; question: string; options: string[]; correctAnswer: number; explanation: string; subject: string; chapter?: string };
+type Question = {
+  id: number;
+  question: string;
+  options: string[];
+  correctAnswer: number;
+  explanation: string;
+  subject: string;
+  chapter?: string;
+};
+
+type ResultState = {
+  correct: number;
+  incorrect: number;
+  unanswered: number;
+  obtained: number;
+  total: number;
+  negativeMarks: number;
+  attempted: number;
+  subjectScores: Record<string, { correct: number; incorrect: number; total: number }>;
+};
+
+const chartColors = {
+  correct: 'hsl(var(--primary))',
+  incorrect: 'hsl(var(--destructive))',
+  unanswered: 'hsl(var(--muted-foreground))',
+};
 
 export default function AITestPage() {
   const { user } = useAuth();
@@ -53,46 +90,80 @@ export default function AITestPage() {
   const [markedForReview, setMarkedForReview] = useState<Set<number>>(new Set());
   const [currentQ, setCurrentQ] = useState(0);
   const [timeLeft, setTimeLeft] = useState(0);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<ResultState | null>(null);
 
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const subjects = examType === 'JEE' ? JEE_SUBJECTS : NEET_SUBJECTS;
+
+  const attemptedCount = useMemo(() => Object.keys(answers).length, [answers]);
+  const unattemptedCount = useMemo(() => Math.max(questions.length - attemptedCount, 0), [questions.length, attemptedCount]);
 
   const getTestConfig = () => {
     const isFullExam = classLevel === 'Full' && subject === 'Full';
     const isFullSubject = subject !== 'Full' && chapter === 'Full';
-    
+
     let numQ = 10;
     let totalMarks = 40;
-    let duration = 20 * 60; // 20 mins
+    let duration = 20 * 60;
 
     if (isFullExam) {
-      if (examType === 'JEE') { numQ = 75; totalMarks = 300; duration = 3 * 60 * 60; }
-      else { numQ = 180; totalMarks = 720; duration = 3 * 60 * 60; }
+      if (examType === 'JEE') {
+        numQ = 75;
+        totalMarks = 300;
+        duration = 3 * 60 * 60;
+      } else {
+        numQ = 180;
+        totalMarks = 720;
+        duration = 3 * 60 * 60;
+      }
     } else if (isFullSubject) {
-      if (examType === 'JEE') { numQ = 25; totalMarks = 100; duration = 60 * 60; }
-      else if (subject === 'Biology') { numQ = 90; totalMarks = 360; duration = 90 * 60; }
-      else { numQ = 45; totalMarks = 180; duration = 45 * 60; }
+      if (examType === 'JEE') {
+        numQ = 25;
+        totalMarks = 100;
+        duration = 60 * 60;
+      } else if (subject === 'Biology') {
+        numQ = 90;
+        totalMarks = 360;
+        duration = 90 * 60;
+      } else {
+        numQ = 45;
+        totalMarks = 180;
+        duration = 45 * 60;
+      }
     } else if (classLevel !== 'Full' && subject === 'Full') {
-      numQ = 30; totalMarks = 120; duration = 60 * 60;
+      numQ = 30;
+      totalMarks = 120;
+      duration = 60 * 60;
     }
 
     return { numQ, totalMarks, duration };
   };
 
+  const clearTimer = () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  };
+
+  useEffect(() => {
+    return () => clearTimer();
+  }, []);
+
   const startTest = async () => {
     setState('loading');
     const { numQ, duration } = getTestConfig();
-    
+
     try {
       const { data, error } = await supabase.functions.invoke('generate-test', {
         body: {
           examType,
           subject: subject === 'Full' ? null : subject,
           chapter: chapter === 'Full' ? null : chapter,
-          numQuestions: Math.min(numQ, 25), // Cap at 25 per request for speed
-        }
+          numQuestions: Math.min(numQ, 25),
+        },
       });
-      
+
       if (error) throw error;
       if (!data?.questions) throw new Error('No questions generated');
 
@@ -101,54 +172,85 @@ export default function AITestPage() {
       setMarkedForReview(new Set());
       setCurrentQ(0);
       setTimeLeft(duration);
+      setResult(null);
       setState('test');
 
-      // Start timer
-      const interval = setInterval(() => {
-        setTimeLeft(prev => {
-          if (prev <= 1) { clearInterval(interval); submitTest(); return 0; }
+      clearTimer();
+      timerRef.current = setInterval(() => {
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            clearTimer();
+            submitTest();
+            return 0;
+          }
           return prev - 1;
         });
       }, 1000);
     } catch (e: any) {
-      toast.error('Failed to generate test: ' + (e.message || 'Try again'));
+      toast.error(`Failed to generate test: ${e.message || 'Try again'}`);
       setState('config');
     }
   };
 
   const submitTest = async () => {
-    let correct = 0, incorrect = 0, unanswered = 0;
+    clearTimer();
+
+    let correct = 0;
+    let incorrect = 0;
+    let unanswered = 0;
     const subjectScores: Record<string, { correct: number; incorrect: number; total: number }> = {};
 
     questions.forEach((q, i) => {
       const subj = q.subject || 'General';
       if (!subjectScores[subj]) subjectScores[subj] = { correct: 0, incorrect: 0, total: 0 };
-      subjectScores[subj].total++;
+      subjectScores[subj].total += 1;
 
-      if (answers[i] === undefined) { unanswered++; }
-      else if (answers[i] === q.correctAnswer) { correct++; subjectScores[subj].correct++; }
-      else { incorrect++; subjectScores[subj].incorrect++; }
+      if (answers[i] === undefined) {
+        unanswered += 1;
+      } else if (answers[i] === q.correctAnswer) {
+        correct += 1;
+        subjectScores[subj].correct += 1;
+      } else {
+        incorrect += 1;
+        subjectScores[subj].incorrect += 1;
+      }
     });
 
-    const marksPerCorrect = 4;
-    const negativePerWrong = 1;
-    const obtained = (correct * marksPerCorrect) - (incorrect * negativePerWrong);
-    const total = questions.length * marksPerCorrect;
-    const negativeMks = incorrect * negativePerWrong;
+    const obtained = correct * 4 - incorrect;
+    const total = questions.length * 4;
+    const negativeMarks = incorrect;
 
-    const res = { correct, incorrect, unanswered, obtained, total, negativeMarks: negativeMks, subjectScores, attempted: correct + incorrect };
+    const res: ResultState = {
+      correct,
+      incorrect,
+      unanswered,
+      obtained,
+      total,
+      negativeMarks,
+      attempted: correct + incorrect,
+      subjectScores,
+    };
+
     setResult(res);
     setState('result');
 
-    // Save to DB
     if (user) {
       await supabase.from('test_results').insert({
-        user_id: user.id, exam_type: examType, class: classLevel,
-        subject: subject === 'Full' ? null : subject, chapter: chapter === 'Full' ? null : chapter,
-        total_marks: total, obtained_marks: obtained, total_questions: questions.length,
-        attempted: res.attempted, correct, incorrect, unanswered,
-        negative_marks: negativeMks, subject_scores: subjectScores,
-        duration_seconds: getTestConfig().duration - timeLeft
+        user_id: user.id,
+        exam_type: examType,
+        class: classLevel,
+        subject: subject === 'Full' ? null : subject,
+        chapter: chapter === 'Full' ? null : chapter,
+        total_marks: total,
+        obtained_marks: obtained,
+        total_questions: questions.length,
+        attempted: res.attempted,
+        correct,
+        incorrect,
+        unanswered,
+        negative_marks: negativeMarks,
+        subject_scores: subjectScores,
+        duration_seconds: getTestConfig().duration - timeLeft,
       });
     }
   };
@@ -161,94 +263,146 @@ export default function AITestPage() {
   };
 
   const toggleReview = (idx: number) => {
-    setMarkedForReview(prev => {
+    setMarkedForReview((prev) => {
       const next = new Set(prev);
-      next.has(idx) ? next.delete(idx) : next.add(idx);
+      if (next.has(idx)) next.delete(idx);
+      else next.add(idx);
       return next;
     });
   };
 
   if (state === 'loading') {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-        <div className="animate-spin w-12 h-12 border-4 border-primary border-t-transparent rounded-full" />
-        <p className="text-lg font-bold font-display">Generating your test...</p>
-        <p className="text-muted-foreground">AI is crafting questions matching {examType} pattern</p>
+      <div className="min-h-[60vh] grid place-items-center">
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="text-center space-y-4">
+          <div className="mx-auto animate-spin w-12 h-12 border-4 border-primary border-t-transparent rounded-full" />
+          <p className="text-lg font-bold font-display">Generating your test...</p>
+          <p className="text-muted-foreground">AI is crafting exam-style questions for {examType}</p>
+        </motion.div>
       </div>
     );
   }
 
   if (state === 'test') {
     const q = questions[currentQ];
+
     return (
       <div className="space-y-4">
-        {/* Header */}
-        <div className="flex items-center justify-between bg-card rounded-xl border border-border p-4">
-          <div className="flex items-center gap-2">
-            <FlaskConical className="w-5 h-5 text-primary" />
-            <span className="font-bold font-display">{examType} Test</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <span className={`font-mono font-bold ${timeLeft < 300 ? 'text-destructive animate-pulse' : 'text-primary'}`}>
-              <Clock className="w-4 h-4 inline mr-1" />{formatTime(timeLeft)}
-            </span>
-            <Button variant="destructive" size="sm" onClick={submitTest}>Submit Test</Button>
-          </div>
-        </div>
-
-        {/* Question nav */}
-        <div className="flex flex-wrap gap-1.5">
-          {questions.map((_, i) => (
-            <button key={i} onClick={() => setCurrentQ(i)}
-              className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
-                i === currentQ ? 'bg-primary text-primary-foreground' :
-                markedForReview.has(i) ? 'bg-yellow-500/20 text-yellow-600 border border-yellow-500' :
-                answers[i] !== undefined ? 'bg-green-500/20 text-green-600 border border-green-500' :
-                'bg-muted text-muted-foreground'
-              }`}>
-              {i + 1}
-            </button>
-          ))}
-        </div>
-
-        {/* Question */}
-        {q && (
-          <motion.div key={currentQ} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
-            className="bg-card rounded-2xl border border-border p-6 space-y-4">
-            <div className="flex justify-between items-start">
-              <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">{q.subject}</span>
-              <button onClick={() => toggleReview(currentQ)}
-                className={`text-xs flex items-center gap-1 ${markedForReview.has(currentQ) ? 'text-yellow-500' : 'text-muted-foreground'}`}>
-                <Flag className="w-3 h-3" /> {markedForReview.has(currentQ) ? 'Marked' : 'Mark for Review'}
-              </button>
+        <div className="bg-card rounded-2xl border border-border p-4 sm:p-5">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <FlaskConical className="w-5 h-5 text-primary" />
+              <span className="font-bold font-display">{examType} CBT Test</span>
             </div>
-            <h3 className="text-lg font-medium">Q{currentQ + 1}. {q.question}</h3>
-            <div className="space-y-2">
-              {q.options.map((opt, oi) => (
-                <button key={oi} onClick={() => setAnswers(p => ({ ...p, [currentQ]: oi }))}
-                  className={`w-full text-left p-3 rounded-xl border transition-all ${
-                    answers[currentQ] === oi ? 'border-primary bg-primary/10 font-medium' : 'border-border hover:border-primary/50'
-                  }`}>
-                  <span className="font-bold mr-2">{String.fromCharCode(65 + oi)}.</span> {opt}
+
+            <div className="flex flex-wrap items-center gap-2">
+              <span className={`font-mono font-bold ${timeLeft < 300 ? 'text-destructive animate-pulse' : 'text-primary'}`}>
+                <Clock className="w-4 h-4 inline mr-1" />
+                {formatTime(timeLeft)}
+              </span>
+              <Button variant="destructive" size="sm" onClick={submitTest}>
+                Submit Test
+              </Button>
+            </div>
+          </div>
+
+          <p className="text-xs text-muted-foreground mt-3">
+            <AlertTriangle className="w-3.5 h-3.5 inline mr-1" />
+            AI disclaimer: Questions are AI-generated for practice; verify key concepts with standard books.
+          </p>
+        </div>
+
+        <div className="grid lg:grid-cols-[1fr_320px] gap-4">
+          {q && (
+            <motion.div
+              key={currentQ}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="bg-card rounded-2xl border border-border p-6 space-y-4"
+            >
+              <div className="flex justify-between items-start gap-2">
+                <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">{q.subject}</span>
+                <button
+                  type="button"
+                  onClick={() => toggleReview(currentQ)}
+                  className={`text-xs flex items-center gap-1 ${markedForReview.has(currentQ) ? 'text-primary' : 'text-muted-foreground'}`}
+                >
+                  <Flag className="w-3 h-3" /> {markedForReview.has(currentQ) ? 'Marked for review' : 'Mark for Review'}
                 </button>
-              ))}
+              </div>
+
+              <h3 className="text-lg font-medium leading-relaxed">
+                Q{currentQ + 1}. {q.question}
+              </h3>
+
+              <div className="space-y-2">
+                {q.options.map((opt, oi) => (
+                  <button
+                    key={oi}
+                    type="button"
+                    onClick={() => setAnswers((prev) => ({ ...prev, [currentQ]: oi }))}
+                    className={`w-full text-left p-3 rounded-xl border transition-all ${
+                      answers[currentQ] === oi ? 'border-primary bg-primary/10 font-medium' : 'border-border hover:border-primary/40'
+                    }`}
+                  >
+                    <span className="font-bold mr-2">{String.fromCharCode(65 + oi)}.</span>
+                    {opt}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex justify-between pt-2">
+                <Button variant="outline" onClick={() => setCurrentQ((prev) => Math.max(0, prev - 1))} disabled={currentQ === 0}>
+                  Previous
+                </Button>
+                <Button onClick={() => setCurrentQ((prev) => Math.min(questions.length - 1, prev + 1))} disabled={currentQ === questions.length - 1}>
+                  Next <ArrowRight className="w-4 h-4 ml-1" />
+                </Button>
+              </div>
+            </motion.div>
+          )}
+
+          <div className="bg-card rounded-2xl border border-border p-4 h-fit space-y-4">
+            <h4 className="font-bold font-display">Question Palette</h4>
+            <div className="grid grid-cols-5 gap-1.5">
+              {questions.map((_, i) => {
+                const className =
+                  i === currentQ
+                    ? 'ring-2 ring-primary bg-primary text-primary-foreground border border-primary'
+                    : markedForReview.has(i)
+                      ? 'bg-secondary text-secondary-foreground border border-secondary'
+                      : answers[i] !== undefined
+                        ? 'bg-primary/10 text-primary border border-primary/30'
+                        : 'bg-destructive/10 text-destructive border border-destructive/30';
+
+                return (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => setCurrentQ(i)}
+                    className={`w-9 h-9 rounded-lg text-xs font-semibold transition-all ${className}`}
+                  >
+                    {i + 1}
+                  </button>
+                );
+              })}
             </div>
-          </motion.div>
-        )}
 
-        {/* Nav buttons */}
-        <div className="flex justify-between">
-          <Button variant="outline" onClick={() => setCurrentQ(p => Math.max(0, p - 1))} disabled={currentQ === 0}>Previous</Button>
-          <Button onClick={() => setCurrentQ(p => Math.min(questions.length - 1, p + 1))} disabled={currentQ === questions.length - 1}>
-            Next <ArrowRight className="w-4 h-4 ml-1" />
-          </Button>
-        </div>
-
-        {/* Legend */}
-        <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
-          <span>✅ Answered: {Object.keys(answers).length}</span>
-          <span>⬜ Unanswered: {questions.length - Object.keys(answers).length}</span>
-          <span>🟡 Review: {markedForReview.size}</span>
+            <div className="space-y-2 text-xs">
+              <div className="flex items-center justify-between rounded-lg bg-primary/10 px-2.5 py-2">
+                <span>Attempted</span>
+                <span className="font-semibold text-primary">{attemptedCount}</span>
+              </div>
+              <div className="flex items-center justify-between rounded-lg bg-secondary px-2.5 py-2">
+                <span>Marked for review</span>
+                <span className="font-semibold">{markedForReview.size}</span>
+              </div>
+              <div className="flex items-center justify-between rounded-lg bg-destructive/10 px-2.5 py-2">
+                <span>Not attempted</span>
+                <span className="font-semibold text-destructive">{unattemptedCount}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -256,81 +410,111 @@ export default function AITestPage() {
 
   if (state === 'result' && result) {
     const pieData = [
-      { name: 'Correct', value: result.correct, color: '#22c55e' },
-      { name: 'Incorrect', value: result.incorrect, color: '#ef4444' },
-      { name: 'Unanswered', value: result.unanswered, color: '#6b7280' },
+      { name: 'Correct', value: result.correct, color: chartColors.correct },
+      { name: 'Incorrect', value: result.incorrect, color: chartColors.incorrect },
+      { name: 'Unanswered', value: result.unanswered, color: chartColors.unanswered },
     ];
-    const subjectData = Object.entries(result.subjectScores as Record<string, any>).map(([name, v]) => ({
-      name, correct: v.correct * 4, incorrect: -(v.incorrect * 1), total: v.total * 4
+
+    const subjectData = Object.entries(result.subjectScores).map(([name, value]) => ({
+      name,
+      marks: value.correct * 4 - value.incorrect,
+      total: value.total * 4,
     }));
+
     const percentage = Math.round((result.obtained / result.total) * 100);
 
     return (
-      <div className="space-y-6 max-w-3xl mx-auto">
-        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center">
-          <Trophy className={`w-16 h-16 mx-auto mb-4 ${percentage >= 60 ? 'text-yellow-500' : percentage >= 40 ? 'text-primary' : 'text-muted-foreground'}`} />
-          <h1 className="text-4xl font-bold font-display mb-2">Test Complete!</h1>
-          <div className="text-5xl font-bold font-display text-gradient">{result.obtained}/{result.total}</div>
-          <p className="text-muted-foreground mt-2">{percentage >= 60 ? 'Excellent work! 🎉' : percentage >= 40 ? 'Good effort! Keep going! 💪' : 'Keep practicing! You got this! 📚'}</p>
+      <div className="space-y-6 max-w-4xl mx-auto">
+        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center space-y-2">
+          <Trophy className="w-14 h-14 text-primary mx-auto" />
+          <h1 className="text-4xl font-bold font-display">Test Complete!</h1>
+          <div className="text-5xl font-bold font-display text-gradient">
+            {result.obtained}/{result.total}
+          </div>
+          <p className="text-muted-foreground">
+            {percentage >= 60 ? 'Excellent work! 🎉' : percentage >= 40 ? 'Great effort! Keep pushing! 💪' : 'Keep practicing, progress is loading! 📚'}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            <AlertTriangle className="w-3.5 h-3.5 inline mr-1" />
+            AI disclaimer: Use this analysis as guidance and cross-check difficult topics with trusted material.
+          </p>
         </motion.div>
 
         <div className="grid sm:grid-cols-4 gap-3">
           {[
-            { label: 'Attempted', value: result.attempted, icon: CheckCircle, color: 'text-blue-500' },
-            { label: 'Correct', value: result.correct, icon: CheckCircle, color: 'text-green-500' },
-            { label: 'Incorrect', value: result.incorrect, icon: XCircle, color: 'text-red-500' },
-            { label: 'Negative', value: `-${result.negativeMarks}`, icon: MinusCircle, color: 'text-orange-500' },
-          ].map(s => (
-            <div key={s.label} className="bg-card rounded-xl border border-border p-4 text-center">
-              <s.icon className={`w-6 h-6 mx-auto mb-1 ${s.color}`} />
-              <div className="text-2xl font-bold font-display">{s.value}</div>
-              <div className="text-xs text-muted-foreground">{s.label}</div>
+            { label: 'Attempted', value: result.attempted, icon: CheckCircle, tone: 'text-primary' },
+            { label: 'Correct', value: result.correct, icon: CheckCircle, tone: 'text-primary' },
+            { label: 'Incorrect', value: result.incorrect, icon: XCircle, tone: 'text-destructive' },
+            { label: 'Negative', value: `-${result.negativeMarks}`, icon: MinusCircle, tone: 'text-destructive' },
+          ].map((item) => (
+            <div key={item.label} className="bg-card rounded-xl border border-border p-4 text-center">
+              <item.icon className={`w-5 h-5 mx-auto mb-1 ${item.tone}`} />
+              <div className="text-2xl font-bold font-display">{item.value}</div>
+              <div className="text-xs text-muted-foreground">{item.label}</div>
             </div>
           ))}
         </div>
 
         <div className="grid sm:grid-cols-2 gap-4">
           <div className="bg-card rounded-2xl border border-border p-6">
-            <h3 className="font-bold font-display mb-4 flex items-center gap-2"><BarChart3 className="w-4 h-4 text-primary" /> Overview</h3>
-            <div className="h-48">
+            <h3 className="font-bold font-display mb-4 flex items-center gap-2">
+              <BarChart3 className="w-4 h-4 text-primary" /> Overview
+            </h3>
+            <div className="h-52">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie data={pieData} cx="50%" cy="50%" innerRadius={40} outerRadius={70} paddingAngle={4} dataKey="value">
-                    {pieData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                  <Pie data={pieData} cx="50%" cy="50%" innerRadius={44} outerRadius={76} dataKey="value" paddingAngle={4}>
+                    {pieData.map((entry, i) => (
+                      <Cell key={i} fill={entry.color} />
+                    ))}
                   </Pie>
                   <Tooltip />
                 </PieChart>
               </ResponsiveContainer>
             </div>
           </div>
+
           <div className="bg-card rounded-2xl border border-border p-6">
             <h3 className="font-bold font-display mb-4">Subject Analysis</h3>
-            <div className="h-48">
+            <div className="h-52">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={subjectData}>
                   <XAxis dataKey="name" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
                   <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
                   <Tooltip />
-                  <Bar dataKey="correct" fill="#22c55e" name="Marks" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="marks" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
         </div>
 
-        {/* Review answers */}
         <div className="bg-card rounded-2xl border border-border p-6">
           <h3 className="font-bold font-display mb-4">Answer Review</h3>
           <div className="space-y-4 max-h-96 overflow-y-auto">
             {questions.map((q, i) => {
-              const isCorrect = answers[i] === q.correctAnswer;
               const isUnanswered = answers[i] === undefined;
+              const isCorrect = answers[i] === q.correctAnswer;
+
               return (
-                <div key={i} className={`p-4 rounded-xl border ${isUnanswered ? 'border-muted' : isCorrect ? 'border-green-500/30 bg-green-500/5' : 'border-red-500/30 bg-red-500/5'}`}>
+                <div
+                  key={i}
+                  className={`p-4 rounded-xl border ${
+                    isUnanswered
+                      ? 'border-destructive/30 bg-destructive/5'
+                      : isCorrect
+                        ? 'border-primary/30 bg-primary/5'
+                        : 'border-destructive/30 bg-destructive/5'
+                  }`}
+                >
                   <p className="font-medium text-sm">Q{i + 1}. {q.question}</p>
-                  <p className="text-xs mt-1 text-green-600">✅ Correct: {String.fromCharCode(65 + q.correctAnswer)}. {q.options[q.correctAnswer]}</p>
+                  <p className="text-xs mt-1 text-primary">
+                    ✅ Correct: {String.fromCharCode(65 + q.correctAnswer)}. {q.options[q.correctAnswer]}
+                  </p>
                   {!isUnanswered && !isCorrect && (
-                    <p className="text-xs text-red-500">❌ Your answer: {String.fromCharCode(65 + answers[i])}. {q.options[answers[i]]}</p>
+                    <p className="text-xs text-destructive">
+                      ❌ Your answer: {String.fromCharCode(65 + answers[i])}. {q.options[answers[i]]}
+                    </p>
                   )}
                   <p className="text-xs text-muted-foreground mt-1">💡 {q.explanation}</p>
                 </div>
@@ -339,85 +523,123 @@ export default function AITestPage() {
           </div>
         </div>
 
-        <Button variant="hero" size="lg" className="w-full" onClick={() => { setState('config'); setResult(null); }}>
-          Take Another Test
+        <Button
+          variant="hero"
+          size="lg"
+          className="w-full"
+          onClick={() => {
+            setState('config');
+            setResult(null);
+          }}
+        >
+          <Sparkles className="w-4 h-4 mr-2" /> Take Another Test
         </Button>
       </div>
     );
   }
 
-  // Config state
   const availableChapters = classLevel !== 'Full' && subject !== 'Full' ? SYLLABUS[examType]?.[classLevel]?.[subject] || [] : [];
+  const currentConfig = getTestConfig();
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-3xl font-bold font-display">AI <span className="text-gradient">Mock Tests</span> 🎯</h1>
-        <p className="text-muted-foreground mt-1">Practice with AI-generated CBT-mode tests matching actual exam patterns</p>
+    <div className="max-w-3xl mx-auto space-y-6">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-2">
+        <h1 className="text-3xl font-bold font-display">
+          AI <span className="text-gradient">Mock Tests</span> 🎯
+        </h1>
+        <p className="text-muted-foreground">Practice with AI-generated CBT-mode tests matching actual exam patterns.</p>
+        <p className="text-xs text-muted-foreground">
+          <AlertTriangle className="w-3.5 h-3.5 inline mr-1" />
+          AI disclaimer: Questions are AI-generated; verify critical formulas and facts from standard references.
+        </p>
       </motion.div>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-        className="bg-card rounded-2xl border border-border p-6 space-y-5">
-        {/* Exam Type */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.08 }}
+        className="bg-card rounded-2xl border border-border p-6 space-y-5"
+      >
         <div>
           <label className="text-sm font-medium mb-2 block">Exam Type</label>
           <div className="flex gap-3">
-            {(['JEE', 'NEET'] as const).map(e => (
-              <Button key={e} variant={examType === e ? 'default' : 'outline'} size="lg" className="flex-1"
-                onClick={() => { setExamType(e); setSubject('Full'); setChapter('Full'); }}>
-                {e}
+            {(['JEE', 'NEET'] as const).map((item) => (
+              <Button
+                key={item}
+                variant={examType === item ? 'default' : 'outline'}
+                size="lg"
+                className="flex-1"
+                onClick={() => {
+                  setExamType(item);
+                  setSubject('Full');
+                  setChapter('Full');
+                }}
+              >
+                {item}
               </Button>
             ))}
           </div>
         </div>
 
-        {/* Class */}
         <div>
           <label className="text-sm font-medium mb-2 block">Class / Scope</label>
           <div className="flex gap-2">
-            {(['11th', '12th', 'Full'] as const).map(c => (
-              <Button key={c} variant={classLevel === c ? 'default' : 'outline'} size="sm" className="flex-1"
-                onClick={() => { setClassLevel(c); setSubject('Full'); setChapter('Full'); }}>
-                {c === 'Full' ? `Complete ${examType}` : `Class ${c}`}
+            {(['11th', '12th', 'Full'] as const).map((item) => (
+              <Button
+                key={item}
+                variant={classLevel === item ? 'default' : 'outline'}
+                size="sm"
+                className="flex-1"
+                onClick={() => {
+                  setClassLevel(item);
+                  setSubject('Full');
+                  setChapter('Full');
+                }}
+              >
+                {item === 'Full' ? `Complete ${examType}` : `Class ${item}`}
               </Button>
             ))}
           </div>
         </div>
 
-        {/* Subject */}
         {classLevel !== 'Full' && (
           <div>
             <label className="text-sm font-medium mb-2 block">Subject</label>
             <div className="flex flex-wrap gap-2">
-              <Button variant={subject === 'Full' ? 'default' : 'outline'} size="sm"
-                onClick={() => { setSubject('Full'); setChapter('Full'); }}>All Subjects</Button>
-              {subjects.map(s => (
-                <Button key={s} variant={subject === s ? 'default' : 'outline'} size="sm"
-                  onClick={() => { setSubject(s); setChapter('Full'); }}>{s}</Button>
+              <Button variant={subject === 'Full' ? 'default' : 'outline'} size="sm" onClick={() => { setSubject('Full'); setChapter('Full'); }}>
+                All Subjects
+              </Button>
+              {subjects.map((item) => (
+                <Button key={item} variant={subject === item ? 'default' : 'outline'} size="sm" onClick={() => { setSubject(item); setChapter('Full'); }}>
+                  {item}
+                </Button>
               ))}
             </div>
           </div>
         )}
 
-        {/* Chapter */}
         {availableChapters.length > 0 && (
           <div>
             <label className="text-sm font-medium mb-2 block">Chapter</label>
-            <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto">
-              <Button variant={chapter === 'Full' ? 'default' : 'outline'} size="sm" onClick={() => setChapter('Full')}>All Chapters</Button>
-              {availableChapters.map(c => (
-                <Button key={c} variant={chapter === c ? 'default' : 'outline'} size="sm" onClick={() => setChapter(c)}
-                  className="text-xs">{c}</Button>
+            <div className="flex flex-wrap gap-1.5 max-h-44 overflow-y-auto pr-1">
+              <Button variant={chapter === 'Full' ? 'default' : 'outline'} size="sm" onClick={() => setChapter('Full')}>
+                All Chapters
+              </Button>
+              {availableChapters.map((item) => (
+                <Button key={item} variant={chapter === item ? 'default' : 'outline'} size="sm" className="text-xs" onClick={() => setChapter(item)}>
+                  {item}
+                </Button>
               ))}
             </div>
           </div>
         )}
 
-        {/* Test info */}
         <div className="bg-muted/50 rounded-xl p-4 text-sm space-y-1">
-          <p><strong>Pattern:</strong> +4 for correct, -1 for incorrect, 0 for unanswered</p>
-          <p><strong>Duration:</strong> {formatTime(getTestConfig().duration)}</p>
-          <p><strong>Questions:</strong> {getTestConfig().numQ} | <strong>Total Marks:</strong> {getTestConfig().totalMarks}</p>
+          <p><strong>Pattern:</strong> +4 correct, -1 incorrect, 0 unanswered</p>
+          <p><strong>Duration:</strong> {formatTime(currentConfig.duration)}</p>
+          <p>
+            <strong>Questions:</strong> {currentConfig.numQ} | <strong>Total Marks:</strong> {currentConfig.totalMarks}
+          </p>
         </div>
 
         <Button variant="hero" size="xl" className="w-full" onClick={startTest}>
