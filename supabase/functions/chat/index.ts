@@ -41,7 +41,9 @@ Rules:
 - For chemistry, explain mechanisms when relevant
 - Always be accurate - if unsure, say so
 - Keep responses concise but complete
-- Use markdown formatting for better readability`
+- Use markdown formatting for readability
+- IMPORTANT: Never use LaTeX delimiters like $...$ or $$...$$
+- Write formulas in plain readable text using symbols like √, π, ×, ÷, ^, and /`
           },
           ...messages,
         ],
