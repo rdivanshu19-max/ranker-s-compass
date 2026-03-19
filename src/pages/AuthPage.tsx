@@ -32,7 +32,7 @@ export default function AuthPage() {
         }
         const { error } = await signUp(email, password, displayName);
         if (error) throw error;
-        toast.success('Account created! Check your email to verify.');
+        toast.success('Account created! You are now signed in.');
       } else {
         const { error } = await signIn(email, password);
         if (error) throw error;
