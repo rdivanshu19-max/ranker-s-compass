@@ -12,19 +12,64 @@ const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 
 const normalizeMathText = (text: string) => {
   return text
-    .replace(/\$\$?/g, '')
-    .replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '($1/$2)')
+    .replace(/\$\$([^$]+)\$\$/g, '$1')
+    .replace(/\$([^$]+)\$/g, '$1')
+    .replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '($1 / $2)')
+    .replace(/\\sqrt\[(\d+)\]\{([^}]+)\}/g, '∛($2)')
     .replace(/\\sqrt\{([^}]+)\}/g, '√($1)')
+    .replace(/\\vec\{([^}]+)\}/g, '$1→')
+    .replace(/\\hat\{([^}]+)\}/g, '$1̂')
+    .replace(/\\overline\{([^}]+)\}/g, '$1̄')
     .replace(/\\times/g, '×')
     .replace(/\\cdot/g, '·')
     .replace(/\\div/g, '÷')
+    .replace(/\\pm/g, '±')
+    .replace(/\\mp/g, '∓')
     .replace(/\\pi/g, 'π')
+    .replace(/\\theta/g, 'θ')
+    .replace(/\\alpha/g, 'α')
+    .replace(/\\beta/g, 'β')
+    .replace(/\\gamma/g, 'γ')
+    .replace(/\\delta/g, 'δ')
+    .replace(/\\epsilon/g, 'ε')
+    .replace(/\\lambda/g, 'λ')
+    .replace(/\\mu/g, 'μ')
+    .replace(/\\sigma/g, 'σ')
+    .replace(/\\omega/g, 'ω')
+    .replace(/\\phi/g, 'φ')
+    .replace(/\\Delta/g, 'Δ')
+    .replace(/\\Sigma/g, 'Σ')
+    .replace(/\\Omega/g, 'Ω')
+    .replace(/\\infty/g, '∞')
+    .replace(/\\int/g, '∫')
+    .replace(/\\sum/g, 'Σ')
+    .replace(/\\prod/g, '∏')
+    .replace(/\\partial/g, '∂')
+    .replace(/\\nabla/g, '∇')
+    .replace(/\\approx/g, '≈')
+    .replace(/\\equiv/g, '≡')
+    .replace(/\\propto/g, '∝')
     .replace(/\\left|\\right/g, '')
+    .replace(/\\left/g, '')
+    .replace(/\\right/g, '')
     .replace(/\\geq/g, '≥')
     .replace(/\\leq/g, '≤')
     .replace(/\\neq/g, '≠')
     .replace(/\\to/g, '→')
-    .replace(/\\n/g, '\n')
+    .replace(/\\rightarrow/g, '→')
+    .replace(/\\leftarrow/g, '←')
+    .replace(/\\Rightarrow/g, '⇒')
+    .replace(/\\Leftarrow/g, '⇐')
+    .replace(/\\therefore/g, '∴')
+    .replace(/\\because/g, '∵')
+    .replace(/\\degree/g, '°')
+    .replace(/\\circ/g, '°')
+    .replace(/\^{(\d+)}/g, (_, p) => p.split('').map((c: string) => '⁰¹²³⁴⁵⁶⁷⁸⁹'[parseInt(c)] || c).join(''))
+    .replace(/_{(\d+)}/g, (_, p) => p.split('').map((c: string) => '₀₁₂₃₄₅₆₇₈₉'[parseInt(c)] || c).join(''))
+    .replace(/\^(\d)/g, (_, c) => '⁰¹²³⁴⁵⁶⁷⁸⁹'[parseInt(c)] || c)
+    .replace(/_(\d)/g, (_, c) => '₀₁₂₃₄₅₆₇₈₉'[parseInt(c)] || c)
+    .replace(/\\[a-zA-Z]+/g, '') // remove remaining LaTeX commands
+    .replace(/\{([^}]*)\}/g, '$1') // remove remaining braces
     .trim();
 };
 
@@ -32,11 +77,7 @@ export default function AIChatWidget() {
   const { session } = useAuth();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([
-    {
-      role: 'assistant',
-      content:
-        "Hi! I'm **RankerPulse** 🚀 — your AI study assistant!\n\nI can help you with:\n- 📚 Solving chapter-wise doubts\n- 🧠 JEE/NEET concept clarity\n- 🎯 Smart study strategy\n- 📝 Quick revision plans\n\nAsk me your doubt in simple language.",
-    },
+    { role: 'assistant', content: "Hi! I'm **RankerPulse** 🚀 — your AI study assistant!\n\nI can help you with:\n- 📚 Solving chapter-wise doubts\n- 🧠 JEE/NEET concept clarity\n- 🎯 Smart study strategy\n- 📝 Quick revision plans\n\nAsk me your doubt in simple language." },
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -50,63 +91,42 @@ export default function AIChatWidget() {
 
   const send = async () => {
     if (!input.trim() || loading) return;
-
     const userMsg: Msg = { role: 'user', content: input.trim() };
     const newMsgs = [...messages, userMsg];
-
     setMessages(newMsgs);
     setInput('');
     setLoading(true);
-
     let assistantSoFar = '';
 
     try {
       const resp = await fetch(CHAT_URL, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          Authorization: `Bearer ${authHeader}`,
-        },
+        headers: { 'Content-Type': 'application/json', apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY, Authorization: `Bearer ${authHeader}` },
         body: JSON.stringify({ messages: newMsgs.map((m) => ({ role: m.role, content: m.content })) }),
       });
-
-      if (!resp.ok) {
-        const err = await resp.json().catch(() => ({}));
-        throw new Error(err.error || 'Failed to get response');
-      }
-
+      if (!resp.ok) { const err = await resp.json().catch(() => ({})); throw new Error(err.error || 'Failed to get response'); }
       const reader = resp.body?.getReader();
       if (!reader) throw new Error('No response stream');
-
       const decoder = new TextDecoder();
       let buffer = '';
-
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-
         buffer += decoder.decode(value, { stream: true });
-
         let newlineIndex: number;
         while ((newlineIndex = buffer.indexOf('\n')) !== -1) {
           let line = buffer.slice(0, newlineIndex);
           buffer = buffer.slice(newlineIndex + 1);
-
           if (line.endsWith('\r')) line = line.slice(0, -1);
           if (!line.startsWith('data: ')) continue;
-
           const jsonStr = line.slice(6).trim();
           if (jsonStr === '[DONE]') break;
-
           try {
             const parsed = JSON.parse(jsonStr);
             const content = parsed.choices?.[0]?.delta?.content;
-
             if (content) {
               assistantSoFar += content;
               const normalized = normalizeMathText(assistantSoFar);
-
               setMessages((prev) => {
                 const last = prev[prev.length - 1];
                 if (last?.role === 'assistant' && prev.length > newMsgs.length) {
@@ -115,30 +135,21 @@ export default function AIChatWidget() {
                 return [...prev, { role: 'assistant', content: normalized }];
               });
             }
-          } catch {
-            buffer = `${line}\n${buffer}`;
-            break;
-          }
+          } catch { buffer = `${line}\n${buffer}`; break; }
         }
       }
     } catch (e: any) {
       setMessages((prev) => [...prev, { role: 'assistant', content: `Sorry, something went wrong: ${e.message}` }]);
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
   return (
     <>
       <AnimatePresence>
         {!open && (
-          <motion.button
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            exit={{ scale: 0 }}
+          <motion.button initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
             onClick={() => setOpen(true)}
-            className="fixed bottom-20 right-4 z-50 w-14 h-14 rounded-full bg-gradient-to-r from-primary to-primary/70 flex items-center justify-center shadow-lg hover:shadow-primary/30 transition-all animate-pulse-glow"
-          >
+            className="fixed bottom-20 right-4 z-50 w-14 h-14 rounded-full bg-gradient-to-r from-primary to-primary/70 flex items-center justify-center shadow-lg hover:shadow-primary/30 transition-all animate-pulse-glow">
             <MessageCircle className="w-6 h-6 text-primary-foreground" />
           </motion.button>
         )}
@@ -146,12 +157,8 @@ export default function AIChatWidget() {
 
       <AnimatePresence>
         {open && (
-          <motion.div
-            initial={{ opacity: 0, y: 100, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 100, scale: 0.9 }}
-            className="fixed bottom-20 right-4 z-50 w-[min(520px,calc(100vw-1rem))] h-[min(78vh,700px)] bg-card border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden"
-          >
+          <motion.div initial={{ opacity: 0, y: 100, scale: 0.9 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 100, scale: 0.9 }}
+            className="fixed bottom-20 right-4 z-50 w-[min(560px,calc(100vw-1rem))] h-[min(82vh,750px)] bg-card border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden">
             <div className="p-4 border-b border-border flex items-center justify-between bg-gradient-to-r from-primary/10 to-transparent">
               <div className="flex items-center gap-2">
                 <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center">
@@ -162,60 +169,36 @@ export default function AIChatWidget() {
                   <p className="text-xs text-muted-foreground">Doubt solving + study strategy</p>
                 </div>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => setOpen(false)}>
-                <X className="w-4 h-4" />
-              </Button>
+              <Button variant="ghost" size="icon" onClick={() => setOpen(false)}><X className="w-4 h-4" /></Button>
             </div>
 
             <div className="px-4 pt-2 text-[11px] text-muted-foreground border-b border-border/70 pb-2">
-              <AlertTriangle className="w-3 h-3 inline mr-1" /> AI disclaimer: Verify critical formulas and final answers from trusted books.
+              <AlertTriangle className="w-3 h-3 inline mr-1" /> AI-generated responses — verify critical formulas from trusted books.
             </div>
 
             <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3">
               {messages.map((m, i) => (
                 <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div
-                    className={`max-w-[88%] rounded-2xl px-4 py-2.5 text-sm ${
-                      m.role === 'user' ? 'bg-primary text-primary-foreground rounded-br-md' : 'bg-muted rounded-bl-md'
-                    }`}
-                  >
+                  <div className={`max-w-[88%] rounded-2xl px-4 py-2.5 text-sm ${m.role === 'user' ? 'bg-primary text-primary-foreground rounded-br-md' : 'bg-muted rounded-bl-md'}`}>
                     {m.role === 'assistant' ? (
                       <div className="prose prose-sm dark:prose-invert max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
                         <ReactMarkdown>{m.content}</ReactMarkdown>
                       </div>
-                    ) : (
-                      m.content
-                    )}
+                    ) : m.content}
                   </div>
                 </div>
               ))}
-
               {loading && messages[messages.length - 1]?.role === 'user' && (
                 <div className="flex gap-1 items-center text-muted-foreground text-sm">
-                  <Bot className="w-4 h-4" />
-                  <span className="animate-pulse">Thinking...</span>
+                  <Bot className="w-4 h-4" /><span className="animate-pulse">Thinking...</span>
                 </div>
               )}
             </div>
 
             <div className="p-3 border-t border-border">
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  send();
-                }}
-                className="flex gap-2"
-              >
-                <Input
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="Ask your doubt..."
-                  className="flex-1 text-sm"
-                  disabled={loading}
-                />
-                <Button type="submit" size="icon" disabled={loading || !input.trim()}>
-                  <Send className="w-4 h-4" />
-                </Button>
+              <form onSubmit={(e) => { e.preventDefault(); send(); }} className="flex gap-2">
+                <Input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ask your doubt..." className="flex-1 text-sm" disabled={loading} />
+                <Button type="submit" size="icon" disabled={loading || !input.trim()}><Send className="w-4 h-4" /></Button>
               </form>
             </div>
           </motion.div>
