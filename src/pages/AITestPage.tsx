@@ -3,17 +3,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { motion } from 'framer-motion';
 import {
-  FlaskConical,
-  Clock,
-  CheckCircle,
-  XCircle,
-  MinusCircle,
-  Flag,
-  ArrowRight,
-  BarChart3,
-  Trophy,
-  AlertTriangle,
-  Sparkles,
+  FlaskConical, Clock, CheckCircle, XCircle, MinusCircle, Flag, ArrowRight,
+  BarChart3, Trophy, AlertTriangle, Sparkles, Timer,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -50,32 +41,15 @@ const SYLLABUS: Record<string, Record<string, Record<string, string[]>>> = {
 };
 
 type TestState = 'config' | 'loading' | 'test' | 'result';
-type Question = {
-  id: number;
-  question: string;
-  options: string[];
-  correctAnswer: number;
-  explanation: string;
-  subject: string;
-  chapter?: string;
-};
-
+type Question = { id: number; question: string; options: string[]; correctAnswer: number; explanation: string; subject: string; chapter?: string };
 type ResultState = {
-  correct: number;
-  incorrect: number;
-  unanswered: number;
-  obtained: number;
-  total: number;
-  negativeMarks: number;
-  attempted: number;
+  correct: number; incorrect: number; unanswered: number; obtained: number; total: number;
+  negativeMarks: number; attempted: number;
   subjectScores: Record<string, { correct: number; incorrect: number; total: number }>;
+  timePerQuestion: number[];
 };
 
-const chartColors = {
-  correct: 'hsl(var(--primary))',
-  incorrect: 'hsl(var(--destructive))',
-  unanswered: 'hsl(var(--muted-foreground))',
-};
+const chartColors = { correct: 'hsl(var(--primary))', incorrect: 'hsl(var(--destructive))', unanswered: 'hsl(var(--muted-foreground))' };
 
 export default function AITestPage() {
   const { user } = useAuth();
@@ -92,99 +66,74 @@ export default function AITestPage() {
   const [timeLeft, setTimeLeft] = useState(0);
   const [result, setResult] = useState<ResultState | null>(null);
 
+  // Time tracking per question
+  const [questionTimes, setQuestionTimes] = useState<number[]>([]);
+  const questionStartRef = useRef<number>(Date.now());
+
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const subjects = examType === 'JEE' ? JEE_SUBJECTS : NEET_SUBJECTS;
 
   const attemptedCount = useMemo(() => Object.keys(answers).length, [answers]);
+  const reviewCount = useMemo(() => markedForReview.size, [markedForReview]);
   const unattemptedCount = useMemo(() => Math.max(questions.length - attemptedCount, 0), [questions.length, attemptedCount]);
 
   const getTestConfig = () => {
     const isFullExam = classLevel === 'Full' && subject === 'Full';
     const isFullSubject = subject !== 'Full' && chapter === 'Full';
-
-    let numQ = 10;
-    let totalMarks = 40;
-    let duration = 20 * 60;
-
+    let numQ = 10, totalMarks = 40, duration = 20 * 60;
     if (isFullExam) {
-      if (examType === 'JEE') {
-        numQ = 75;
-        totalMarks = 300;
-        duration = 3 * 60 * 60;
-      } else {
-        numQ = 180;
-        totalMarks = 720;
-        duration = 3 * 60 * 60;
-      }
+      if (examType === 'JEE') { numQ = 75; totalMarks = 300; duration = 3 * 60 * 60; }
+      else { numQ = 180; totalMarks = 720; duration = 3 * 60 * 60; }
     } else if (isFullSubject) {
-      if (examType === 'JEE') {
-        numQ = 25;
-        totalMarks = 100;
-        duration = 60 * 60;
-      } else if (subject === 'Biology') {
-        numQ = 90;
-        totalMarks = 360;
-        duration = 90 * 60;
-      } else {
-        numQ = 45;
-        totalMarks = 180;
-        duration = 45 * 60;
-      }
+      if (examType === 'JEE') { numQ = 25; totalMarks = 100; duration = 60 * 60; }
+      else if (subject === 'Biology') { numQ = 90; totalMarks = 360; duration = 90 * 60; }
+      else { numQ = 45; totalMarks = 180; duration = 45 * 60; }
     } else if (classLevel !== 'Full' && subject === 'Full') {
-      numQ = 30;
-      totalMarks = 120;
-      duration = 60 * 60;
+      numQ = 30; totalMarks = 120; duration = 60 * 60;
     }
-
     return { numQ, totalMarks, duration };
   };
 
-  const clearTimer = () => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
+  const clearTimer = () => { if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; } };
+  useEffect(() => () => clearTimer(), []);
+
+  // Track time when switching questions
+  const recordQuestionTime = (fromIdx: number) => {
+    const elapsed = (Date.now() - questionStartRef.current) / 1000;
+    setQuestionTimes(prev => {
+      const next = [...prev];
+      next[fromIdx] = (next[fromIdx] || 0) + elapsed;
+      return next;
+    });
+    questionStartRef.current = Date.now();
   };
 
-  useEffect(() => {
-    return () => clearTimer();
-  }, []);
+  const navigateToQuestion = (idx: number) => {
+    recordQuestionTime(currentQ);
+    setCurrentQ(idx);
+  };
 
   const startTest = async () => {
     setState('loading');
     const { numQ, duration } = getTestConfig();
-
     try {
       const { data, error } = await supabase.functions.invoke('generate-test', {
-        body: {
-          examType,
-          subject: subject === 'Full' ? null : subject,
-          chapter: chapter === 'Full' ? null : chapter,
-          numQuestions: Math.min(numQ, 25),
-        },
+        body: { examType, subject: subject === 'Full' ? null : subject, chapter: chapter === 'Full' ? null : chapter, numQuestions: Math.min(numQ, 25) },
       });
-
       if (error) throw error;
       if (!data?.questions) throw new Error('No questions generated');
-
       setQuestions(data.questions);
       setAnswers({});
       setMarkedForReview(new Set());
       setCurrentQ(0);
       setTimeLeft(duration);
       setResult(null);
+      setQuestionTimes(new Array(data.questions.length).fill(0));
+      questionStartRef.current = Date.now();
       setState('test');
-
       clearTimer();
       timerRef.current = setInterval(() => {
-        setTimeLeft((prev) => {
-          if (prev <= 1) {
-            clearTimer();
-            submitTest();
-            return 0;
-          }
-          return prev - 1;
-        });
+        setTimeLeft((prev) => { if (prev <= 1) { clearTimer(); submitTest(); return 0; } return prev - 1; });
       }, 1000);
     } catch (e: any) {
       toast.error(`Failed to generate test: ${e.message || 'Try again'}`);
@@ -194,62 +143,28 @@ export default function AITestPage() {
 
   const submitTest = async () => {
     clearTimer();
+    recordQuestionTime(currentQ);
 
-    let correct = 0;
-    let incorrect = 0;
-    let unanswered = 0;
+    let correct = 0, incorrect = 0, unanswered = 0;
     const subjectScores: Record<string, { correct: number; incorrect: number; total: number }> = {};
-
     questions.forEach((q, i) => {
       const subj = q.subject || 'General';
       if (!subjectScores[subj]) subjectScores[subj] = { correct: 0, incorrect: 0, total: 0 };
       subjectScores[subj].total += 1;
-
-      if (answers[i] === undefined) {
-        unanswered += 1;
-      } else if (answers[i] === q.correctAnswer) {
-        correct += 1;
-        subjectScores[subj].correct += 1;
-      } else {
-        incorrect += 1;
-        subjectScores[subj].incorrect += 1;
-      }
+      if (answers[i] === undefined) unanswered += 1;
+      else if (answers[i] === q.correctAnswer) { correct += 1; subjectScores[subj].correct += 1; }
+      else { incorrect += 1; subjectScores[subj].incorrect += 1; }
     });
-
     const obtained = correct * 4 - incorrect;
     const total = questions.length * 4;
-    const negativeMarks = incorrect;
-
-    const res: ResultState = {
-      correct,
-      incorrect,
-      unanswered,
-      obtained,
-      total,
-      negativeMarks,
-      attempted: correct + incorrect,
-      subjectScores,
-    };
-
+    const res: ResultState = { correct, incorrect, unanswered, obtained, total, negativeMarks: incorrect, attempted: correct + incorrect, subjectScores, timePerQuestion: questionTimes };
     setResult(res);
     setState('result');
-
     if (user) {
       await supabase.from('test_results').insert({
-        user_id: user.id,
-        exam_type: examType,
-        class: classLevel,
-        subject: subject === 'Full' ? null : subject,
-        chapter: chapter === 'Full' ? null : chapter,
-        total_marks: total,
-        obtained_marks: obtained,
-        total_questions: questions.length,
-        attempted: res.attempted,
-        correct,
-        incorrect,
-        unanswered,
-        negative_marks: negativeMarks,
-        subject_scores: subjectScores,
+        user_id: user.id, exam_type: examType, class: classLevel, subject: subject === 'Full' ? null : subject,
+        chapter: chapter === 'Full' ? null : chapter, total_marks: total, obtained_marks: obtained, total_questions: questions.length,
+        attempted: res.attempted, correct, incorrect, unanswered, negative_marks: incorrect, subject_scores: subjectScores,
         duration_seconds: getTestConfig().duration - timeLeft,
       });
     }
@@ -263,14 +178,10 @@ export default function AITestPage() {
   };
 
   const toggleReview = (idx: number) => {
-    setMarkedForReview((prev) => {
-      const next = new Set(prev);
-      if (next.has(idx)) next.delete(idx);
-      else next.add(idx);
-      return next;
-    });
+    setMarkedForReview((prev) => { const next = new Set(prev); if (next.has(idx)) next.delete(idx); else next.add(idx); return next; });
   };
 
+  // Loading
   if (state === 'loading') {
     return (
       <div className="min-h-[60vh] grid place-items-center">
@@ -283,9 +194,9 @@ export default function AITestPage() {
     );
   }
 
+  // Test UI
   if (state === 'test') {
     const q = questions[currentQ];
-
     return (
       <div className="space-y-4">
         <div className="bg-card rounded-2xl border border-border p-4 sm:p-5">
@@ -294,94 +205,70 @@ export default function AITestPage() {
               <FlaskConical className="w-5 h-5 text-primary" />
               <span className="font-bold font-display">{examType} CBT Test</span>
             </div>
-
             <div className="flex flex-wrap items-center gap-2">
               <span className={`font-mono font-bold ${timeLeft < 300 ? 'text-destructive animate-pulse' : 'text-primary'}`}>
-                <Clock className="w-4 h-4 inline mr-1" />
-                {formatTime(timeLeft)}
+                <Clock className="w-4 h-4 inline mr-1" />{formatTime(timeLeft)}
               </span>
-              <Button variant="destructive" size="sm" onClick={submitTest}>
-                Submit Test
-              </Button>
+              <Button variant="destructive" size="sm" onClick={submitTest}>Submit Test</Button>
             </div>
           </div>
-
           <p className="text-xs text-muted-foreground mt-3">
             <AlertTriangle className="w-3.5 h-3.5 inline mr-1" />
-            AI disclaimer: Questions are AI-generated for practice; verify key concepts with standard books.
+            AI-generated questions for practice only. Verify with standard references.
           </p>
         </div>
 
         <div className="grid lg:grid-cols-[1fr_320px] gap-4">
           {q && (
-            <motion.div
-              key={currentQ}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="bg-card rounded-2xl border border-border p-6 space-y-4"
-            >
+            <motion.div key={currentQ} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
+              className="bg-card rounded-2xl border border-border p-6 space-y-4">
               <div className="flex justify-between items-start gap-2">
                 <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">{q.subject}</span>
-                <button
-                  type="button"
+                <Button
+                  variant={markedForReview.has(currentQ) ? 'default' : 'outline'}
+                  size="sm"
                   onClick={() => toggleReview(currentQ)}
-                  className={`text-xs flex items-center gap-1 ${markedForReview.has(currentQ) ? 'text-primary' : 'text-muted-foreground'}`}
+                  className={markedForReview.has(currentQ) ? 'bg-orange-600 hover:bg-orange-700 text-white border-orange-600' : ''}
                 >
-                  <Flag className="w-3 h-3" /> {markedForReview.has(currentQ) ? 'Marked for review' : 'Mark for Review'}
-                </button>
+                  <Flag className="w-3.5 h-3.5 mr-1" />
+                  {markedForReview.has(currentQ) ? 'Marked for Review' : 'Mark for Review'}
+                </Button>
               </div>
-
-              <h3 className="text-lg font-medium leading-relaxed">
-                Q{currentQ + 1}. {q.question}
-              </h3>
-
+              <h3 className="text-lg font-medium leading-relaxed">Q{currentQ + 1}. {q.question}</h3>
               <div className="space-y-2">
                 {q.options.map((opt, oi) => (
-                  <button
-                    key={oi}
-                    type="button"
-                    onClick={() => setAnswers((prev) => ({ ...prev, [currentQ]: oi }))}
-                    className={`w-full text-left p-3 rounded-xl border transition-all ${
-                      answers[currentQ] === oi ? 'border-primary bg-primary/10 font-medium' : 'border-border hover:border-primary/40'
-                    }`}
-                  >
-                    <span className="font-bold mr-2">{String.fromCharCode(65 + oi)}.</span>
-                    {opt}
+                  <button key={oi} type="button" onClick={() => setAnswers((prev) => ({ ...prev, [currentQ]: oi }))}
+                    className={`w-full text-left p-3 rounded-xl border transition-all ${answers[currentQ] === oi ? 'border-primary bg-primary/10 font-medium' : 'border-border hover:border-primary/40'}`}>
+                    <span className="font-bold mr-2">{String.fromCharCode(65 + oi)}.</span>{opt}
                   </button>
                 ))}
               </div>
-
               <div className="flex justify-between pt-2">
-                <Button variant="outline" onClick={() => setCurrentQ((prev) => Math.max(0, prev - 1))} disabled={currentQ === 0}>
-                  Previous
-                </Button>
-                <Button onClick={() => setCurrentQ((prev) => Math.min(questions.length - 1, prev + 1))} disabled={currentQ === questions.length - 1}>
+                <Button variant="outline" onClick={() => navigateToQuestion(Math.max(0, currentQ - 1))} disabled={currentQ === 0}>Previous</Button>
+                <Button onClick={() => navigateToQuestion(Math.min(questions.length - 1, currentQ + 1))} disabled={currentQ === questions.length - 1}>
                   Next <ArrowRight className="w-4 h-4 ml-1" />
                 </Button>
               </div>
             </motion.div>
           )}
 
+          {/* Question Palette */}
           <div className="bg-card rounded-2xl border border-border p-4 h-fit space-y-4">
             <h4 className="font-bold font-display">Question Palette</h4>
-            <div className="grid grid-cols-5 gap-1.5">
+            <div className="grid grid-cols-5 gap-2">
               {questions.map((_, i) => {
-                const className =
-                  i === currentQ
-                    ? 'ring-2 ring-primary bg-primary text-primary-foreground border border-primary'
-                    : markedForReview.has(i)
-                      ? 'bg-secondary text-secondary-foreground border border-secondary'
-                      : answers[i] !== undefined
-                        ? 'bg-primary/10 text-primary border border-primary/30'
-                        : 'bg-destructive/10 text-destructive border border-destructive/30';
+                const isCurrent = i === currentQ;
+                const isReview = markedForReview.has(i);
+                const isAnswered = answers[i] !== undefined;
+
+                let colorClass = 'bg-destructive/20 text-destructive border-destructive/40'; // not attempted = red
+                if (isAnswered) colorClass = 'bg-green-500/20 text-green-600 border-green-500/40'; // answered = green
+                if (isReview) colorClass = 'bg-orange-500/20 text-orange-600 border-orange-500/40'; // review = orange
+                if (isCurrent) colorClass += ' ring-2 ring-primary ring-offset-1 ring-offset-card';
 
                 return (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => setCurrentQ(i)}
-                    className={`w-9 h-9 rounded-lg text-xs font-semibold transition-all ${className}`}
-                  >
+                  <button key={i} type="button" onClick={() => navigateToQuestion(i)}
+                    className={`w-10 h-10 rounded-lg text-xs font-bold transition-all border ${colorClass}`}>
                     {i + 1}
                   </button>
                 );
@@ -389,17 +276,20 @@ export default function AITestPage() {
             </div>
 
             <div className="space-y-2 text-xs">
-              <div className="flex items-center justify-between rounded-lg bg-primary/10 px-2.5 py-2">
-                <span>Attempted</span>
-                <span className="font-semibold text-primary">{attemptedCount}</span>
+              <div className="flex items-center gap-2 rounded-lg bg-green-500/10 border border-green-500/20 px-3 py-2.5">
+                <span className="w-3 h-3 rounded bg-green-500/30 border border-green-500/50" />
+                <span className="flex-1">Answered</span>
+                <span className="font-bold text-green-600">{attemptedCount}</span>
               </div>
-              <div className="flex items-center justify-between rounded-lg bg-secondary px-2.5 py-2">
-                <span>Marked for review</span>
-                <span className="font-semibold">{markedForReview.size}</span>
+              <div className="flex items-center gap-2 rounded-lg bg-orange-500/10 border border-orange-500/20 px-3 py-2.5">
+                <span className="w-3 h-3 rounded bg-orange-500/30 border border-orange-500/50" />
+                <span className="flex-1">Marked for Review</span>
+                <span className="font-bold text-orange-600">{reviewCount}</span>
               </div>
-              <div className="flex items-center justify-between rounded-lg bg-destructive/10 px-2.5 py-2">
-                <span>Not attempted</span>
-                <span className="font-semibold text-destructive">{unattemptedCount}</span>
+              <div className="flex items-center gap-2 rounded-lg bg-destructive/10 border border-destructive/20 px-3 py-2.5">
+                <span className="w-3 h-3 rounded bg-destructive/30 border border-destructive/50" />
+                <span className="flex-1">Not Attempted</span>
+                <span className="font-bold text-destructive">{unattemptedCount}</span>
               </div>
             </div>
           </div>
@@ -408,44 +298,43 @@ export default function AITestPage() {
     );
   }
 
+  // Result
   if (state === 'result' && result) {
     const pieData = [
       { name: 'Correct', value: result.correct, color: chartColors.correct },
       { name: 'Incorrect', value: result.incorrect, color: chartColors.incorrect },
       { name: 'Unanswered', value: result.unanswered, color: chartColors.unanswered },
     ];
-
     const subjectData = Object.entries(result.subjectScores).map(([name, value]) => ({
-      name,
-      marks: value.correct * 4 - value.incorrect,
-      total: value.total * 4,
+      name, marks: value.correct * 4 - value.incorrect, total: value.total * 4,
     }));
-
     const percentage = Math.round((result.obtained / result.total) * 100);
+    const avgTimePerQ = result.timePerQuestion.length > 0
+      ? Math.round(result.timePerQuestion.reduce((a, b) => a + b, 0) / result.timePerQuestion.length)
+      : 0;
 
     return (
       <div className="space-y-6 max-w-4xl mx-auto">
         <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center space-y-2">
           <Trophy className="w-14 h-14 text-primary mx-auto" />
           <h1 className="text-4xl font-bold font-display">Test Complete!</h1>
-          <div className="text-5xl font-bold font-display text-gradient">
-            {result.obtained}/{result.total}
-          </div>
+          <div className="text-5xl font-bold font-display text-gradient">{result.obtained}/{result.total}</div>
           <p className="text-muted-foreground">
             {percentage >= 60 ? 'Excellent work! 🎉' : percentage >= 40 ? 'Great effort! Keep pushing! 💪' : 'Keep practicing, progress is loading! 📚'}
           </p>
           <p className="text-xs text-muted-foreground">
             <AlertTriangle className="w-3.5 h-3.5 inline mr-1" />
-            AI disclaimer: Use this analysis as guidance and cross-check difficult topics with trusted material.
+            AI-generated analysis — cross-check with trusted material.
           </p>
         </motion.div>
 
-        <div className="grid sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           {[
             { label: 'Attempted', value: result.attempted, icon: CheckCircle, tone: 'text-primary' },
-            { label: 'Correct', value: result.correct, icon: CheckCircle, tone: 'text-primary' },
+            { label: 'Correct', value: result.correct, icon: CheckCircle, tone: 'text-green-500' },
             { label: 'Incorrect', value: result.incorrect, icon: XCircle, tone: 'text-destructive' },
             { label: 'Negative', value: `-${result.negativeMarks}`, icon: MinusCircle, tone: 'text-destructive' },
+            { label: 'Avg Time/Q', value: `${avgTimePerQ}s`, icon: Timer, tone: 'text-primary' },
           ].map((item) => (
             <div key={item.label} className="bg-card rounded-xl border border-border p-4 text-center">
               <item.icon className={`w-5 h-5 mx-auto mb-1 ${item.tone}`} />
@@ -457,23 +346,15 @@ export default function AITestPage() {
 
         <div className="grid sm:grid-cols-2 gap-4">
           <div className="bg-card rounded-2xl border border-border p-6">
-            <h3 className="font-bold font-display mb-4 flex items-center gap-2">
-              <BarChart3 className="w-4 h-4 text-primary" /> Overview
-            </h3>
+            <h3 className="font-bold font-display mb-4 flex items-center gap-2"><BarChart3 className="w-4 h-4 text-primary" /> Overview</h3>
             <div className="h-52">
               <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={pieData} cx="50%" cy="50%" innerRadius={44} outerRadius={76} dataKey="value" paddingAngle={4}>
-                    {pieData.map((entry, i) => (
-                      <Cell key={i} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
+                <PieChart><Pie data={pieData} cx="50%" cy="50%" innerRadius={44} outerRadius={76} dataKey="value" paddingAngle={4}>
+                  {pieData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                </Pie><Tooltip /></PieChart>
               </ResponsiveContainer>
             </div>
           </div>
-
           <div className="bg-card rounded-2xl border border-border p-6">
             <h3 className="font-bold font-display mb-4">Subject Analysis</h3>
             <div className="h-52">
@@ -481,13 +362,28 @@ export default function AITestPage() {
                 <BarChart data={subjectData}>
                   <XAxis dataKey="name" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
                   <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
-                  <Tooltip />
-                  <Bar dataKey="marks" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                  <Tooltip /><Bar dataKey="marks" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
         </div>
+
+        {/* Time per question */}
+        {result.timePerQuestion.some(t => t > 0) && (
+          <div className="bg-card rounded-2xl border border-border p-6">
+            <h3 className="font-bold font-display mb-4 flex items-center gap-2"><Timer className="w-4 h-4 text-primary" /> Time Spent Per Question</h3>
+            <div className="h-44">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={result.timePerQuestion.map((t, i) => ({ q: `Q${i + 1}`, seconds: Math.round(t) }))}>
+                  <XAxis dataKey="q" tick={{ fontSize: 9 }} stroke="hsl(var(--muted-foreground))" />
+                  <YAxis tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
+                  <Tooltip /><Bar dataKey="seconds" fill="hsl(var(--primary))" radius={[3, 3, 0, 0]} name="Seconds" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
 
         <div className="bg-card rounded-2xl border border-border p-6">
           <h3 className="font-bold font-display mb-4">Answer Review</h3>
@@ -495,26 +391,16 @@ export default function AITestPage() {
             {questions.map((q, i) => {
               const isUnanswered = answers[i] === undefined;
               const isCorrect = answers[i] === q.correctAnswer;
-
+              const timeSpent = Math.round(result.timePerQuestion[i] || 0);
               return (
-                <div
-                  key={i}
-                  className={`p-4 rounded-xl border ${
-                    isUnanswered
-                      ? 'border-destructive/30 bg-destructive/5'
-                      : isCorrect
-                        ? 'border-primary/30 bg-primary/5'
-                        : 'border-destructive/30 bg-destructive/5'
-                  }`}
-                >
-                  <p className="font-medium text-sm">Q{i + 1}. {q.question}</p>
-                  <p className="text-xs mt-1 text-primary">
-                    ✅ Correct: {String.fromCharCode(65 + q.correctAnswer)}. {q.options[q.correctAnswer]}
-                  </p>
+                <div key={i} className={`p-4 rounded-xl border ${isUnanswered ? 'border-destructive/30 bg-destructive/5' : isCorrect ? 'border-green-500/30 bg-green-500/5' : 'border-destructive/30 bg-destructive/5'}`}>
+                  <div className="flex justify-between items-start">
+                    <p className="font-medium text-sm flex-1">Q{i + 1}. {q.question}</p>
+                    <span className="text-[10px] text-muted-foreground whitespace-nowrap ml-2">{timeSpent}s</span>
+                  </div>
+                  <p className="text-xs mt-1 text-green-600">✅ Correct: {String.fromCharCode(65 + q.correctAnswer)}. {q.options[q.correctAnswer]}</p>
                   {!isUnanswered && !isCorrect && (
-                    <p className="text-xs text-destructive">
-                      ❌ Your answer: {String.fromCharCode(65 + answers[i])}. {q.options[answers[i]]}
-                    </p>
+                    <p className="text-xs text-destructive">❌ Your answer: {String.fromCharCode(65 + answers[i])}. {q.options[answers[i]]}</p>
                   )}
                   <p className="text-xs text-muted-foreground mt-1">💡 {q.explanation}</p>
                 </div>
@@ -523,60 +409,36 @@ export default function AITestPage() {
           </div>
         </div>
 
-        <Button
-          variant="hero"
-          size="lg"
-          className="w-full"
-          onClick={() => {
-            setState('config');
-            setResult(null);
-          }}
-        >
+        <Button variant="hero" size="xl" className="w-full" onClick={() => { setState('config'); setResult(null); }}>
           <Sparkles className="w-4 h-4 mr-2" /> Take Another Test
         </Button>
       </div>
     );
   }
 
+  // Config
   const availableChapters = classLevel !== 'Full' && subject !== 'Full' ? SYLLABUS[examType]?.[classLevel]?.[subject] || [] : [];
   const currentConfig = getTestConfig();
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-2">
-        <h1 className="text-3xl font-bold font-display">
-          AI <span className="text-gradient">Mock Tests</span> 🎯
-        </h1>
+        <h1 className="text-3xl font-bold font-display">AI <span className="text-gradient">Mock Tests</span> 🎯</h1>
         <p className="text-muted-foreground">Practice with AI-generated CBT-mode tests matching actual exam patterns.</p>
         <p className="text-xs text-muted-foreground">
           <AlertTriangle className="w-3.5 h-3.5 inline mr-1" />
-          AI disclaimer: Questions are AI-generated; verify critical formulas and facts from standard references.
+          AI-generated questions for practice only. Verify with standard references.
         </p>
       </motion.div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.08 }}
-        className="bg-card rounded-2xl border border-border p-6 space-y-5"
-      >
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}
+        className="bg-card rounded-2xl border border-border p-6 space-y-5">
         <div>
           <label className="text-sm font-medium mb-2 block">Exam Type</label>
           <div className="flex gap-3">
             {(['JEE', 'NEET'] as const).map((item) => (
-              <Button
-                key={item}
-                variant={examType === item ? 'default' : 'outline'}
-                size="lg"
-                className="flex-1"
-                onClick={() => {
-                  setExamType(item);
-                  setSubject('Full');
-                  setChapter('Full');
-                }}
-              >
-                {item}
-              </Button>
+              <Button key={item} variant={examType === item ? 'default' : 'outline'} size="lg" className="flex-1"
+                onClick={() => { setExamType(item); setSubject('Full'); setChapter('Full'); }}>{item}</Button>
             ))}
           </div>
         </div>
@@ -585,17 +447,8 @@ export default function AITestPage() {
           <label className="text-sm font-medium mb-2 block">Class / Scope</label>
           <div className="flex gap-2">
             {(['11th', '12th', 'Full'] as const).map((item) => (
-              <Button
-                key={item}
-                variant={classLevel === item ? 'default' : 'outline'}
-                size="sm"
-                className="flex-1"
-                onClick={() => {
-                  setClassLevel(item);
-                  setSubject('Full');
-                  setChapter('Full');
-                }}
-              >
+              <Button key={item} variant={classLevel === item ? 'default' : 'outline'} size="sm" className="flex-1"
+                onClick={() => { setClassLevel(item); setSubject('Full'); setChapter('Full'); }}>
                 {item === 'Full' ? `Complete ${examType}` : `Class ${item}`}
               </Button>
             ))}
@@ -606,13 +459,9 @@ export default function AITestPage() {
           <div>
             <label className="text-sm font-medium mb-2 block">Subject</label>
             <div className="flex flex-wrap gap-2">
-              <Button variant={subject === 'Full' ? 'default' : 'outline'} size="sm" onClick={() => { setSubject('Full'); setChapter('Full'); }}>
-                All Subjects
-              </Button>
+              <Button variant={subject === 'Full' ? 'default' : 'outline'} size="sm" onClick={() => { setSubject('Full'); setChapter('Full'); }}>All Subjects</Button>
               {subjects.map((item) => (
-                <Button key={item} variant={subject === item ? 'default' : 'outline'} size="sm" onClick={() => { setSubject(item); setChapter('Full'); }}>
-                  {item}
-                </Button>
+                <Button key={item} variant={subject === item ? 'default' : 'outline'} size="sm" onClick={() => { setSubject(item); setChapter('Full'); }}>{item}</Button>
               ))}
             </div>
           </div>
@@ -622,13 +471,9 @@ export default function AITestPage() {
           <div>
             <label className="text-sm font-medium mb-2 block">Chapter</label>
             <div className="flex flex-wrap gap-1.5 max-h-44 overflow-y-auto pr-1">
-              <Button variant={chapter === 'Full' ? 'default' : 'outline'} size="sm" onClick={() => setChapter('Full')}>
-                All Chapters
-              </Button>
+              <Button variant={chapter === 'Full' ? 'default' : 'outline'} size="sm" onClick={() => setChapter('Full')}>All Chapters</Button>
               {availableChapters.map((item) => (
-                <Button key={item} variant={chapter === item ? 'default' : 'outline'} size="sm" className="text-xs" onClick={() => setChapter(item)}>
-                  {item}
-                </Button>
+                <Button key={item} variant={chapter === item ? 'default' : 'outline'} size="sm" className="text-xs" onClick={() => setChapter(item)}>{item}</Button>
               ))}
             </div>
           </div>
@@ -637,9 +482,7 @@ export default function AITestPage() {
         <div className="bg-muted/50 rounded-xl p-4 text-sm space-y-1">
           <p><strong>Pattern:</strong> +4 correct, -1 incorrect, 0 unanswered</p>
           <p><strong>Duration:</strong> {formatTime(currentConfig.duration)}</p>
-          <p>
-            <strong>Questions:</strong> {currentConfig.numQ} | <strong>Total Marks:</strong> {currentConfig.totalMarks}
-          </p>
+          <p><strong>Questions:</strong> {currentConfig.numQ} | <strong>Total Marks:</strong> {currentConfig.totalMarks}</p>
         </div>
 
         <Button variant="hero" size="xl" className="w-full" onClick={startTest}>

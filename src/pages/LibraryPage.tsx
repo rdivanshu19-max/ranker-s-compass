@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
-const TYPES = ['Lectures', 'Lecture PDF', 'Books', 'PYQs', 'JEE', 'NEET', 'Other Material', 'Tests'];
+const TYPES = ['Lectures', 'Lecture PDF', 'Books', 'PYQs', 'JEE', 'NEET', 'Physics', 'Chemistry', 'Maths', 'Biology', 'Boards', 'Other Material', 'Tests'];
 
 export default function LibraryPage() {
   const { user } = useAuth();
@@ -15,6 +15,7 @@ export default function LibraryPage() {
   const [search, setSearch] = useState('');
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [ratings, setRatings] = useState<Record<string, number>>({});
+  const [ratingCounts, setRatingCounts] = useState<Record<string, number>>({});
   const [userRatings, setUserRatings] = useState<Record<string, number>>({});
 
   useEffect(() => {
@@ -22,26 +23,31 @@ export default function LibraryPage() {
   }, [user]);
 
   const loadMaterials = async () => {
-    const { data } = await supabase.from('materials').select('*').order('created_at', { ascending: false });
+    const { data } = await supabase.from('materials').select('*').order('pinned', { ascending: false }).order('created_at', { ascending: false });
     setMaterials(data || []);
-    if (user && data) {
-      // Load user's ratings
+
+    // Load all ratings for avg display (works even without login)
+    const { data: allRatings } = await supabase.from('ratings').select('material_id, rating');
+    const avgMap: Record<string, { sum: number; count: number }> = {};
+    allRatings?.forEach(r => {
+      if (!avgMap[r.material_id]) avgMap[r.material_id] = { sum: 0, count: 0 };
+      avgMap[r.material_id].sum += r.rating;
+      avgMap[r.material_id].count++;
+    });
+    const avgRatings: Record<string, number> = {};
+    const counts: Record<string, number> = {};
+    Object.entries(avgMap).forEach(([id, v]) => {
+      avgRatings[id] = Math.round((v.sum / v.count) * 10) / 10;
+      counts[id] = v.count;
+    });
+    setRatings(avgRatings);
+    setRatingCounts(counts);
+
+    if (user) {
       const { data: rData } = await supabase.from('ratings').select('material_id, rating').eq('user_id', user.id);
       const ur: Record<string, number> = {};
       rData?.forEach(r => { ur[r.material_id] = r.rating; });
       setUserRatings(ur);
-
-      // Load avg ratings
-      const { data: allRatings } = await supabase.from('ratings').select('material_id, rating');
-      const avgMap: Record<string, { sum: number; count: number }> = {};
-      allRatings?.forEach(r => {
-        if (!avgMap[r.material_id]) avgMap[r.material_id] = { sum: 0, count: 0 };
-        avgMap[r.material_id].sum += r.rating;
-        avgMap[r.material_id].count++;
-      });
-      const avgRatings: Record<string, number> = {};
-      Object.entries(avgMap).forEach(([id, v]) => { avgRatings[id] = Math.round((v.sum / v.count) * 10) / 10; });
-      setRatings(avgRatings);
     }
   };
 
@@ -76,14 +82,12 @@ export default function LibraryPage() {
         <p className="text-muted-foreground mt-1">Browse and access free study materials</p>
       </motion.div>
 
-      {/* Search */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search materials..."
           className="pl-10" />
       </div>
 
-      {/* Filters */}
       <div className="flex flex-wrap gap-2">
         <Button variant={activeFilter === null ? 'default' : 'outline'} size="sm" onClick={() => setActiveFilter(null)}>
           <Filter className="w-3 h-3 mr-1" /> All
@@ -95,7 +99,6 @@ export default function LibraryPage() {
         ))}
       </div>
 
-      {/* Materials */}
       <div className="grid gap-4">
         {filtered.length === 0 ? (
           <div className="text-center py-16 text-muted-foreground">
@@ -109,15 +112,17 @@ export default function LibraryPage() {
             className="bg-card rounded-2xl border border-border p-5 hover:border-primary/30 transition-all duration-300">
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1">
-                <h3 className="text-lg font-bold font-display">{m.title}</h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-lg font-bold font-display">{m.title}</h3>
+                  {m.pinned && <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/20 text-primary font-semibold">📌 Pinned</span>}
+                </div>
                 <div className="flex flex-wrap gap-1.5 mt-2">
                   {m.types?.map((t: string) => (
                     <span key={t} className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">{t}</span>
                   ))}
                 </div>
-                {/* Rating */}
                 {m.rating_enabled && (
-                  <div className="flex items-center gap-2 mt-3">
+                  <div className="flex items-center gap-3 mt-3">
                     <div className="flex gap-0.5">
                       {[1, 2, 3, 4, 5].map(s => (
                         <button key={s} onClick={() => handleRate(m.id, s)}
@@ -126,7 +131,11 @@ export default function LibraryPage() {
                         </button>
                       ))}
                     </div>
-                    {ratings[m.id] && <span className="text-xs text-muted-foreground">({ratings[m.id]})</span>}
+                    {ratings[m.id] && (
+                      <span className="text-sm font-semibold text-primary">
+                        {ratings[m.id]} <span className="text-xs text-muted-foreground font-normal">({ratingCounts[m.id]} ratings)</span>
+                      </span>
+                    )}
                   </div>
                 )}
               </div>
