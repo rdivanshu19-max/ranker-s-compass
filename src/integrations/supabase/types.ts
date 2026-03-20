@@ -14,6 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      banned_users: {
+        Row: {
+          banned_at: string
+          banned_by: string
+          id: string
+          reason: string | null
+          user_id: string
+        }
+        Insert: {
+          banned_at?: string
+          banned_by: string
+          id?: string
+          reason?: string | null
+          user_id: string
+        }
+        Update: {
+          banned_at?: string
+          banned_by?: string
+          id?: string
+          reason?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      feedback: {
+        Row: {
+          admin_reply: string | null
+          created_at: string
+          display_name: string
+          id: string
+          rating: number
+          review: string | null
+          user_id: string
+        }
+        Insert: {
+          admin_reply?: string | null
+          created_at?: string
+          display_name?: string
+          id?: string
+          rating: number
+          review?: string | null
+          user_id: string
+        }
+        Update: {
+          admin_reply?: string | null
+          created_at?: string
+          display_name?: string
+          id?: string
+          rating?: number
+          review?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       materials: {
         Row: {
           created_at: string
@@ -56,6 +110,8 @@ export type Database = {
           created_at: string
           display_name: string
           id: string
+          referral_code: string | null
+          referred_by: string | null
           updated_at: string
           user_id: string
         }
@@ -64,6 +120,8 @@ export type Database = {
           created_at?: string
           display_name?: string
           id?: string
+          referral_code?: string | null
+          referred_by?: string | null
           updated_at?: string
           user_id: string
         }
@@ -72,6 +130,8 @@ export type Database = {
           created_at?: string
           display_name?: string
           id?: string
+          referral_code?: string | null
+          referred_by?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -108,6 +168,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      referrals: {
+        Row: {
+          created_at: string
+          id: string
+          referred_id: string
+          referrer_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          referred_id: string
+          referrer_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          referred_id?: string
+          referrer_id?: string
+        }
+        Relationships: []
       }
       study_sessions: {
         Row: {
@@ -213,6 +294,30 @@ export type Database = {
           total_marks?: number
           total_questions?: number
           unanswered?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_badges: {
+        Row: {
+          badge_name: string
+          badge_type: string
+          earned_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          badge_name: string
+          badge_type: string
+          earned_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          badge_name?: string
+          badge_type?: string
+          earned_at?: string
+          id?: string
           user_id?: string
         }
         Relationships: []
