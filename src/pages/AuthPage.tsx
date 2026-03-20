@@ -36,7 +36,20 @@ export default function AuthPage() {
         const { error } = await signUp(email, password, displayName);
         if (error) throw error;
         toast.success('Account created! You are now signed in.');
-      } else {
+        // Handle referral
+        if (refCode) {
+          try {
+            // Find referrer by referral_code
+            const { data: referrer } = await supabase.from('profiles').select('user_id').eq('referral_code', refCode).single();
+            if (referrer) {
+              const { data: { user: newUser } } = await supabase.auth.getUser();
+              if (newUser) {
+                await supabase.from('referrals').insert({ referrer_id: referrer.user_id, referred_id: newUser.id });
+                await supabase.from('profiles').update({ referred_by: referrer.user_id }).eq('user_id', newUser.id);
+              }
+            }
+          } catch {}
+        }
         const { error } = await signIn(email, password);
         if (error) throw error;
         toast.success('Welcome back!');
