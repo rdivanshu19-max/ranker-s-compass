@@ -9,9 +9,12 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { messages } = await req.json();
+    const { messages, hasImage } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+
+    // Use vision-capable model when images are present
+    const model = hasImage ? "google/gemini-2.5-flash" : "google/gemini-3-flash-preview";
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -20,7 +23,7 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model,
         messages: [
           {
             role: "system",
@@ -28,22 +31,21 @@ serve(async (req) => {
 
 You can help students with:
 - Solving doubts in Physics, Chemistry, Mathematics, and Biology
+- Analyzing question images and providing step-by-step solutions
 - Explaining concepts chapter-wise for JEE/NEET syllabus
 - Providing study tips and strategies for competitive exams
-- Helping with problem-solving approaches
-- Motivating students in their preparation journey
 
 Rules:
 - Be encouraging and supportive
 - Give clear, step-by-step explanations
-- Use simple language that students can understand
+- Use simple language
 - When solving math/physics problems, show complete working
-- For chemistry, explain mechanisms when relevant
 - Always be accurate - if unsure, say so
 - Keep responses concise but complete
 - Use markdown formatting for readability
 - IMPORTANT: Never use LaTeX delimiters like $...$ or $$...$$
-- Write formulas in plain readable text using symbols like √, π, ×, ÷, ^, and /`
+- Write formulas using symbols: √, π, ×, ÷, ^, /, ², ³, ⁴ etc.
+- When analyzing images of questions, read the question carefully and solve it step by step`
           },
           ...messages,
         ],

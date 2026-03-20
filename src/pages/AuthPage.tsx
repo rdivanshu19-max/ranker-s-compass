@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
@@ -8,6 +9,8 @@ import { Zap, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function AuthPage() {
+  const [searchParams] = useSearchParams();
+  const refCode = searchParams.get('ref');
   const [isSignUp, setIsSignUp] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -30,12 +33,25 @@ export default function AuthPage() {
           setLoading(false);
           return;
         }
-        const { error } = await signUp(email, password, displayName);
-        if (error) throw error;
+        const { error: signUpError } = await signUp(email, password, displayName);
+        if (signUpError) throw signUpError;
         toast.success('Account created! You are now signed in.');
+        // Handle referral
+        if (refCode) {
+          try {
+            const { data: referrer } = await supabase.from('profiles').select('user_id').eq('referral_code', refCode).single();
+            if (referrer) {
+              const { data: { user: newUser } } = await supabase.auth.getUser();
+              if (newUser) {
+                await supabase.from('referrals').insert({ referrer_id: referrer.user_id, referred_id: newUser.id });
+                await supabase.from('profiles').update({ referred_by: referrer.user_id }).eq('user_id', newUser.id);
+              }
+            }
+          } catch {}
+        }
       } else {
-        const { error } = await signIn(email, password);
-        if (error) throw error;
+        const { error: signInError } = await signIn(email, password);
+        if (signInError) throw signInError;
         toast.success('Welcome back!');
         navigate('/app', { replace: true });
       }
