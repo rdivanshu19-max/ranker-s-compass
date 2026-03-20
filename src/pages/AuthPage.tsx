@@ -33,13 +33,12 @@ export default function AuthPage() {
           setLoading(false);
           return;
         }
-        const { error } = await signUp(email, password, displayName);
-        if (error) throw error;
+        const { error: signUpError } = await signUp(email, password, displayName);
+        if (signUpError) throw signUpError;
         toast.success('Account created! You are now signed in.');
         // Handle referral
         if (refCode) {
           try {
-            // Find referrer by referral_code
             const { data: referrer } = await supabase.from('profiles').select('user_id').eq('referral_code', refCode).single();
             if (referrer) {
               const { data: { user: newUser } } = await supabase.auth.getUser();
@@ -50,8 +49,9 @@ export default function AuthPage() {
             }
           } catch {}
         }
-        const { error } = await signIn(email, password);
-        if (error) throw error;
+      } else {
+        const { error: signInError } = await signIn(email, password);
+        if (signInError) throw signInError;
         toast.success('Welcome back!');
         navigate('/app', { replace: true });
       }
