@@ -19,6 +19,7 @@ import AboutPage from "./pages/AboutPage";
 import ContributePage from "./pages/ContributePage";
 import AITestPage from "./pages/AITestPage";
 import AIChatWidget from "./components/AIChatWidget";
+import FeedbackPage from "./pages/FeedbackPage";
 import TermsPage from "./pages/TermsPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import AdSensePage from "./pages/AdSensePage";
@@ -47,6 +48,7 @@ const App = () => (
                 <Route path="vault" element={<><StudyVaultPage /><AIChatWidget /></>} />
                 <Route path="tests" element={<><AITestPage /><AIChatWidget /></>} />
                 <Route path="profile" element={<ProfilePage />} />
+                <Route path="feedback" element={<><FeedbackPage /><AIChatWidget /></>} />
                 <Route path="admin" element={<AdminPage />} />
                 <Route path="about" element={<AboutPage />} />
                 <Route path="contribute" element={<ContributePage />} />
