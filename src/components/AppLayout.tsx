@@ -1,17 +1,17 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
-import { LayoutDashboard, Library, FolderLock, User, Info, Heart, FlaskConical, Sun, Moon, LogOut, Shield, MessageSquare } from 'lucide-react';
+import { LayoutDashboard, Library, FolderLock, User, Info, Heart, FlaskConical, Sun, Moon, LogOut, Shield, MessageSquare, Trophy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const navItems = [
   { to: '/app', icon: LayoutDashboard, label: 'Dashboard', end: true },
   { to: '/app/library', icon: Library, label: 'Library' },
+  { to: '/app/tests', icon: FlaskConical, label: 'AI Tests', highlight: true },
   { to: '/app/vault', icon: FolderLock, label: 'Vault' },
-  { to: '/app/tests', icon: FlaskConical, label: 'Tests' },
+  { to: '/app/leaderboard', icon: Trophy, label: 'Ranks' },
   { to: '/app/feedback', icon: MessageSquare, label: 'Feedback' },
   { to: '/app/profile', icon: User, label: 'Profile' },
-  { to: '/app/about', icon: Info, label: 'About' },
 ];
 
 export default function AppLayout() {
@@ -51,9 +51,9 @@ export default function AppLayout() {
         <div className="container mx-auto px-1 flex justify-around py-1 overflow-x-auto">
           {navItems.map(item => (
             <NavLink key={item.to} to={item.to} end={item.to === '/app'}
-              className={({ isActive }) => `flex flex-col items-center py-2 px-1.5 text-[10px] sm:text-xs transition-colors shrink-0 ${isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}>
-              <item.icon className="w-5 h-5 mb-0.5" />
-              <span>{item.label}</span>
+              className={({ isActive }) => `flex flex-col items-center py-2 px-1.5 text-[10px] sm:text-xs transition-colors shrink-0 ${isActive ? 'text-primary' : item.highlight ? 'text-primary/70 hover:text-primary' : 'text-muted-foreground hover:text-foreground'}`}>
+              <item.icon className={`w-5 h-5 mb-0.5 ${item.highlight ? 'drop-shadow-[0_0_4px_hsl(var(--primary))]' : ''}`} />
+              <span className={item.highlight ? 'font-semibold' : ''}>{item.label}</span>
             </NavLink>
           ))}
         </div>

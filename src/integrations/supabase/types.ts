@@ -71,6 +71,7 @@ export type Database = {
       materials: {
         Row: {
           created_at: string
+          description: string | null
           id: string
           link: string
           pinned: boolean | null
@@ -82,6 +83,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          description?: string | null
           id?: string
           link: string
           pinned?: boolean | null
@@ -93,6 +95,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          description?: string | null
           id?: string
           link?: string
           pinned?: boolean | null

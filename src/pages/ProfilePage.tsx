@@ -13,6 +13,14 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
+const BADGE_INFO: Record<string, { emoji: string; description: string }> = {
+  consistent: { emoji: '🔥', description: 'Studied for 7+ days in a row' },
+  topper: { emoji: '🏆', description: 'Scored 90%+ in a test' },
+  helpful: { emoji: '🤝', description: 'Referred 3+ friends to Rankers Star' },
+  explorer: { emoji: '🔍', description: 'Downloaded 15+ study materials' },
+  veteran: { emoji: '⭐', description: 'Completed 30+ AI tests' },
+};
+
 export default function ProfilePage() {
   const { user, profile, refreshProfile, isAdmin, signOut } = useAuth();
   const navigate = useNavigate();
@@ -21,6 +29,7 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [confirmStep, setConfirmStep] = useState(0);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [referralCode, setReferralCode] = useState('');
   const [referralCount, setReferralCount] = useState(0);
   const [badges, setBadges] = useState<any[]>([]);
@@ -28,7 +37,6 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (!user) return;
-    // Load referral code
     supabase.from('profiles').select('referral_code').eq('user_id', user.id).single().then(async ({ data }) => {
       if (data?.referral_code) {
         setReferralCode(data.referral_code);
@@ -38,15 +46,34 @@ export default function ProfilePage() {
         setReferralCode(code);
       }
     });
-    // Load referral count
     supabase.from('referrals').select('id', { count: 'exact', head: true }).eq('referrer_id', user.id).then(({ count }) => {
       setReferralCount(count || 0);
     });
-    // Load badges
     supabase.from('user_badges').select('*').eq('user_id', user.id).then(({ data }) => {
       setBadges(data || []);
     });
+    // Auto-check badges
+    checkBadges();
   }, [user]);
+
+  const checkBadges = async () => {
+    if (!user) return;
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/award-badges`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}`, apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
+        body: JSON.stringify({}),
+      });
+      const result = await resp.json();
+      if (result.awarded?.length > 0) {
+        result.awarded.forEach((b: string) => toast.success(`🎉 Badge earned: ${b}!`));
+        const { data } = await supabase.from('user_badges').select('*').eq('user_id', user.id);
+        setBadges(data || []);
+      }
+    } catch {}
+  };
 
   const save = async () => {
     if (!user) return;
@@ -73,9 +100,12 @@ export default function ProfilePage() {
       });
       const result = await resp.json();
       if (result.error) throw new Error(result.error);
-      toast.success('Account deleted successfully');
-      await signOut();
-      navigate('/');
+      toast.success('Account deleted successfully. Goodbye!');
+      setDeleteDialogOpen(false);
+      // Force sign out and clear everything
+      await supabase.auth.signOut();
+      localStorage.clear();
+      window.location.href = '/';
     } catch (e: any) {
       toast.error('Failed to delete: ' + e.message);
     }
@@ -90,10 +120,6 @@ export default function ProfilePage() {
     setCopied(true);
     toast.success('Referral link copied!');
     setTimeout(() => setCopied(false), 2000);
-  };
-
-  const badgeIcons: Record<string, string> = {
-    consistent: '🔥', topper: '🏆', helpful: '🤝', explorer: '🔍', veteran: '⭐',
   };
 
   return (
@@ -114,7 +140,6 @@ export default function ProfilePage() {
             {isAdmin && <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">Admin</span>}
           </div>
         </div>
-
         <div>
           <label className="text-sm font-medium mb-1 block">Display Name</label>
           <Input value={name} onChange={e => setName(e.target.value)} />
@@ -129,26 +154,29 @@ export default function ProfilePage() {
       </motion.div>
 
       {/* Badges */}
-      {badges.length > 0 && (
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-          className="bg-card rounded-2xl border border-border p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Award className="w-5 h-5 text-primary" />
-            <h3 className="font-bold font-display">Your Badges</h3>
-          </div>
-          <div className="flex flex-wrap gap-3">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
+        className="bg-card rounded-2xl border border-border p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Award className="w-5 h-5 text-primary" />
+          <h3 className="font-bold font-display">Your Badges</h3>
+        </div>
+        {badges.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No badges yet. Keep studying to earn badges! 🎯</p>
+        ) : (
+          <div className="space-y-3">
             {badges.map(b => (
-              <div key={b.id} className="flex items-center gap-2 bg-primary/5 border border-primary/20 rounded-xl px-4 py-2.5">
-                <span className="text-xl">{badgeIcons[b.badge_type] || '🏅'}</span>
-                <div>
-                  <p className="text-sm font-medium">{b.badge_name}</p>
-                  <p className="text-[10px] text-muted-foreground">{new Date(b.earned_at).toLocaleDateString()}</p>
+              <div key={b.id} className="flex items-center gap-3 bg-primary/5 border border-primary/20 rounded-xl px-4 py-3">
+                <span className="text-2xl">{BADGE_INFO[b.badge_type]?.emoji || '🏅'}</span>
+                <div className="flex-1">
+                  <p className="font-medium text-sm">{b.badge_name}</p>
+                  <p className="text-xs text-muted-foreground">{BADGE_INFO[b.badge_type]?.description || 'Achievement unlocked!'}</p>
                 </div>
+                <p className="text-[10px] text-muted-foreground shrink-0">{new Date(b.earned_at).toLocaleDateString()}</p>
               </div>
             ))}
           </div>
-        </motion.div>
-      )}
+        )}
+      </motion.div>
 
       {/* Referral */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
@@ -181,9 +209,9 @@ export default function ProfilePage() {
           You can create a new account with the same email later.
         </p>
 
-        <AlertDialog>
+        <AlertDialog open={deleteDialogOpen} onOpenChange={(open) => { setDeleteDialogOpen(open); if (!open) setConfirmStep(0); }}>
           <AlertDialogTrigger asChild>
-            <Button variant="destructive" className="gap-2" onClick={() => setConfirmStep(1)}>
+            <Button variant="destructive" className="gap-2" onClick={() => { setConfirmStep(1); setDeleteDialogOpen(true); }}>
               <Trash2 className="w-4 h-4" /> Delete My Account
             </Button>
           </AlertDialogTrigger>
@@ -197,8 +225,8 @@ export default function ProfilePage() {
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel onClick={() => setConfirmStep(0)}>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={() => setConfirmStep(2)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={(e) => { e.preventDefault(); setConfirmStep(2); }} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
                     Yes, I want to delete
                   </AlertDialogAction>
                 </AlertDialogFooter>
@@ -212,7 +240,7 @@ export default function ProfilePage() {
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel onClick={() => setConfirmStep(0)}>No, keep my account</AlertDialogCancel>
+                  <AlertDialogCancel>No, keep my account</AlertDialogCancel>
                   <AlertDialogAction onClick={deleteAccount} disabled={deleting}
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
                     {deleting ? 'Deleting...' : 'DELETE PERMANENTLY'}
