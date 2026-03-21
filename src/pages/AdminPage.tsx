@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { motion } from 'framer-motion';
-import { Shield, Plus, Trash2, Pin, ToggleLeft, ToggleRight, Edit3, AlertTriangle, Users, Ban, Search } from 'lucide-react';
+import { Shield, Plus, Trash2, Pin, ToggleLeft, ToggleRight, Edit3, AlertTriangle, Users, Ban, Search, MessageSquare, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { Navigate } from 'react-router-dom';
 import {
@@ -12,7 +13,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
-const DEFAULT_TYPES = ['Lectures', 'Lecture PDF', 'Books', 'PYQs', 'JEE', 'NEET', 'Other Material', 'Tests', 'Physics', 'Chemistry', 'Maths', 'Biology', 'Boards'];
+const DEFAULT_TYPES = ['Lectures', 'Lecture PDF', 'Books', 'PYQs', 'JEE', 'NEET', 'JEE Advanced', 'JEE Test', 'NEET Test', 'Other Material', 'Tests', 'Physics', 'Chemistry', 'Maths', 'Biology', 'Boards'];
 const MAX_PINNED = 10;
 
 export default function AdminPage() {
@@ -20,18 +21,25 @@ export default function AdminPage() {
   const [materials, setMaterials] = useState<any[]>([]);
   const [title, setTitle] = useState('');
   const [link, setLink] = useState('');
+  const [description, setDescription] = useState('');
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTypes, setEditTypes] = useState<string[]>([]);
+  const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editMode, setEditMode] = useState<'categories' | 'title'>('categories');
   const [pinnedCount, setPinnedCount] = useState(0);
-  const [tab, setTab] = useState<'materials' | 'users'>('materials');
+  const [tab, setTab] = useState<'materials' | 'users' | 'feedback'>('materials');
   const [allProfiles, setAllProfiles] = useState<any[]>([]);
   const [bannedUsers, setBannedUsers] = useState<Set<string>>(new Set());
   const [searchUser, setSearchUser] = useState('');
   const [banReason, setBanReason] = useState('');
+  const [feedbacks, setFeedbacks] = useState<any[]>([]);
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState('');
 
-  useEffect(() => { loadMaterials(); loadUsers(); }, []);
+  useEffect(() => { loadMaterials(); loadUsers(); loadFeedbacks(); }, []);
 
   if (!isAdmin) return <Navigate to="/app" replace />;
 
@@ -49,13 +57,18 @@ export default function AdminPage() {
     setBannedUsers(new Set((bans || []).map(b => b.user_id)));
   };
 
+  const loadFeedbacks = async () => {
+    const { data } = await supabase.from('feedback').select('*').order('created_at', { ascending: false });
+    setFeedbacks(data || []);
+  };
+
   const addMaterial = async () => {
     if (!title.trim() || !link.trim()) { toast.error('Fill all fields'); return; }
     if (selectedTypes.length === 0) { toast.error('Select at least one type'); return; }
-    const { error } = await supabase.from('materials').insert({ title, link, types: selectedTypes, uploaded_by: user!.id });
+    const { error } = await supabase.from('materials').insert({ title, link, description: description.trim() || '', types: selectedTypes, uploaded_by: user!.id });
     if (error) { toast.error('Failed: ' + error.message); return; }
     toast.success('Material uploaded!');
-    setTitle(''); setLink(''); setSelectedTypes([]); setAdding(false);
+    setTitle(''); setLink(''); setDescription(''); setSelectedTypes([]); setAdding(false);
     loadMaterials();
   };
 
@@ -78,7 +91,8 @@ export default function AdminPage() {
 
   const toggleType = (t: string) => setSelectedTypes(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t]);
 
-  const startEditCategories = (m: any) => { setEditingId(m.id); setEditTypes(m.types || []); };
+  const startEditCategories = (m: any) => { setEditingId(m.id); setEditTypes(m.types || []); setEditMode('categories'); };
+  const startEditTitle = (m: any) => { setEditingId(m.id); setEditTitle(m.title); setEditDescription(m.description || ''); setEditMode('title'); };
 
   const saveEditCategories = async (id: string) => {
     if (editTypes.length === 0) { toast.error('Select at least one category'); return; }
@@ -88,17 +102,29 @@ export default function AdminPage() {
     loadMaterials();
   };
 
+  const saveEditTitle = async (id: string) => {
+    if (!editTitle.trim()) { toast.error('Title cannot be empty'); return; }
+    await supabase.from('materials').update({ title: editTitle.trim(), description: editDescription.trim() }).eq('id', id);
+    toast.success('Material updated!');
+    setEditingId(null);
+    loadMaterials();
+  };
+
   const toggleEditType = (t: string) => setEditTypes(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t]);
+
+  const callAdminAction = async (action: string, targetUserId: string, extraBody: Record<string, string> = {}) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-account`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.access_token}`, apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
+      body: JSON.stringify({ action, target_user_id: targetUserId, ...extraBody }),
+    });
+    return resp.json();
+  };
 
   const banUser = async (userId: string) => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-account`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.access_token}`, apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
-        body: JSON.stringify({ action: 'admin_ban', target_user_id: userId, reason: banReason || 'Banned by admin' }),
-      });
-      const result = await resp.json();
+      const result = await callAdminAction('admin_ban', userId, { reason: banReason || 'Banned by admin' });
       if (result.error) throw new Error(result.error);
       toast.success('User banned');
       setBanReason('');
@@ -106,19 +132,37 @@ export default function AdminPage() {
     } catch (e: any) { toast.error('Failed: ' + e.message); }
   };
 
+  const unbanUser = async (userId: string) => {
+    try {
+      const result = await callAdminAction('admin_unban', userId);
+      if (result.error) throw new Error(result.error);
+      toast.success('User unbanned');
+      loadUsers();
+    } catch (e: any) { toast.error('Failed: ' + e.message); }
+  };
+
   const deleteUser = async (userId: string) => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-account`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.access_token}`, apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
-        body: JSON.stringify({ action: 'admin_delete', target_user_id: userId }),
-      });
-      const result = await resp.json();
+      const result = await callAdminAction('admin_delete', userId);
       if (result.error) throw new Error(result.error);
       toast.success('User deleted');
       loadUsers();
     } catch (e: any) { toast.error('Failed: ' + e.message); }
+  };
+
+  const submitReply = async (id: string) => {
+    if (!replyText.trim()) return;
+    await supabase.from('feedback').update({ admin_reply: replyText.trim() }).eq('id', id);
+    toast.success('Reply posted');
+    setReplyingTo(null);
+    setReplyText('');
+    loadFeedbacks();
+  };
+
+  const deleteFeedback = async (id: string) => {
+    await supabase.from('feedback').delete().eq('id', id);
+    toast.success('Feedback deleted');
+    loadFeedbacks();
   };
 
   const filteredProfiles = allProfiles.filter(p =>
@@ -133,19 +177,22 @@ export default function AdminPage() {
           <h1 className="text-3xl font-bold font-display flex items-center gap-2">
             <Shield className="w-8 h-8 text-primary" /> Admin <span className="text-gradient">Panel</span>
           </h1>
-          <p className="text-muted-foreground mt-1">Manage materials and users</p>
+          <p className="text-muted-foreground mt-1">Manage materials, users & feedback</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant={tab === 'materials' ? 'default' : 'outline'} onClick={() => setTab('materials')}>Materials</Button>
-          <Button variant={tab === 'users' ? 'default' : 'outline'} onClick={() => setTab('users')} className="gap-2">
+        <div className="flex gap-2 flex-wrap">
+          <Button variant={tab === 'materials' ? 'default' : 'outline'} size="sm" onClick={() => setTab('materials')}>Materials</Button>
+          <Button variant={tab === 'users' ? 'default' : 'outline'} size="sm" onClick={() => setTab('users')} className="gap-1">
             <Users className="w-4 h-4" /> Users
+          </Button>
+          <Button variant={tab === 'feedback' ? 'default' : 'outline'} size="sm" onClick={() => setTab('feedback')} className="gap-1">
+            <MessageSquare className="w-4 h-4" /> Feedback
           </Button>
         </div>
       </motion.div>
 
       {tab === 'materials' && (
         <>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2 text-sm rounded-xl bg-primary/5 border border-primary/20 px-4 py-3">
               <AlertTriangle className="w-4 h-4 text-primary shrink-0" />
               <span>Pinned: <strong className="text-primary">{pinnedCount}/{MAX_PINNED}</strong></span>
@@ -157,6 +204,7 @@ export default function AdminPage() {
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-card rounded-2xl border border-border p-5 space-y-4">
               <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Material name" />
               <Input value={link} onChange={e => setLink(e.target.value)} placeholder="Material link (URL)" />
+              <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Description (optional)" rows={2} />
               <div>
                 <label className="text-sm font-medium mb-2 block">Type(s)</label>
                 <div className="flex flex-wrap gap-2">
@@ -176,9 +224,23 @@ export default function AdminPage() {
             {materials.map(m => (
               <div key={m.id} className="bg-card rounded-xl border border-border p-4">
                 <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1">
-                    <h3 className="font-bold">{m.title}</h3>
-                    {editingId === m.id ? (
+                  <div className="flex-1 min-w-0">
+                    {editingId === m.id && editMode === 'title' ? (
+                      <div className="space-y-2">
+                        <Input value={editTitle} onChange={e => setEditTitle(e.target.value)} placeholder="Title" />
+                        <Textarea value={editDescription} onChange={e => setEditDescription(e.target.value)} placeholder="Description" rows={2} />
+                        <div className="flex gap-2">
+                          <Button size="sm" onClick={() => saveEditTitle(m.id)}>Save</Button>
+                          <Button size="sm" variant="outline" onClick={() => setEditingId(null)}>Cancel</Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <h3 className="font-bold">{m.title}</h3>
+                        {m.description && <p className="text-xs text-muted-foreground mt-0.5">{m.description}</p>}
+                      </>
+                    )}
+                    {editingId === m.id && editMode === 'categories' ? (
                       <div className="mt-2 space-y-2">
                         <div className="flex flex-wrap gap-1.5">
                           {DEFAULT_TYPES.map(t => (
@@ -190,7 +252,7 @@ export default function AdminPage() {
                           <Button size="sm" variant="outline" onClick={() => setEditingId(null)}>Cancel</Button>
                         </div>
                       </div>
-                    ) : (
+                    ) : editingId !== m.id && (
                       <div className="flex flex-wrap gap-1 mt-1">
                         {m.types?.map((t: string) => (
                           <span key={t} className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">{t}</span>
@@ -198,8 +260,11 @@ export default function AdminPage() {
                       </div>
                     )}
                   </div>
-                  <div className="flex gap-1 shrink-0">
-                    <Button variant="ghost" size="icon" onClick={() => startEditCategories(m)} title="Edit categories"><Edit3 className="w-4 h-4" /></Button>
+                  <div className="flex gap-1 shrink-0 flex-wrap">
+                    <Button variant="ghost" size="icon" onClick={() => startEditTitle(m)} title="Edit title"><Edit3 className="w-4 h-4" /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => startEditCategories(m)} title="Edit categories">
+                      <span className="text-xs">🏷️</span>
+                    </Button>
                     <Button variant="ghost" size="icon" onClick={() => togglePin(m.id, m.pinned)} title={m.pinned ? 'Unpin' : 'Pin'}>
                       <Pin className={`w-4 h-4 ${m.pinned ? 'text-primary fill-primary' : ''}`} />
                     </Button>
@@ -217,15 +282,11 @@ export default function AdminPage() {
 
       {tab === 'users' && (
         <div className="space-y-4">
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input value={searchUser} onChange={e => setSearchUser(e.target.value)} placeholder="Search by name..." className="pl-9" />
-            </div>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input value={searchUser} onChange={e => setSearchUser(e.target.value)} placeholder="Search by name..." className="pl-9" />
           </div>
-
           <p className="text-sm text-muted-foreground">{filteredProfiles.length} users total</p>
-
           <div className="space-y-2">
             {filteredProfiles.map(p => (
               <div key={p.id} className={`bg-card rounded-xl border p-4 flex items-center justify-between gap-3 ${bannedUsers.has(p.user_id) ? 'border-destructive/30 bg-destructive/5' : 'border-border'}`}>
@@ -243,7 +304,11 @@ export default function AdminPage() {
                 </div>
                 {p.user_id !== user?.id && (
                   <div className="flex gap-1 shrink-0">
-                    {!bannedUsers.has(p.user_id) && (
+                    {bannedUsers.has(p.user_id) ? (
+                      <Button variant="outline" size="sm" onClick={() => unbanUser(p.user_id)} className="gap-1 text-xs">
+                        <CheckCircle className="w-3 h-3" /> Unban
+                      </Button>
+                    ) : (
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button variant="ghost" size="icon" title="Ban user"><Ban className="w-4 h-4 text-orange-500" /></Button>
@@ -269,7 +334,7 @@ export default function AdminPage() {
                       <AlertDialogContent>
                         <AlertDialogHeader>
                           <AlertDialogTitle>Delete {p.display_name}'s account?</AlertDialogTitle>
-                          <AlertDialogDescription>This will permanently delete the user and all their data. This cannot be undone.</AlertDialogDescription>
+                          <AlertDialogDescription>This will permanently delete the user and all their data.</AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancel</AlertDialogCancel>
@@ -282,6 +347,49 @@ export default function AdminPage() {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {tab === 'feedback' && (
+        <div className="space-y-3">
+          {feedbacks.length === 0 ? (
+            <p className="text-center py-10 text-muted-foreground">No feedback yet</p>
+          ) : feedbacks.map(f => (
+            <div key={f.id} className="bg-card rounded-xl border border-border p-4">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="font-medium text-sm">{f.display_name}</p>
+                  <div className="flex gap-0.5 mt-0.5">
+                    {[1,2,3,4,5].map(s => (
+                      <span key={s} className={`text-xs ${s <= f.rating ? 'text-primary' : 'text-muted-foreground/30'}`}>★</span>
+                    ))}
+                  </div>
+                  {f.review && <p className="text-sm text-muted-foreground mt-2">{f.review}</p>}
+                  {f.admin_reply && (
+                    <div className="mt-2 ml-4 border-l-2 border-primary/30 pl-3">
+                      <p className="text-xs text-primary font-medium">Admin Reply</p>
+                      <p className="text-sm text-muted-foreground">{f.admin_reply}</p>
+                    </div>
+                  )}
+                </div>
+                <div className="flex gap-1 shrink-0">
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setReplyingTo(f.id); setReplyText(f.admin_reply || ''); }}>
+                    <MessageSquare className="w-3 h-3" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteFeedback(f.id)}>
+                    <Trash2 className="w-3 h-3 text-destructive" />
+                  </Button>
+                </div>
+              </div>
+              {replyingTo === f.id && (
+                <div className="mt-3 flex gap-2">
+                  <Input value={replyText} onChange={e => setReplyText(e.target.value)} placeholder="Write reply..." className="flex-1 text-sm" />
+                  <Button size="sm" onClick={() => submitReply(f.id)}>Reply</Button>
+                  <Button size="sm" variant="outline" onClick={() => setReplyingTo(null)}>Cancel</Button>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       )}
     </div>

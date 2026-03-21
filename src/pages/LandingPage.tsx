@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { Zap, BookOpen, Users, Download, Star, ArrowRight, Send, Sparkles, Target, Brain, GraduationCap, Shield, Heart, Quote, ChevronLeft, ChevronRight, Sun, Moon } from 'lucide-react';
+import { Zap, BookOpen, Users, Download, Star, ArrowRight, Send, Sparkles, Target, Brain, GraduationCap, Shield, Heart, Quote, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { useTheme } from '@/contexts/ThemeContext';
 
 const fadeUp = { hidden: { opacity: 0, y: 40 }, visible: { opacity: 1, y: 0 } };
 const stagger = { visible: { transition: { staggerChildren: 0.15 } } };
@@ -72,7 +71,6 @@ function Particles() {
 
 export default function LandingPage() {
   const navigate = useNavigate();
-  const { theme, toggleTheme } = useTheme();
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const { scrollYProgress } = useScroll();
   const heroOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
@@ -84,15 +82,7 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <div className="min-h-screen">
-      {/* Floating theme toggle */}
-      <div className="fixed top-4 right-4 z-50">
-        <Button variant="ghost" size="icon" onClick={toggleTheme}
-          className="rounded-full bg-card/80 backdrop-blur-lg border border-border shadow-lg">
-          {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-        </Button>
-      </div>
-
+    <div className="min-h-screen dark">
       {/* Hero */}
       <section className="relative bg-hero min-h-screen flex items-center justify-center overflow-hidden">
         <Particles />
@@ -108,24 +98,24 @@ export default function LandingPage() {
             <motion.div variants={scaleIn} transition={{ duration: 0.6 }}
               className="inline-flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full border border-primary/30 bg-primary/10 mb-6 sm:mb-8 backdrop-blur-sm">
               <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-primary animate-pulse" />
-              <span className="text-xs sm:text-sm font-medium text-foreground">100% Free Study Materials — No Hidden Charges</span>
+              <span className="text-xs sm:text-sm font-medium text-white">100% Free Study Materials — No Hidden Charges</span>
             </motion.div>
 
             <motion.h1 variants={fadeUp} transition={{ duration: 0.8 }}
               className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold font-display mb-4 sm:mb-6 tracking-tight">
-              <span className="text-foreground">Rankers </span>
+              <span className="text-white">Rankers </span>
               <span className="text-gradient">Star</span>
               <motion.span animate={{ rotate: [0, 15, -15, 0] }} transition={{ repeat: Infinity, duration: 2, repeatDelay: 3 }}
                 className="inline-block ml-2 sm:ml-3">⭐</motion.span>
             </motion.h1>
 
             <motion.p variants={fadeUp} transition={{ duration: 0.8 }}
-              className="text-lg sm:text-xl md:text-2xl font-medium mb-3 sm:mb-4 text-muted-foreground">
+              className="text-lg sm:text-xl md:text-2xl font-medium mb-3 sm:mb-4 text-gray-300">
               Your Ultimate Free Study Companion for JEE, NEET & Board Exams
             </motion.p>
 
             <motion.p variants={fadeUp} transition={{ duration: 0.8 }}
-              className="text-sm sm:text-base md:text-lg max-w-2xl mx-auto mb-8 sm:mb-10 text-muted-foreground">
+              className="text-sm sm:text-base md:text-lg max-w-2xl mx-auto mb-8 sm:mb-10 text-gray-400">
               Access premium quality lectures, books, PYQs, notes, and AI-powered study tools — all completely free.
             </motion.p>
 
@@ -149,8 +139,8 @@ export default function LandingPage() {
               <motion.div key={stat.label} variants={scaleIn} transition={{ duration: 0.5 }}
                 className="hero-card rounded-xl p-4 sm:p-6 text-center hover:border-primary/40 transition-all duration-300 hover:-translate-y-2">
                 <stat.icon className={`w-5 sm:w-7 h-5 sm:h-7 mx-auto mb-2 sm:mb-3 ${stat.color}`} />
-                <div className="text-2xl sm:text-3xl font-bold font-display text-foreground">{stat.value}</div>
-                <div className="text-xs sm:text-sm mt-1 text-muted-foreground">{stat.label}</div>
+                <div className="text-2xl sm:text-3xl font-bold font-display text-white">{stat.value}</div>
+                <div className="text-xs sm:text-sm mt-1 text-gray-400">{stat.label}</div>
               </motion.div>
             ))}
           </motion.div>
@@ -173,10 +163,10 @@ export default function LandingPage() {
             <motion.div variants={scaleIn} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/20 bg-primary/5 mb-4 sm:mb-6">
               <span className="text-xs font-medium text-primary">FEATURES</span>
             </motion.div>
-            <motion.h2 variants={fadeUp} className="text-3xl sm:text-4xl md:text-5xl font-bold font-display mb-3 sm:mb-4 text-foreground">
+            <motion.h2 variants={fadeUp} className="text-3xl sm:text-4xl md:text-5xl font-bold font-display mb-3 sm:mb-4 text-white">
               Everything You Need to <span className="text-gradient">Crack It</span>
             </motion.h2>
-            <motion.p variants={fadeUp} className="text-base sm:text-lg max-w-2xl mx-auto text-muted-foreground">
+            <motion.p variants={fadeUp} className="text-base sm:text-lg max-w-2xl mx-auto text-gray-400">
               From study materials to AI-powered test practice, Rankers Star has everything to boost your preparation.
             </motion.p>
           </motion.div>
@@ -191,8 +181,8 @@ export default function LandingPage() {
                   <div className="w-12 sm:w-14 h-12 sm:h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-4 sm:mb-5 group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
                     <feature.icon className="w-6 sm:w-7 h-6 sm:h-7 text-primary" />
                   </div>
-                  <h3 className="text-lg sm:text-xl font-bold font-display mb-2 sm:mb-3 text-foreground">{feature.title}</h3>
-                  <p className="text-sm sm:text-base leading-relaxed text-muted-foreground">{feature.desc}</p>
+                  <h3 className="text-lg sm:text-xl font-bold font-display mb-2 sm:mb-3 text-white">{feature.title}</h3>
+                  <p className="text-sm sm:text-base leading-relaxed text-gray-400">{feature.desc}</p>
                 </div>
               </motion.div>
             ))}
@@ -208,7 +198,7 @@ export default function LandingPage() {
             <motion.div variants={scaleIn} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/20 bg-primary/5 mb-4 sm:mb-6">
               <span className="text-xs font-medium text-primary">TESTIMONIALS</span>
             </motion.div>
-            <motion.h2 variants={fadeUp} className="text-3xl sm:text-4xl md:text-5xl font-bold font-display mb-4 text-foreground">
+            <motion.h2 variants={fadeUp} className="text-3xl sm:text-4xl md:text-5xl font-bold font-display mb-4 text-white">
               Loved by <span className="text-gradient">Students</span>
             </motion.h2>
           </motion.div>
@@ -217,18 +207,18 @@ export default function LandingPage() {
             <motion.div key={currentTestimonial} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
               className="hero-card rounded-2xl p-6 sm:p-8 md:p-10 text-center relative">
               <Quote className="w-8 sm:w-10 h-8 sm:h-10 text-primary/30 mx-auto mb-4 sm:mb-6" />
-              <p className="text-base sm:text-lg md:text-xl leading-relaxed mb-4 sm:mb-6 italic text-muted-foreground">
+              <p className="text-base sm:text-lg md:text-xl leading-relaxed mb-4 sm:mb-6 italic text-gray-300">
                 "{testimonials[currentTestimonial].text}"
               </p>
               <div className="flex items-center justify-center gap-2">
                 <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold font-display">
                   {testimonials[currentTestimonial].name[0]}
                 </div>
-                <span className="font-bold font-display text-foreground">{testimonials[currentTestimonial].name}</span>
+                <span className="font-bold font-display text-white">{testimonials[currentTestimonial].name}</span>
               </div>
             </motion.div>
             <div className="flex justify-center gap-3 mt-4 sm:mt-6">
-              <Button variant="ghost" size="icon" className="rounded-full border border-border/30"
+              <Button variant="ghost" size="icon" className="rounded-full border border-white/10 text-white"
                 onClick={() => setCurrentTestimonial(p => (p - 1 + testimonials.length) % testimonials.length)}>
                 <ChevronLeft className="w-4 h-4" />
               </Button>
@@ -238,7 +228,7 @@ export default function LandingPage() {
                     className={`w-2.5 h-2.5 rounded-full transition-all ${i === currentTestimonial ? 'bg-primary w-6' : 'bg-primary/30'}`} />
                 ))}
               </div>
-              <Button variant="ghost" size="icon" className="rounded-full border border-border/30"
+              <Button variant="ghost" size="icon" className="rounded-full border border-white/10 text-white"
                 onClick={() => setCurrentTestimonial(p => (p + 1) % testimonials.length)}>
                 <ChevronRight className="w-4 h-4" />
               </Button>
@@ -255,17 +245,17 @@ export default function LandingPage() {
             <motion.div variants={scaleIn} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/20 bg-primary/5 mb-4 sm:mb-6">
               <span className="text-xs font-medium text-primary">ABOUT US</span>
             </motion.div>
-            <motion.h2 variants={fadeUp} className="text-3xl sm:text-4xl md:text-5xl font-bold font-display mb-4 sm:mb-6 text-foreground">
+            <motion.h2 variants={fadeUp} className="text-3xl sm:text-4xl md:text-5xl font-bold font-display mb-4 sm:mb-6 text-white">
               About <span className="text-gradient">Us</span>
             </motion.h2>
-            <motion.p variants={fadeUp} className="text-base sm:text-lg leading-relaxed mb-4 sm:mb-6 text-muted-foreground">
-              Rankers Star was born from a simple belief: <strong className="text-foreground">quality education should be accessible to everyone</strong>,
+            <motion.p variants={fadeUp} className="text-base sm:text-lg leading-relaxed mb-4 sm:mb-6 text-gray-400">
+              Rankers Star was born from a simple belief: <strong className="text-white">quality education should be accessible to everyone</strong>,
               regardless of their financial background. We are a community-driven platform built by students, for students.
             </motion.p>
-            <motion.p variants={fadeUp} className="text-base sm:text-lg leading-relaxed mb-4 sm:mb-6 text-muted-foreground">
+            <motion.p variants={fadeUp} className="text-base sm:text-lg leading-relaxed mb-4 sm:mb-6 text-gray-400">
               Our team curates the best study materials from across the internet and makes them available in one organized platform, completely free of charge.
             </motion.p>
-            <motion.p variants={fadeUp} className="text-base sm:text-lg leading-relaxed text-muted-foreground">
+            <motion.p variants={fadeUp} className="text-base sm:text-lg leading-relaxed text-gray-400">
               With AI-powered tools like RankerPulse chatbot and CBT-mode mock tests, we're building a complete ecosystem for exam preparation.
             </motion.p>
           </motion.div>
@@ -281,7 +271,7 @@ export default function LandingPage() {
               <motion.div variants={scaleIn} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/20 bg-primary/5 mb-4 sm:mb-6">
                 <span className="text-xs font-medium text-primary">OUR MISSION</span>
               </motion.div>
-              <motion.h2 variants={fadeUp} className="text-3xl sm:text-4xl md:text-5xl font-bold font-display text-foreground">
+              <motion.h2 variants={fadeUp} className="text-3xl sm:text-4xl md:text-5xl font-bold font-display text-white">
                 Our <span className="text-gradient">Mission</span>
               </motion.h2>
             </div>
@@ -296,8 +286,8 @@ export default function LandingPage() {
                   <div className="w-14 sm:w-16 h-14 sm:h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4 sm:mb-5">
                     <goal.icon className="w-7 sm:w-8 h-7 sm:h-8 text-primary" />
                   </div>
-                  <h3 className="text-lg sm:text-xl font-bold font-display mb-2 sm:mb-3 text-foreground">{goal.title}</h3>
-                  <p className="text-sm sm:text-base text-muted-foreground">{goal.desc}</p>
+                  <h3 className="text-lg sm:text-xl font-bold font-display mb-2 sm:mb-3 text-white">{goal.title}</h3>
+                  <p className="text-sm sm:text-base text-gray-400">{goal.desc}</p>
                 </motion.div>
               ))}
             </div>
@@ -313,10 +303,10 @@ export default function LandingPage() {
             className="max-w-3xl mx-auto hero-card rounded-3xl p-8 sm:p-12 border-primary/20 relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent" />
             <div className="relative z-10">
-              <motion.h2 variants={fadeUp} className="text-2xl sm:text-3xl md:text-4xl font-bold font-display mb-3 sm:mb-4 text-foreground">
+              <motion.h2 variants={fadeUp} className="text-2xl sm:text-3xl md:text-4xl font-bold font-display mb-3 sm:mb-4 text-white">
                 Ready to Start Your Journey?
               </motion.h2>
-              <motion.p variants={fadeUp} className="text-base sm:text-lg mb-6 sm:mb-8 text-muted-foreground">
+              <motion.p variants={fadeUp} className="text-base sm:text-lg mb-6 sm:mb-8 text-gray-400">
                 Join thousands of students who are already using Rankers Star to prepare smarter, not harder.
               </motion.p>
               <motion.div variants={fadeUp}>
@@ -330,32 +320,32 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-hero border-t border-border/20 py-10 sm:py-16">
+      <footer className="bg-hero border-t border-white/5 py-10 sm:py-16">
         <div className="container mx-auto px-4">
           <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-8 sm:gap-10 mb-8 sm:mb-10">
             <div>
               <h3 className="text-xl sm:text-2xl font-bold font-display mb-2">
-                <span className="text-foreground">Rankers </span><span className="text-gradient">Star</span>
+                <span className="text-white">Rankers </span><span className="text-gradient">Star</span>
               </h3>
-              <p className="text-sm text-muted-foreground">Your free study companion for JEE, NEET & Board Exams.</p>
+              <p className="text-sm text-gray-400">Your free study companion for JEE, NEET & Board Exams.</p>
             </div>
             <div>
-              <h4 className="font-bold mb-3 text-foreground">Quick Links</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
+              <h4 className="font-bold mb-3 text-white">Quick Links</h4>
+              <ul className="space-y-2 text-sm text-gray-400">
                 <li><a href="/terms" className="hover:text-primary transition-colors">Terms & Conditions</a></li>
                 <li><a href="/privacy" className="hover:text-primary transition-colors">Privacy Policy</a></li>
                 <li><a href="/adsense" className="hover:text-primary transition-colors">AdSense Disclaimer</a></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-bold mb-3 text-foreground">Connect With Us</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
+              <h4 className="font-bold mb-3 text-white">Connect With Us</h4>
+              <ul className="space-y-2 text-sm text-gray-400">
                 <li><a href="mailto:studyspacerankers@gmail.com" className="hover:text-primary transition-colors">📧 studyspacerankers@gmail.com</a></li>
                 <li><a href="https://t.me/freematerialjeeneet" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">✈️ Telegram Channel</a></li>
               </ul>
             </div>
           </div>
-          <div className="border-t border-border/20 pt-6 text-center text-sm text-muted-foreground">
+          <div className="border-t border-white/5 pt-6 text-center text-sm text-gray-500">
             © {new Date().getFullYear()} Rankers Star. All rights reserved. Made with ❤️ for students.
           </div>
         </div>

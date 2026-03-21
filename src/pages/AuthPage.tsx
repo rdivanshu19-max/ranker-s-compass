@@ -35,8 +35,17 @@ export default function AuthPage() {
         }
         const { error: signUpError } = await signUp(email, password, displayName);
         if (signUpError) throw signUpError;
+
+        // Check if banned
+        const { data: banCheck } = await supabase.from('banned_users').select('id').eq('user_id', email);
+        if (banCheck && banCheck.length > 0) {
+          toast.error('This account has been banned.');
+          await supabase.auth.signOut();
+          setLoading(false);
+          return;
+        }
+
         toast.success('Account created! You are now signed in.');
-        // Handle referral
         if (refCode) {
           try {
             const { data: referrer } = await supabase.from('profiles').select('user_id').eq('referral_code', refCode).single();
@@ -50,8 +59,22 @@ export default function AuthPage() {
           } catch {}
         }
       } else {
+        // Check ban before login
         const { error: signInError } = await signIn(email, password);
         if (signInError) throw signInError;
+
+        // Check ban after login
+        const { data: { user: loggedUser } } = await supabase.auth.getUser();
+        if (loggedUser) {
+          const { data: banData } = await supabase.from('banned_users').select('id, reason').eq('user_id', loggedUser.id).maybeSingle();
+          if (banData) {
+            toast.error(`Your account has been banned. Reason: ${banData.reason || 'No reason provided'}`);
+            await supabase.auth.signOut();
+            setLoading(false);
+            return;
+          }
+        }
+
         toast.success('Welcome back!');
         navigate('/app', { replace: true });
       }
@@ -63,11 +86,7 @@ export default function AuthPage() {
   };
 
   const handleForgotPassword = async () => {
-    if (!email.trim()) {
-      toast.error('Enter your email first');
-      return;
-    }
-
+    if (!email.trim()) { toast.error('Enter your email first'); return; }
     setLoading(true);
     try {
       const { error } = await requestPasswordReset(email.trim());
@@ -87,12 +106,7 @@ export default function AuthPage() {
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-primary/8 rounded-full blur-3xl animate-float" style={{ animationDelay: '1.5s' }} />
       </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="relative z-10 w-full max-w-md"
-      >
+      <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="relative z-10 w-full max-w-md">
         <Button variant="ghost" onClick={() => navigate('/')} className="mb-6" style={{ color: 'hsl(220 15% 70%)' }}>
           <ArrowLeft className="w-4 h-4 mr-1" /> Back
         </Button>
@@ -110,49 +124,22 @@ export default function AuthPage() {
             {isSignUp && (
               <div>
                 <label className="text-sm font-medium mb-1 block" style={{ color: 'hsl(220 15% 70%)' }}>Display Name</label>
-                <Input
-                  value={displayName}
-                  onChange={e => setDisplayName(e.target.value)}
-                  placeholder="Your name in the app"
-                  className="bg-background/50 border-border/50"
-                />
+                <Input value={displayName} onChange={e => setDisplayName(e.target.value)} placeholder="Your name in the app" className="bg-background/50 border-border/50" />
               </div>
             )}
-
             <div>
               <label className="text-sm font-medium mb-1 block" style={{ color: 'hsl(220 15% 70%)' }}>Email</label>
-              <Input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                className="bg-background/50 border-border/50"
-                required
-              />
+              <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" className="bg-background/50 border-border/50" required />
             </div>
-
             <div>
               <label className="text-sm font-medium mb-1 block" style={{ color: 'hsl(220 15% 70%)' }}>Password</label>
-              <Input
-                type="password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="bg-background/50 border-border/50"
-                required
-              />
+              <Input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" className="bg-background/50 border-border/50" required />
               {!isSignUp && (
-                <button
-                  type="button"
-                  onClick={handleForgotPassword}
-                  className="mt-2 text-xs text-primary hover:underline"
-                  disabled={loading}
-                >
+                <button type="button" onClick={handleForgotPassword} className="mt-2 text-xs text-primary hover:underline" disabled={loading}>
                   Forgot password?
                 </button>
               )}
             </div>
-
             <Button type="submit" variant="hero" size="lg" className="w-full" disabled={loading}>
               <Zap className="w-4 h-4" />
               {loading ? 'Please wait...' : isSignUp ? 'Create Account' : 'Sign In'}
