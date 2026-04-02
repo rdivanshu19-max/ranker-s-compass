@@ -20,7 +20,7 @@ import ContributePage from "./pages/ContributePage";
 import AITestPage from "./pages/AITestPage";
 import AIChatWidget from "./components/AIChatWidget";
 import FeedbackPage from "./pages/FeedbackPage";
-import LeaderboardPage from "./pages/LeaderboardPage";
+import CoursesPage from "./pages/CoursesPage";
 import TermsPage from "./pages/TermsPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import AdSensePage from "./pages/AdSensePage";
@@ -48,9 +48,9 @@ const App = () => (
                 <Route path="library" element={<><LibraryPage /><AIChatWidget /></>} />
                 <Route path="vault" element={<><StudyVaultPage /><AIChatWidget /></>} />
                 <Route path="tests" element={<><AITestPage /><AIChatWidget /></>} />
+                <Route path="courses" element={<><CoursesPage /><AIChatWidget /></>} />
                 <Route path="profile" element={<ProfilePage />} />
                 <Route path="feedback" element={<><FeedbackPage /><AIChatWidget /></>} />
-                <Route path="leaderboard" element={<><LeaderboardPage /><AIChatWidget /></>} />
                 <Route path="admin" element={<AdminPage />} />
                 <Route path="about" element={<AboutPage />} />
                 <Route path="contribute" element={<ContributePage />} />
