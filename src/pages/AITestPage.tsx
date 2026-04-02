@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   FlaskConical, Clock, CheckCircle, XCircle, MinusCircle, Flag, ArrowRight,
-  BarChart3, Trophy, AlertTriangle, Sparkles, Timer,
+  BarChart3, Trophy, AlertTriangle, Sparkles, Timer, X, HelpCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -58,6 +58,7 @@ export default function AITestPage() {
   const [classLevel, setClassLevel] = useState<'11th' | '12th' | 'Full'>('11th');
   const [subject, setSubject] = useState<string | 'Full'>('Full');
   const [chapter, setChapter] = useState<string | 'Full'>('Full');
+  const [showTutorial, setShowTutorial] = useState(false);
 
   const [questions, setQuestions] = useState<Question[]>([]);
   const [answers, setAnswers] = useState<Record<number, number>>({});
@@ -66,16 +67,25 @@ export default function AITestPage() {
   const [timeLeft, setTimeLeft] = useState(0);
   const [result, setResult] = useState<ResultState | null>(null);
 
-  // Time tracking per question
   const [questionTimes, setQuestionTimes] = useState<number[]>([]);
   const questionStartRef = useRef<number>(Date.now());
-
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const subjects = examType === 'JEE' ? JEE_SUBJECTS : NEET_SUBJECTS;
 
   const attemptedCount = useMemo(() => Object.keys(answers).length, [answers]);
   const reviewCount = useMemo(() => markedForReview.size, [markedForReview]);
   const unattemptedCount = useMemo(() => Math.max(questions.length - attemptedCount, 0), [questions.length, attemptedCount]);
+
+  // Show tutorial on first visit
+  useEffect(() => {
+    const seen = localStorage.getItem('ai-test-tutorial-seen');
+    if (!seen) setShowTutorial(true);
+  }, []);
+
+  const dismissTutorial = () => {
+    setShowTutorial(false);
+    localStorage.setItem('ai-test-tutorial-seen', 'true');
+  };
 
   const getTestConfig = () => {
     const isFullExam = classLevel === 'Full' && subject === 'Full';
@@ -89,15 +99,54 @@ export default function AITestPage() {
       else if (subject === 'Biology') { numQ = 90; totalMarks = 360; duration = 90 * 60; }
       else { numQ = 45; totalMarks = 180; duration = 45 * 60; }
     } else if (classLevel !== 'Full' && subject === 'Full') {
+      // Full class test
       numQ = 30; totalMarks = 120; duration = 60 * 60;
     }
     return { numQ, totalMarks, duration };
   };
 
+  const getSubjectDistribution = () => {
+    const isFullExam = classLevel === 'Full' && subject === 'Full';
+    const isClassFull = classLevel !== 'Full' && subject === 'Full';
+
+    if (isFullExam) {
+      if (examType === 'JEE') {
+        return [
+          { subject: 'Physics', count: 25 },
+          { subject: 'Chemistry', count: 25 },
+          { subject: 'Mathematics', count: 25 },
+        ];
+      } else {
+        return [
+          { subject: 'Physics', count: 45 },
+          { subject: 'Chemistry', count: 45 },
+          { subject: 'Biology', count: 90 },
+        ];
+      }
+    }
+
+    if (isClassFull) {
+      if (examType === 'JEE') {
+        return [
+          { subject: 'Physics', count: 10 },
+          { subject: 'Chemistry', count: 10 },
+          { subject: 'Mathematics', count: 10 },
+        ];
+      } else {
+        return [
+          { subject: 'Physics', count: 8 },
+          { subject: 'Chemistry', count: 7 },
+          { subject: 'Biology', count: 15 },
+        ];
+      }
+    }
+
+    return null; // single subject or chapter - no distribution needed
+  };
+
   const clearTimer = () => { if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; } };
   useEffect(() => () => clearTimer(), []);
 
-  // Track time when switching questions
   const recordQuestionTime = (fromIdx: number) => {
     const elapsed = (Date.now() - questionStartRef.current) / 1000;
     setQuestionTimes(prev => {
@@ -116,12 +165,19 @@ export default function AITestPage() {
   const startTest = async () => {
     setState('loading');
     const { numQ, duration } = getTestConfig();
+    const distribution = getSubjectDistribution();
     try {
-      const { data, error } = await supabase.functions.invoke('generate-test', {
-        body: { examType, subject: subject === 'Full' ? null : subject, chapter: chapter === 'Full' ? null : chapter, numQuestions: Math.min(numQ, 25) },
-      });
+      const body: any = { examType, numQuestions: numQ };
+      if (distribution) {
+        body.subjectDistribution = distribution;
+      } else {
+        body.subject = subject === 'Full' ? null : subject;
+        body.chapter = chapter === 'Full' ? null : chapter;
+      }
+
+      const { data, error } = await supabase.functions.invoke('generate-test', { body });
       if (error) throw error;
-      if (!data?.questions) throw new Error('No questions generated');
+      if (!data?.questions || data.questions.length === 0) throw new Error('No questions generated');
       setQuestions(data.questions);
       setAnswers({});
       setMarkedForReview(new Set());
@@ -133,13 +189,21 @@ export default function AITestPage() {
       setState('test');
       clearTimer();
       timerRef.current = setInterval(() => {
-        setTimeLeft((prev) => { if (prev <= 1) { clearTimer(); submitTest(); return 0; } return prev - 1; });
+        setTimeLeft((prev) => { if (prev <= 1) { clearTimer(); return 0; } return prev - 1; });
       }, 1000);
     } catch (e: any) {
-      toast.error(`Failed to generate test: ${e.message || 'Try again'}`);
+      const msg = e.message || 'Something went wrong. Please try again.';
+      toast.error(msg.includes('fetch') ? 'Something went wrong. Please check your connection and try again.' : msg);
       setState('config');
     }
   };
+
+  // Auto-submit when time runs out
+  useEffect(() => {
+    if (state === 'test' && timeLeft === 0) {
+      submitTest();
+    }
+  }, [timeLeft, state]);
 
   const submitTest = async () => {
     clearTimer();
@@ -155,7 +219,8 @@ export default function AITestPage() {
       else if (answers[i] === q.correctAnswer) { correct += 1; subjectScores[subj].correct += 1; }
       else { incorrect += 1; subjectScores[subj].incorrect += 1; }
     });
-    const obtained = correct * 4 - incorrect;
+    // Marking: +4 correct, -1 incorrect, 0 unanswered
+    const obtained = correct * 4 - incorrect * 1;
     const total = questions.length * 4;
     const res: ResultState = { correct, incorrect, unanswered, obtained, total, negativeMarks: incorrect, attempted: correct + incorrect, subjectScores, timePerQuestion: questionTimes };
     setResult(res);
@@ -181,6 +246,77 @@ export default function AITestPage() {
     setMarkedForReview((prev) => { const next = new Set(prev); if (next.has(idx)) next.delete(idx); else next.add(idx); return next; });
   };
 
+  // Tutorial Overlay
+  const TutorialOverlay = () => (
+    <AnimatePresence>
+      {showTutorial && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+            className="bg-card rounded-2xl border border-border p-6 sm:p-8 max-w-lg w-full space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold font-display flex items-center gap-2">
+                <FlaskConical className="w-5 h-5 text-primary" /> How AI Tests Work
+              </h2>
+              <Button variant="ghost" size="icon" onClick={dismissTutorial}><X className="w-4 h-4" /></Button>
+            </div>
+
+            <div className="space-y-3 text-sm">
+              <div className="flex gap-3 p-3 rounded-xl bg-primary/5 border border-primary/20">
+                <span className="text-lg">🎯</span>
+                <div>
+                  <p className="font-medium">CBT Mode (Computer Based Test)</p>
+                  <p className="text-muted-foreground">Just like the real JEE/NEET exam! Navigate freely between questions.</p>
+                </div>
+              </div>
+
+              <div className="flex gap-3 p-3 rounded-xl bg-muted/50">
+                <span className="text-lg">📊</span>
+                <div>
+                  <p className="font-medium">Marking Scheme</p>
+                  <p className="text-muted-foreground">+4 for correct, -1 for incorrect, 0 for unanswered</p>
+                </div>
+              </div>
+
+              <div className="flex gap-3 p-3 rounded-xl bg-muted/50">
+                <span className="text-lg">🎨</span>
+                <div>
+                  <p className="font-medium">Question Palette</p>
+                  <p className="text-muted-foreground">
+                    <span className="text-green-500 font-bold">Green</span> = Answered, {' '}
+                    <span className="text-orange-500 font-bold">Orange</span> = Marked for Review, {' '}
+                    <span className="text-destructive font-bold">Red</span> = Not Attempted
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-3 p-3 rounded-xl bg-muted/50">
+                <span className="text-lg">⏱️</span>
+                <div>
+                  <p className="font-medium">Exam Patterns</p>
+                  <p className="text-muted-foreground">JEE: 75 Q (25 per subject), 300 marks, 3 hrs</p>
+                  <p className="text-muted-foreground">NEET: 180 Q (90 Bio, 45 Phy, 45 Chem), 720 marks, 3 hrs</p>
+                </div>
+              </div>
+
+              <div className="flex gap-3 p-3 rounded-xl bg-muted/50">
+                <span className="text-lg">📈</span>
+                <div>
+                  <p className="font-medium">Detailed Analysis</p>
+                  <p className="text-muted-foreground">Get subject-wise scores, time analysis, and answer review after each test.</p>
+                </div>
+              </div>
+            </div>
+
+            <Button variant="hero" className="w-full" onClick={dismissTutorial}>
+              <Sparkles className="w-4 h-4 mr-2" /> Got it, let's go!
+            </Button>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+
   // Loading
   if (state === 'loading') {
     return (
@@ -188,7 +324,8 @@ export default function AITestPage() {
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="text-center space-y-4">
           <div className="mx-auto animate-spin w-12 h-12 border-4 border-primary border-t-transparent rounded-full" />
           <p className="text-lg font-bold font-display">Generating your test...</p>
-          <p className="text-muted-foreground">AI is crafting exam-style questions for {examType}</p>
+          <p className="text-muted-foreground">AI is crafting {getTestConfig().numQ} exam-style questions for {examType}</p>
+          <p className="text-xs text-muted-foreground">This may take a moment for large tests</p>
         </motion.div>
       </div>
     );
@@ -204,6 +341,7 @@ export default function AITestPage() {
             <div className="flex items-center gap-2">
               <FlaskConical className="w-5 h-5 text-primary" />
               <span className="font-bold font-display">{examType} CBT Test</span>
+              <span className="text-xs text-muted-foreground">({questions.length} Q)</span>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <span className={`font-mono font-bold ${timeLeft < 300 ? 'text-destructive animate-pulse' : 'text-primary'}`}>
@@ -255,15 +393,15 @@ export default function AITestPage() {
           {/* Question Palette */}
           <div className="bg-card rounded-2xl border border-border p-4 h-fit space-y-4">
             <h4 className="font-bold font-display">Question Palette</h4>
-            <div className="grid grid-cols-5 gap-2">
+            <div className="grid grid-cols-5 gap-2 max-h-60 overflow-y-auto">
               {questions.map((_, i) => {
                 const isCurrent = i === currentQ;
                 const isReview = markedForReview.has(i);
                 const isAnswered = answers[i] !== undefined;
 
-                let colorClass = 'bg-destructive/20 text-destructive border-destructive/40'; // not attempted = red
-                if (isAnswered) colorClass = 'bg-green-500/20 text-green-600 border-green-500/40'; // answered = green
-                if (isReview) colorClass = 'bg-orange-500/20 text-orange-600 border-orange-500/40'; // review = orange
+                let colorClass = 'bg-destructive/20 text-destructive border-destructive/40';
+                if (isAnswered) colorClass = 'bg-green-500/20 text-green-600 border-green-500/40';
+                if (isReview) colorClass = 'bg-orange-500/20 text-orange-600 border-orange-500/40';
                 if (isCurrent) colorClass += ' ring-2 ring-primary ring-offset-1 ring-offset-card';
 
                 return (
@@ -308,7 +446,7 @@ export default function AITestPage() {
     const subjectData = Object.entries(result.subjectScores).map(([name, value]) => ({
       name, marks: value.correct * 4 - value.incorrect, total: value.total * 4,
     }));
-    const percentage = Math.round((result.obtained / result.total) * 100);
+    const percentage = result.total > 0 ? Math.round((Math.max(0, result.obtained) / result.total) * 100) : 0;
     const avgTimePerQ = result.timePerQuestion.length > 0
       ? Math.round(result.timePerQuestion.reduce((a, b) => a + b, 0) / result.timePerQuestion.length)
       : 0;
@@ -321,10 +459,6 @@ export default function AITestPage() {
           <div className="text-5xl font-bold font-display text-gradient">{result.obtained}/{result.total}</div>
           <p className="text-muted-foreground">
             {percentage >= 60 ? 'Excellent work! 🎉' : percentage >= 40 ? 'Great effort! Keep pushing! 💪' : 'Keep practicing, progress is loading! 📚'}
-          </p>
-          <p className="text-xs text-muted-foreground">
-            <AlertTriangle className="w-3.5 h-3.5 inline mr-1" />
-            AI-generated analysis — cross-check with trusted material.
           </p>
         </motion.div>
 
@@ -369,7 +503,6 @@ export default function AITestPage() {
           </div>
         </div>
 
-        {/* Time per question */}
         {result.timePerQuestion.some(t => t > 0) && (
           <div className="bg-card rounded-2xl border border-border p-6">
             <h3 className="font-bold font-display mb-4 flex items-center gap-2"><Timer className="w-4 h-4 text-primary" /> Time Spent Per Question</h3>
@@ -422,13 +555,16 @@ export default function AITestPage() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
+      <TutorialOverlay />
+
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-2">
-        <h1 className="text-3xl font-bold font-display">AI <span className="text-gradient">Mock Tests</span> 🎯</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold font-display">AI <span className="text-gradient">Mock Tests</span> 🎯</h1>
+          <Button variant="ghost" size="icon" onClick={() => setShowTutorial(true)} title="How it works">
+            <HelpCircle className="w-5 h-5 text-muted-foreground" />
+          </Button>
+        </div>
         <p className="text-muted-foreground">Practice with AI-generated CBT-mode tests matching actual exam patterns.</p>
-        <p className="text-xs text-muted-foreground">
-          <AlertTriangle className="w-3.5 h-3.5 inline mr-1" />
-          AI-generated questions for practice only. Verify with standard references.
-        </p>
       </motion.div>
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}
