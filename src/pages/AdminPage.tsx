@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { motion } from 'framer-motion';
-import { Shield, Plus, Trash2, Pin, ToggleLeft, ToggleRight, Edit3, AlertTriangle, Users, Ban, Search, MessageSquare, CheckCircle } from 'lucide-react';
+import { Shield, Plus, Trash2, Pin, ToggleLeft, ToggleRight, Edit3, AlertTriangle, Users, Ban, Search, MessageSquare, CheckCircle, GraduationCap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -30,7 +30,7 @@ export default function AdminPage() {
   const [editDescription, setEditDescription] = useState('');
   const [editMode, setEditMode] = useState<'categories' | 'title'>('categories');
   const [pinnedCount, setPinnedCount] = useState(0);
-  const [tab, setTab] = useState<'materials' | 'users' | 'feedback'>('materials');
+  const [tab, setTab] = useState<'materials' | 'users' | 'feedback' | 'courses'>('materials');
   const [allProfiles, setAllProfiles] = useState<any[]>([]);
   const [bannedUsers, setBannedUsers] = useState<Set<string>>(new Set());
   const [searchUser, setSearchUser] = useState('');
@@ -39,7 +39,15 @@ export default function AdminPage() {
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState('');
 
-  useEffect(() => { loadMaterials(); loadUsers(); loadFeedbacks(); }, []);
+  // Courses state
+  const [courses, setCourses] = useState<any[]>([]);
+  const [courseTitle, setCourseTitle] = useState('');
+  const [courseDesc, setCourseDesc] = useState('');
+  const [coursePoster, setCoursePoster] = useState('');
+  const [courseResources, setCourseResources] = useState<{ title: string; url: string; type: string }[]>([]);
+  const [addingCourse, setAddingCourse] = useState(false);
+
+  useEffect(() => { loadMaterials(); loadUsers(); loadFeedbacks(); loadCourses(); }, []);
 
   if (!isAdmin) return <Navigate to="/app" replace />;
 
@@ -60,6 +68,11 @@ export default function AdminPage() {
   const loadFeedbacks = async () => {
     const { data } = await supabase.from('feedback').select('*').order('created_at', { ascending: false });
     setFeedbacks(data || []);
+  };
+
+  const loadCourses = async () => {
+    const { data } = await supabase.from('courses').select('*').order('created_at', { ascending: false });
+    setCourses(data || []);
   };
 
   const addMaterial = async () => {
@@ -165,6 +178,40 @@ export default function AdminPage() {
     loadFeedbacks();
   };
 
+  // Course actions
+  const addCourse = async () => {
+    if (!courseTitle.trim()) { toast.error('Course title required'); return; }
+    const { error } = await supabase.from('courses').insert({
+      title: courseTitle.trim(),
+      description: courseDesc.trim(),
+      poster_url: coursePoster.trim(),
+      resources: courseResources.filter(r => r.url.trim()),
+      created_by: user!.id,
+    } as any);
+    if (error) { toast.error('Failed: ' + error.message); return; }
+    toast.success('Course added!');
+    setCourseTitle(''); setCourseDesc(''); setCoursePoster(''); setCourseResources([]); setAddingCourse(false);
+    loadCourses();
+  };
+
+  const deleteCourse = async (id: string) => {
+    await supabase.from('courses').delete().eq('id', id);
+    toast.success('Course deleted');
+    loadCourses();
+  };
+
+  const addResourceField = () => {
+    setCourseResources(prev => [...prev, { title: '', url: '', type: 'link' }]);
+  };
+
+  const updateResource = (index: number, field: string, value: string) => {
+    setCourseResources(prev => prev.map((r, i) => i === index ? { ...r, [field]: value } : r));
+  };
+
+  const removeResource = (index: number) => {
+    setCourseResources(prev => prev.filter((_, i) => i !== index));
+  };
+
   const filteredProfiles = allProfiles.filter(p =>
     p.display_name?.toLowerCase().includes(searchUser.toLowerCase()) ||
     p.user_id?.toLowerCase().includes(searchUser.toLowerCase())
@@ -177,7 +224,7 @@ export default function AdminPage() {
           <h1 className="text-3xl font-bold font-display flex items-center gap-2">
             <Shield className="w-8 h-8 text-primary" /> Admin <span className="text-gradient">Panel</span>
           </h1>
-          <p className="text-muted-foreground mt-1">Manage materials, users & feedback</p>
+          <p className="text-muted-foreground mt-1">Manage materials, users, feedback & courses</p>
         </div>
         <div className="flex gap-2 flex-wrap">
           <Button variant={tab === 'materials' ? 'default' : 'outline'} size="sm" onClick={() => setTab('materials')}>Materials</Button>
@@ -186,6 +233,9 @@ export default function AdminPage() {
           </Button>
           <Button variant={tab === 'feedback' ? 'default' : 'outline'} size="sm" onClick={() => setTab('feedback')} className="gap-1">
             <MessageSquare className="w-4 h-4" /> Feedback
+          </Button>
+          <Button variant={tab === 'courses' ? 'default' : 'outline'} size="sm" onClick={() => setTab('courses')} className="gap-1">
+            <GraduationCap className="w-4 h-4" /> Courses
           </Button>
         </div>
       </motion.div>
@@ -390,6 +440,62 @@ export default function AdminPage() {
               )}
             </div>
           ))}
+        </div>
+      )}
+
+      {tab === 'courses' && (
+        <div className="space-y-4">
+          <div className="flex justify-end">
+            <Button onClick={() => setAddingCourse(!addingCourse)}><Plus className="w-4 h-4 mr-1" /> Add Course</Button>
+          </div>
+
+          {addingCourse && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-card rounded-2xl border border-border p-5 space-y-4">
+              <Input value={courseTitle} onChange={e => setCourseTitle(e.target.value)} placeholder="Course title" />
+              <Textarea value={courseDesc} onChange={e => setCourseDesc(e.target.value)} placeholder="Description" rows={2} />
+              <Input value={coursePoster} onChange={e => setCoursePoster(e.target.value)} placeholder="Poster image URL (optional)" />
+
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm font-medium">Resources</label>
+                  <Button variant="outline" size="sm" onClick={addResourceField}><Plus className="w-3 h-3 mr-1" /> Add</Button>
+                </div>
+                {courseResources.map((r, i) => (
+                  <div key={i} className="flex gap-2 mb-2">
+                    <Input value={r.title} onChange={e => updateResource(i, 'title', e.target.value)} placeholder="Title" className="flex-1" />
+                    <Input value={r.url} onChange={e => updateResource(i, 'url', e.target.value)} placeholder="URL" className="flex-1" />
+                    <Button variant="ghost" size="icon" onClick={() => removeResource(i)}><Trash2 className="w-3 h-3 text-destructive" /></Button>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex gap-2">
+                <Button onClick={addCourse}>Add Course</Button>
+                <Button variant="outline" onClick={() => setAddingCourse(false)}>Cancel</Button>
+              </div>
+            </motion.div>
+          )}
+
+          <div className="space-y-3">
+            {courses.length === 0 ? (
+              <p className="text-center py-10 text-muted-foreground">No courses yet</p>
+            ) : courses.map(c => (
+              <div key={c.id} className="bg-card rounded-xl border border-border p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h3 className="font-bold">{c.title}</h3>
+                    {c.description && <p className="text-xs text-muted-foreground mt-0.5">{c.description}</p>}
+                    {c.resources?.length > 0 && (
+                      <p className="text-xs text-primary mt-1">{c.resources.length} resource(s)</p>
+                    )}
+                  </div>
+                  <Button variant="ghost" size="icon" onClick={() => deleteCourse(c.id)}>
+                    <Trash2 className="w-4 h-4 text-destructive" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>
