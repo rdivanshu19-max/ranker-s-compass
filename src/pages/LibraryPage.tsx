@@ -2,15 +2,17 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion } from 'framer-motion';
-import { BookOpen, ExternalLink, Star, Search, Filter } from 'lucide-react';
+import { BookOpen, ExternalLink, Star, Search, Filter, GraduationCap, AlertTriangle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 const TYPES = ['Lectures', 'Lecture PDF', 'Books', 'PYQs', 'JEE', 'NEET', 'JEE Advanced', 'JEE Test', 'NEET Test', 'Physics', 'Chemistry', 'Maths', 'Biology', 'Boards', 'Other Material', 'Tests'];
 
 export default function LibraryPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [materials, setMaterials] = useState<any[]>([]);
   const [search, setSearch] = useState('');
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
@@ -23,7 +25,6 @@ export default function LibraryPage() {
   const loadMaterials = async () => {
     const { data } = await supabase.from('materials').select('*').order('pinned', { ascending: false }).order('created_at', { ascending: false });
     setMaterials(data || []);
-
     const { data: allRatings } = await supabase.from('ratings').select('material_id, rating');
     const avgMap: Record<string, { sum: number; count: number }> = {};
     allRatings?.forEach(r => {
@@ -39,7 +40,6 @@ export default function LibraryPage() {
     });
     setRatings(avgRatings);
     setRatingCounts(counts);
-
     if (user) {
       const { data: rData } = await supabase.from('ratings').select('material_id, rating').eq('user_id', user.id);
       const ur: Record<string, number> = {};
@@ -50,9 +50,7 @@ export default function LibraryPage() {
 
   const handleRate = async (materialId: string, rating: number) => {
     if (!user) { toast.error('Please sign in to rate'); return; }
-    const { error } = await supabase.from('ratings').upsert({
-      material_id: materialId, user_id: user.id, rating
-    }, { onConflict: 'material_id,user_id' });
+    const { error } = await supabase.from('ratings').upsert({ material_id: materialId, user_id: user.id, rating }, { onConflict: 'material_id,user_id' });
     if (error) toast.error('Failed to rate');
     else { toast.success('Rated!'); setUserRatings(p => ({ ...p, [materialId]: rating })); loadMaterials(); }
   };
@@ -79,6 +77,26 @@ export default function LibraryPage() {
         <p className="text-muted-foreground mt-1">Browse and access free study materials</p>
       </motion.div>
 
+      {/* Courses CTA */}
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.05 }}
+        onClick={() => navigate('/app/courses')}
+        className="flex items-center gap-3 bg-primary/5 border border-primary/20 rounded-xl p-4 cursor-pointer hover:bg-primary/10 transition-colors">
+        <GraduationCap className="w-6 h-6 text-primary drop-shadow-[0_0_4px_hsl(var(--primary))]" />
+        <div className="flex-1">
+          <p className="font-bold text-sm text-primary">📚 Explore Courses</p>
+          <p className="text-xs text-muted-foreground">Browse curated video courses & lectures</p>
+        </div>
+        <span className="text-primary text-lg">→</span>
+      </motion.div>
+
+      {/* Disclaimer */}
+      <div className="flex items-start gap-3 bg-muted/50 border border-border rounded-xl p-3">
+        <AlertTriangle className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
+        <p className="text-[11px] text-muted-foreground">
+          <strong>Disclaimer:</strong> We do not own any third-party content. All materials belong to their respective owners and are shared for educational purposes only.
+        </p>
+      </div>
+
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search materials..." className="pl-10" />
@@ -89,9 +107,7 @@ export default function LibraryPage() {
           <Filter className="w-3 h-3 mr-1" /> All
         </Button>
         {TYPES.map(t => (
-          <Button key={t} variant={activeFilter === t ? 'default' : 'outline'} size="sm" onClick={() => setActiveFilter(t)}>
-            {t}
-          </Button>
+          <Button key={t} variant={activeFilter === t ? 'default' : 'outline'} size="sm" onClick={() => setActiveFilter(t)}>{t}</Button>
         ))}
       </div>
 
@@ -120,7 +136,7 @@ export default function LibraryPage() {
                 {m.rating_enabled && (
                   <div className="flex items-center gap-3 mt-3">
                     <div className="flex gap-0.5">
-                      {[1, 2, 3, 4, 5].map(s => (
+                      {[1,2,3,4,5].map(s => (
                         <button key={s} onClick={() => handleRate(m.id, s)} className="transition-colors hover:scale-110">
                           <Star className={`w-4 h-4 ${(userRatings[m.id] || 0) >= s ? 'fill-primary text-primary' : 'text-muted-foreground'}`} />
                         </button>

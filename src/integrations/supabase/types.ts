@@ -44,8 +44,10 @@ export type Database = {
           created_by: string | null
           description: string | null
           id: string
+          pinned: boolean | null
           poster_url: string | null
           resources: Json | null
+          tags: string[] | null
           title: string
           updated_at: string
         }
@@ -54,8 +56,10 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           id?: string
+          pinned?: boolean | null
           poster_url?: string | null
           resources?: Json | null
+          tags?: string[] | null
           title: string
           updated_at?: string
         }
@@ -64,8 +68,10 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           id?: string
+          pinned?: boolean | null
           poster_url?: string | null
           resources?: Json | null
+          tags?: string[] | null
           title?: string
           updated_at?: string
         }
@@ -137,6 +143,36 @@ export type Database = {
           types?: string[]
           updated_at?: string
           uploaded_by?: string | null
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          read: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message?: string
+          read?: boolean
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          read?: boolean
+          title?: string
+          type?: string
+          user_id?: string
         }
         Relationships: []
       }
