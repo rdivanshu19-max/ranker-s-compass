@@ -1,8 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { motion } from 'framer-motion';
-import { Shield, Plus, Trash2, Pin, ToggleLeft, ToggleRight, Edit3, AlertTriangle, Users, Ban, Search, MessageSquare, CheckCircle, GraduationCap } from 'lucide-react';
+import {
+  Shield, Plus, Trash2, Pin, ToggleLeft, ToggleRight, Edit3, AlertTriangle,
+  Users, Ban, Search, MessageSquare, CheckCircle, GraduationCap, Bell, Upload, Tag, Image,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,6 +17,7 @@ import {
 } from '@/components/ui/alert-dialog';
 
 const DEFAULT_TYPES = ['Lectures', 'Lecture PDF', 'Books', 'PYQs', 'JEE', 'NEET', 'JEE Advanced', 'JEE Test', 'NEET Test', 'Other Material', 'Tests', 'Physics', 'Chemistry', 'Maths', 'Biology', 'Boards'];
+const COURSE_TAGS = ['popular', 'hot', 'most used', 'boards'];
 const MAX_PINNED = 10;
 
 export default function AdminPage() {
@@ -30,7 +34,7 @@ export default function AdminPage() {
   const [editDescription, setEditDescription] = useState('');
   const [editMode, setEditMode] = useState<'categories' | 'title'>('categories');
   const [pinnedCount, setPinnedCount] = useState(0);
-  const [tab, setTab] = useState<'materials' | 'users' | 'feedback' | 'courses'>('materials');
+  const [tab, setTab] = useState<'materials' | 'users' | 'feedback' | 'courses' | 'notifications'>('materials');
   const [allProfiles, setAllProfiles] = useState<any[]>([]);
   const [bannedUsers, setBannedUsers] = useState<Set<string>>(new Set());
   const [searchUser, setSearchUser] = useState('');
@@ -43,9 +47,22 @@ export default function AdminPage() {
   const [courses, setCourses] = useState<any[]>([]);
   const [courseTitle, setCourseTitle] = useState('');
   const [courseDesc, setCourseDesc] = useState('');
-  const [coursePoster, setCoursePoster] = useState('');
+  const [coursePosterFile, setCoursePosterFile] = useState<File | null>(null);
   const [courseResources, setCourseResources] = useState<{ title: string; url: string; type: string }[]>([]);
   const [addingCourse, setAddingCourse] = useState(false);
+  const [courseTags, setCourseTags] = useState<string[]>([]);
+  const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
+  const [editCourseTitle, setEditCourseTitle] = useState('');
+  const [editCourseDesc, setEditCourseDesc] = useState('');
+  const [editCourseTags, setEditCourseTags] = useState<string[]>([]);
+  const posterInputRef = useRef<HTMLInputElement>(null);
+  const editPosterInputRef = useRef<HTMLInputElement>(null);
+  const [editCoursePosterFile, setEditCoursePosterFile] = useState<File | null>(null);
+
+  // Notification state
+  const [notifTitle, setNotifTitle] = useState('');
+  const [notifMessage, setNotifMessage] = useState('');
+  const [sendingNotif, setSendingNotif] = useState(false);
 
   useEffect(() => { loadMaterials(); loadUsers(); loadFeedbacks(); loadCourses(); }, []);
 
@@ -103,7 +120,6 @@ export default function AdminPage() {
   };
 
   const toggleType = (t: string) => setSelectedTypes(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t]);
-
   const startEditCategories = (m: any) => { setEditingId(m.id); setEditTypes(m.types || []); setEditMode('categories'); };
   const startEditTitle = (m: any) => { setEditingId(m.id); setEditTitle(m.title); setEditDescription(m.description || ''); setEditMode('title'); };
 
@@ -166,7 +182,17 @@ export default function AdminPage() {
   const submitReply = async (id: string) => {
     if (!replyText.trim()) return;
     await supabase.from('feedback').update({ admin_reply: replyText.trim() }).eq('id', id);
-    toast.success('Reply posted');
+    // Send notification to user
+    const fb = feedbacks.find(f => f.id === id);
+    if (fb) {
+      await supabase.from('notifications').insert({
+        user_id: fb.user_id,
+        title: '💬 Admin replied to your feedback',
+        message: replyText.trim().slice(0, 200),
+        type: 'feedback_reply',
+      } as any);
+    }
+    toast.success('Reply posted & user notified');
     setReplyingTo(null);
     setReplyText('');
     loadFeedbacks();
@@ -178,19 +204,35 @@ export default function AdminPage() {
     loadFeedbacks();
   };
 
-  // Course actions
+  // Upload poster to storage
+  const uploadPoster = async (file: File): Promise<string | null> => {
+    const ext = file.name.split('.').pop();
+    const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const { error } = await supabase.storage.from('course-posters').upload(path, file);
+    if (error) { toast.error('Failed to upload poster'); return null; }
+    const { data: { publicUrl } } = supabase.storage.from('course-posters').getPublicUrl(path);
+    return publicUrl;
+  };
+
   const addCourse = async () => {
     if (!courseTitle.trim()) { toast.error('Course title required'); return; }
+    let posterUrl = '';
+    if (coursePosterFile) {
+      const url = await uploadPoster(coursePosterFile);
+      if (!url) return;
+      posterUrl = url;
+    }
     const { error } = await supabase.from('courses').insert({
       title: courseTitle.trim(),
       description: courseDesc.trim(),
-      poster_url: coursePoster.trim(),
+      poster_url: posterUrl,
       resources: courseResources.filter(r => r.url.trim()),
+      tags: courseTags,
       created_by: user!.id,
     } as any);
     if (error) { toast.error('Failed: ' + error.message); return; }
     toast.success('Course added!');
-    setCourseTitle(''); setCourseDesc(''); setCoursePoster(''); setCourseResources([]); setAddingCourse(false);
+    setCourseTitle(''); setCourseDesc(''); setCoursePosterFile(null); setCourseResources([]); setCourseTags([]); setAddingCourse(false);
     loadCourses();
   };
 
@@ -200,16 +242,56 @@ export default function AdminPage() {
     loadCourses();
   };
 
-  const addResourceField = () => {
-    setCourseResources(prev => [...prev, { title: '', url: '', type: 'link' }]);
+  const toggleCoursePin = async (id: string, pinned: boolean) => {
+    await supabase.from('courses').update({ pinned: !pinned } as any).eq('id', id);
+    loadCourses();
   };
 
-  const updateResource = (index: number, field: string, value: string) => {
-    setCourseResources(prev => prev.map((r, i) => i === index ? { ...r, [field]: value } : r));
+  const startEditCourse = (c: any) => {
+    setEditingCourseId(c.id);
+    setEditCourseTitle(c.title);
+    setEditCourseDesc(c.description || '');
+    setEditCourseTags(c.tags || []);
+    setEditCoursePosterFile(null);
   };
 
-  const removeResource = (index: number) => {
-    setCourseResources(prev => prev.filter((_, i) => i !== index));
+  const saveEditCourse = async (id: string) => {
+    const updates: any = { title: editCourseTitle.trim(), description: editCourseDesc.trim(), tags: editCourseTags };
+    if (editCoursePosterFile) {
+      const url = await uploadPoster(editCoursePosterFile);
+      if (url) updates.poster_url = url;
+    }
+    await supabase.from('courses').update(updates).eq('id', id);
+    toast.success('Course updated!');
+    setEditingCourseId(null);
+    loadCourses();
+  };
+
+  const addResourceField = () => setCourseResources(prev => [...prev, { title: '', url: '', type: 'link' }]);
+  const updateResource = (index: number, field: string, value: string) => setCourseResources(prev => prev.map((r, i) => i === index ? { ...r, [field]: value } : r));
+  const removeResource = (index: number) => setCourseResources(prev => prev.filter((_, i) => i !== index));
+
+  const sendBroadcastNotification = async () => {
+    if (!notifTitle.trim()) { toast.error('Title required'); return; }
+    setSendingNotif(true);
+    // Get all user IDs
+    const { data: profiles } = await supabase.from('profiles').select('user_id');
+    if (profiles && profiles.length > 0) {
+      const rows = profiles.map(p => ({
+        user_id: p.user_id,
+        title: notifTitle.trim(),
+        message: notifMessage.trim(),
+        type: 'admin_broadcast',
+      }));
+      // Insert in batches
+      for (let i = 0; i < rows.length; i += 50) {
+        await supabase.from('notifications').insert(rows.slice(i, i + 50) as any);
+      }
+      toast.success(`Notification sent to ${profiles.length} users!`);
+      setNotifTitle('');
+      setNotifMessage('');
+    }
+    setSendingNotif(false);
   };
 
   const filteredProfiles = allProfiles.filter(p =>
@@ -224,22 +306,22 @@ export default function AdminPage() {
           <h1 className="text-3xl font-bold font-display flex items-center gap-2">
             <Shield className="w-8 h-8 text-primary" /> Admin <span className="text-gradient">Panel</span>
           </h1>
-          <p className="text-muted-foreground mt-1">Manage materials, users, feedback & courses</p>
+          <p className="text-muted-foreground mt-1">Manage materials, users, feedback, courses & notifications</p>
         </div>
         <div className="flex gap-2 flex-wrap">
-          <Button variant={tab === 'materials' ? 'default' : 'outline'} size="sm" onClick={() => setTab('materials')}>Materials</Button>
-          <Button variant={tab === 'users' ? 'default' : 'outline'} size="sm" onClick={() => setTab('users')} className="gap-1">
-            <Users className="w-4 h-4" /> Users
-          </Button>
-          <Button variant={tab === 'feedback' ? 'default' : 'outline'} size="sm" onClick={() => setTab('feedback')} className="gap-1">
-            <MessageSquare className="w-4 h-4" /> Feedback
-          </Button>
-          <Button variant={tab === 'courses' ? 'default' : 'outline'} size="sm" onClick={() => setTab('courses')} className="gap-1">
-            <GraduationCap className="w-4 h-4" /> Courses
-          </Button>
+          {(['materials', 'users', 'feedback', 'courses', 'notifications'] as const).map(t => {
+            const icons = { materials: null, users: Users, feedback: MessageSquare, courses: GraduationCap, notifications: Bell };
+            const Icon = icons[t];
+            return (
+              <Button key={t} variant={tab === t ? 'default' : 'outline'} size="sm" onClick={() => setTab(t)} className="gap-1 capitalize">
+                {Icon && <Icon className="w-4 h-4" />} {t}
+              </Button>
+            );
+          })}
         </div>
       </motion.div>
 
+      {/* ========== MATERIALS TAB ========== */}
       {tab === 'materials' && (
         <>
           <div className="flex items-center justify-between flex-wrap gap-2">
@@ -312,9 +394,7 @@ export default function AdminPage() {
                   </div>
                   <div className="flex gap-1 shrink-0 flex-wrap">
                     <Button variant="ghost" size="icon" onClick={() => startEditTitle(m)} title="Edit title"><Edit3 className="w-4 h-4" /></Button>
-                    <Button variant="ghost" size="icon" onClick={() => startEditCategories(m)} title="Edit categories">
-                      <span className="text-xs">🏷️</span>
-                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => startEditCategories(m)} title="Edit categories"><span className="text-xs">🏷️</span></Button>
                     <Button variant="ghost" size="icon" onClick={() => togglePin(m.id, m.pinned)} title={m.pinned ? 'Unpin' : 'Pin'}>
                       <Pin className={`w-4 h-4 ${m.pinned ? 'text-primary fill-primary' : ''}`} />
                     </Button>
@@ -330,6 +410,7 @@ export default function AdminPage() {
         </>
       )}
 
+      {/* ========== USERS TAB ========== */}
       {tab === 'users' && (
         <div className="space-y-4">
           <div className="relative">
@@ -400,6 +481,7 @@ export default function AdminPage() {
         </div>
       )}
 
+      {/* ========== FEEDBACK TAB ========== */}
       {tab === 'feedback' && (
         <div className="space-y-3">
           {feedbacks.length === 0 ? (
@@ -443,6 +525,7 @@ export default function AdminPage() {
         </div>
       )}
 
+      {/* ========== COURSES TAB ========== */}
       {tab === 'courses' && (
         <div className="space-y-4">
           <div className="flex justify-end">
@@ -453,8 +536,31 @@ export default function AdminPage() {
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-card rounded-2xl border border-border p-5 space-y-4">
               <Input value={courseTitle} onChange={e => setCourseTitle(e.target.value)} placeholder="Course title" />
               <Textarea value={courseDesc} onChange={e => setCourseDesc(e.target.value)} placeholder="Description" rows={2} />
-              <Input value={coursePoster} onChange={e => setCoursePoster(e.target.value)} placeholder="Poster image URL (optional)" />
+              
+              {/* Poster upload */}
+              <div>
+                <label className="text-sm font-medium mb-2 block">Poster Image</label>
+                <input ref={posterInputRef} type="file" accept="image/*" className="hidden"
+                  onChange={e => setCoursePosterFile(e.target.files?.[0] || null)} />
+                <Button variant="outline" size="sm" onClick={() => posterInputRef.current?.click()} className="gap-1">
+                  <Upload className="w-3 h-3" /> {coursePosterFile ? coursePosterFile.name : 'Upload Poster'}
+                </Button>
+              </div>
 
+              {/* Tags */}
+              <div>
+                <label className="text-sm font-medium mb-2 block">Tags</label>
+                <div className="flex flex-wrap gap-2">
+                  {COURSE_TAGS.map(t => (
+                    <Button key={t} variant={courseTags.includes(t) ? 'default' : 'outline'} size="sm"
+                      onClick={() => setCourseTags(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t])}>
+                      <Tag className="w-3 h-3 mr-1" /> {t}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Resources */}
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className="text-sm font-medium">Resources</label>
@@ -481,21 +587,84 @@ export default function AdminPage() {
               <p className="text-center py-10 text-muted-foreground">No courses yet</p>
             ) : courses.map(c => (
               <div key={c.id} className="bg-card rounded-xl border border-border p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <h3 className="font-bold">{c.title}</h3>
-                    {c.description && <p className="text-xs text-muted-foreground mt-0.5">{c.description}</p>}
-                    {c.resources?.length > 0 && (
-                      <p className="text-xs text-primary mt-1">{c.resources.length} resource(s)</p>
-                    )}
+                {editingCourseId === c.id ? (
+                  <div className="space-y-3">
+                    <Input value={editCourseTitle} onChange={e => setEditCourseTitle(e.target.value)} placeholder="Title" />
+                    <Textarea value={editCourseDesc} onChange={e => setEditCourseDesc(e.target.value)} placeholder="Description" rows={2} />
+                    <div>
+                      <label className="text-xs font-medium mb-1 block">Change Poster</label>
+                      <input ref={editPosterInputRef} type="file" accept="image/*" className="hidden"
+                        onChange={e => setEditCoursePosterFile(e.target.files?.[0] || null)} />
+                      <Button variant="outline" size="sm" onClick={() => editPosterInputRef.current?.click()} className="gap-1">
+                        <Image className="w-3 h-3" /> {editCoursePosterFile ? editCoursePosterFile.name : 'Upload New Poster'}
+                      </Button>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium mb-1 block">Tags</label>
+                      <div className="flex flex-wrap gap-1.5">
+                        {COURSE_TAGS.map(t => (
+                          <Button key={t} variant={editCourseTags.includes(t) ? 'default' : 'outline'} size="sm" className="text-xs"
+                            onClick={() => setEditCourseTags(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t])}>
+                            {t}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button size="sm" onClick={() => saveEditCourse(c.id)}>Save</Button>
+                      <Button size="sm" variant="outline" onClick={() => setEditingCourseId(null)}>Cancel</Button>
+                    </div>
                   </div>
-                  <Button variant="ghost" size="icon" onClick={() => deleteCourse(c.id)}>
-                    <Trash2 className="w-4 h-4 text-destructive" />
-                  </Button>
-                </div>
+                ) : (
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-bold">{c.title}</h3>
+                        {c.pinned && <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/20 text-primary font-semibold">📌</span>}
+                      </div>
+                      {c.description && <p className="text-xs text-muted-foreground mt-0.5">{c.description}</p>}
+                      {c.tags?.length > 0 && (
+                        <div className="flex gap-1 mt-1">
+                          {c.tags.map((t: string) => (
+                            <span key={t} className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">{t}</span>
+                          ))}
+                        </div>
+                      )}
+                      {c.resources?.length > 0 && <p className="text-xs text-primary mt-1">{c.resources.length} resource(s)</p>}
+                    </div>
+                    <div className="flex gap-1 shrink-0">
+                      <Button variant="ghost" size="icon" onClick={() => startEditCourse(c)} title="Edit"><Edit3 className="w-4 h-4" /></Button>
+                      <Button variant="ghost" size="icon" onClick={() => toggleCoursePin(c.id, c.pinned)} title={c.pinned ? 'Unpin' : 'Pin'}>
+                        <Pin className={`w-4 h-4 ${c.pinned ? 'text-primary fill-primary' : ''}`} />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => deleteCourse(c.id)}>
+                        <Trash2 className="w-4 h-4 text-destructive" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* ========== NOTIFICATIONS TAB ========== */}
+      {tab === 'notifications' && (
+        <div className="space-y-4">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+            className="bg-card rounded-2xl border border-border p-5 space-y-4">
+            <div className="flex items-center gap-2">
+              <Bell className="w-5 h-5 text-primary" />
+              <h3 className="font-bold">Send Broadcast Notification</h3>
+            </div>
+            <p className="text-xs text-muted-foreground">Send a notification to all users on the platform.</p>
+            <Input value={notifTitle} onChange={e => setNotifTitle(e.target.value)} placeholder="Notification title" />
+            <Textarea value={notifMessage} onChange={e => setNotifMessage(e.target.value)} placeholder="Message (optional)" rows={3} />
+            <Button onClick={sendBroadcastNotification} disabled={sendingNotif} className="gap-1">
+              <Bell className="w-4 h-4" /> {sendingNotif ? 'Sending...' : 'Send to All Users'}
+            </Button>
+          </motion.div>
         </div>
       )}
     </div>
