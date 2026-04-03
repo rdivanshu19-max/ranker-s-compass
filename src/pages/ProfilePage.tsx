@@ -2,28 +2,19 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { motion } from 'framer-motion';
-import { User, Save, Trash2, AlertTriangle, Copy, Check, Award, Share2 } from 'lucide-react';
+import { User, Save, Trash2, AlertTriangle, Copy, Check, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
+import BadgeChart from '@/components/BadgeChart';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
-const BADGE_INFO: Record<string, { emoji: string; description: string }> = {
-  consistent: { emoji: '🔥', description: 'Studied for 7+ days in a row' },
-  topper: { emoji: '🏆', description: 'Scored 90%+ in a test' },
-  helpful: { emoji: '🤝', description: 'Referred 3+ friends to Rankers Star' },
-  explorer: { emoji: '🔍', description: 'Downloaded 15+ study materials' },
-  veteran: { emoji: '⭐', description: 'Completed 30+ AI tests' },
-};
-
 export default function ProfilePage() {
   const { user, profile, refreshProfile, isAdmin, signOut } = useAuth();
-  const navigate = useNavigate();
   const [name, setName] = useState(profile?.display_name || '');
   const [bio, setBio] = useState(profile?.bio || '');
   const [saving, setSaving] = useState(false);
@@ -52,7 +43,6 @@ export default function ProfilePage() {
     supabase.from('user_badges').select('*').eq('user_id', user.id).then(({ data }) => {
       setBadges(data || []);
     });
-    // Auto-check badges
     checkBadges();
   }, [user]);
 
@@ -91,18 +81,13 @@ export default function ProfilePage() {
       const { data: { session } } = await supabase.auth.getSession();
       const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-account`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session?.access_token}`,
-          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-        },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.access_token}`, apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
         body: JSON.stringify({ action: 'delete_self' }),
       });
       const result = await resp.json();
       if (result.error) throw new Error(result.error);
       toast.success('Account deleted successfully. Goodbye!');
       setDeleteDialogOpen(false);
-      // Force sign out and clear everything
       await supabase.auth.signOut();
       localStorage.clear();
       window.location.href = '/';
@@ -114,7 +99,6 @@ export default function ProfilePage() {
   };
 
   const referralLink = `${window.location.origin}/auth?ref=${referralCode}`;
-
   const copyReferralLink = () => {
     navigator.clipboard.writeText(referralLink);
     setCopied(true);
@@ -128,6 +112,7 @@ export default function ProfilePage() {
         <h1 className="text-3xl font-bold font-display">Your <span className="text-gradient">Profile</span></h1>
       </motion.div>
 
+      {/* Profile info */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
         className="bg-card rounded-2xl border border-border p-6 space-y-5">
         <div className="flex items-center gap-4 mb-4">
@@ -153,29 +138,10 @@ export default function ProfilePage() {
         </Button>
       </motion.div>
 
-      {/* Badges */}
+      {/* Badge System Chart */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
         className="bg-card rounded-2xl border border-border p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Award className="w-5 h-5 text-primary" />
-          <h3 className="font-bold font-display">Your Badges</h3>
-        </div>
-        {badges.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No badges yet. Keep studying to earn badges! 🎯</p>
-        ) : (
-          <div className="space-y-3">
-            {badges.map(b => (
-              <div key={b.id} className="flex items-center gap-3 bg-primary/5 border border-primary/20 rounded-xl px-4 py-3">
-                <span className="text-2xl">{BADGE_INFO[b.badge_type]?.emoji || '🏅'}</span>
-                <div className="flex-1">
-                  <p className="font-medium text-sm">{b.badge_name}</p>
-                  <p className="text-xs text-muted-foreground">{BADGE_INFO[b.badge_type]?.description || 'Achievement unlocked!'}</p>
-                </div>
-                <p className="text-[10px] text-muted-foreground shrink-0">{new Date(b.earned_at).toLocaleDateString()}</p>
-              </div>
-            ))}
-          </div>
-        )}
+        <BadgeChart earnedBadges={badges} />
       </motion.div>
 
       {/* Referral */}
@@ -208,7 +174,6 @@ export default function ProfilePage() {
           Deleting your account will permanently remove all your data, progress, test results, and study vault.
           You can create a new account with the same email later.
         </p>
-
         <AlertDialog open={deleteDialogOpen} onOpenChange={(open) => { setDeleteDialogOpen(open); if (!open) setConfirmStep(0); }}>
           <AlertDialogTrigger asChild>
             <Button variant="destructive" className="gap-2" onClick={() => { setConfirmStep(1); setDeleteDialogOpen(true); }}>
@@ -221,7 +186,7 @@ export default function ProfilePage() {
                 <AlertDialogHeader>
                   <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This will permanently delete your account and all associated data including test results, study sessions, vault, and badges. This action <strong>cannot be undone</strong>.
+                    This will permanently delete your account and all associated data. This action <strong>cannot be undone</strong>.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -236,7 +201,7 @@ export default function ProfilePage() {
                 <AlertDialogHeader>
                   <AlertDialogTitle>⚠️ Final Confirmation</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This is your <strong>last chance</strong>. Once deleted, ALL your progress is gone forever. Are you really sure?
+                    This is your <strong>last chance</strong>. Once deleted, ALL your progress is gone forever.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

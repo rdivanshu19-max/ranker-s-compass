@@ -1,14 +1,15 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
-import { LayoutDashboard, Library, FolderLock, User, Info, Heart, FlaskConical, Sun, Moon, LogOut, Shield, MessageSquare, GraduationCap } from 'lucide-react';
+import { LayoutDashboard, Library, FolderLock, User, FlaskConical, Sun, Moon, LogOut, Shield, MessageSquare, GraduationCap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import NotificationBell from '@/components/NotificationBell';
 
 const navItems = [
   { to: '/app', icon: LayoutDashboard, label: 'Dashboard', end: true },
   { to: '/app/library', icon: Library, label: 'Library' },
   { to: '/app/tests', icon: FlaskConical, label: 'AI Tests', highlight: true },
-  { to: '/app/courses', icon: GraduationCap, label: 'Courses' },
+  { to: '/app/courses', icon: GraduationCap, label: 'Courses', highlight: true },
   { to: '/app/vault', icon: FolderLock, label: 'Vault' },
   { to: '/app/feedback', icon: MessageSquare, label: 'Feedback' },
   { to: '/app/profile', icon: User, label: 'Profile' },
@@ -26,8 +27,9 @@ export default function AppLayout() {
           <h1 className="text-xl font-bold font-display">
             <span className="text-foreground">Rankers </span><span className="text-gradient">Star</span>
           </h1>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground hidden sm:block">Hi, {profile?.display_name || 'Student'}</span>
+          <div className="flex items-center gap-1">
+            <span className="text-sm text-muted-foreground hidden sm:block mr-1">Hi, {profile?.display_name || 'Student'}</span>
+            <NotificationBell />
             <Button variant="ghost" size="icon" onClick={toggleTheme}>
               {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </Button>
