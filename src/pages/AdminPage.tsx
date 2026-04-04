@@ -278,10 +278,23 @@ export default function AdminPage() {
   const updateResource = (index: number, field: string, value: string) => setCourseResources(prev => prev.map((r, i) => i === index ? { ...r, [field]: value } : r));
   const removeResource = (index: number) => setCourseResources(prev => prev.filter((_, i) => i !== index));
 
+  const uploadNotifImage = async (file: File): Promise<string | null> => {
+    const ext = file.name.split('.').pop();
+    const path = `notif-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const { error } = await supabase.storage.from('course-posters').upload(path, file);
+    if (error) { toast.error('Failed to upload image'); return null; }
+    const { data: { publicUrl } } = supabase.storage.from('course-posters').getPublicUrl(path);
+    return publicUrl;
+  };
+
   const sendBroadcastNotification = async () => {
     if (!notifTitle.trim()) { toast.error('Title required'); return; }
     setSendingNotif(true);
-    // Get all user IDs
+    let imageUrl = '';
+    if (notifImageFile) {
+      const url = await uploadNotifImage(notifImageFile);
+      if (url) imageUrl = url;
+    }
     const { data: profiles } = await supabase.from('profiles').select('user_id');
     if (profiles && profiles.length > 0) {
       const rows = profiles.map(p => ({
@@ -289,16 +302,49 @@ export default function AdminPage() {
         title: notifTitle.trim(),
         message: notifMessage.trim(),
         type: 'admin_broadcast',
+        image_url: imageUrl,
+        priority: notifPriority,
       }));
-      // Insert in batches
       for (let i = 0; i < rows.length; i += 50) {
         await supabase.from('notifications').insert(rows.slice(i, i + 50) as any);
       }
       toast.success(`Notification sent to ${profiles.length} users!`);
-      setNotifTitle('');
-      setNotifMessage('');
+      setNotifTitle(''); setNotifMessage(''); setNotifPriority('normal'); setNotifImageFile(null);
+      loadNotifications();
     }
     setSendingNotif(false);
+  };
+
+  const loadNotifications = async () => {
+    const { data } = await supabase.from('notifications').select('*').order('created_at', { ascending: false }).limit(50);
+    // Deduplicate by title+created_at (broadcasts create one per user)
+    const seen = new Set<string>();
+    const unique: any[] = [];
+    (data || []).forEach(n => {
+      const key = `${n.title}||${n.created_at}`;
+      if (!seen.has(key)) { seen.add(key); unique.push(n); }
+    });
+    setSentNotifications(unique);
+  };
+
+  const deleteNotification = async (title: string, createdAt: string) => {
+    // Delete all copies of this broadcast
+    await supabase.from('notifications').delete().eq('title', title).eq('created_at', createdAt);
+    toast.success('Notification deleted');
+    loadNotifications();
+  };
+
+  const startEditNotif = (n: any) => {
+    setEditingNotifId(n.id);
+    setEditNotifTitle(n.title);
+    setEditNotifMessage(n.message);
+  };
+
+  const saveEditNotif = async (title: string, createdAt: string) => {
+    await supabase.from('notifications').update({ title: editNotifTitle.trim(), message: editNotifMessage.trim() } as any).eq('title', title).eq('created_at', createdAt);
+    toast.success('Notification updated');
+    setEditingNotifId(null);
+    loadNotifications();
   };
 
   const filteredProfiles = allProfiles.filter(p =>
