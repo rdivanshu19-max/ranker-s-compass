@@ -71,7 +71,7 @@ export default function AdminPage() {
   const [editNotifMessage, setEditNotifMessage] = useState('');
   const notifImageRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { loadMaterials(); loadUsers(); loadFeedbacks(); loadCourses(); }, []);
+  useEffect(() => { loadMaterials(); loadUsers(); loadFeedbacks(); loadCourses(); loadNotifications(); }, []);
 
   if (!isAdmin) return <Navigate to="/app" replace />;
 
