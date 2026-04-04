@@ -62,9 +62,16 @@ export default function AdminPage() {
   // Notification state
   const [notifTitle, setNotifTitle] = useState('');
   const [notifMessage, setNotifMessage] = useState('');
+  const [notifPriority, setNotifPriority] = useState('normal');
+  const [notifImageFile, setNotifImageFile] = useState<File | null>(null);
   const [sendingNotif, setSendingNotif] = useState(false);
+  const [sentNotifications, setSentNotifications] = useState<any[]>([]);
+  const [editingNotifId, setEditingNotifId] = useState<string | null>(null);
+  const [editNotifTitle, setEditNotifTitle] = useState('');
+  const [editNotifMessage, setEditNotifMessage] = useState('');
+  const notifImageRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { loadMaterials(); loadUsers(); loadFeedbacks(); loadCourses(); }, []);
+  useEffect(() => { loadMaterials(); loadUsers(); loadFeedbacks(); loadCourses(); loadNotifications(); }, []);
 
   if (!isAdmin) return <Navigate to="/app" replace />;
 
@@ -271,10 +278,23 @@ export default function AdminPage() {
   const updateResource = (index: number, field: string, value: string) => setCourseResources(prev => prev.map((r, i) => i === index ? { ...r, [field]: value } : r));
   const removeResource = (index: number) => setCourseResources(prev => prev.filter((_, i) => i !== index));
 
+  const uploadNotifImage = async (file: File): Promise<string | null> => {
+    const ext = file.name.split('.').pop();
+    const path = `notif-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const { error } = await supabase.storage.from('course-posters').upload(path, file);
+    if (error) { toast.error('Failed to upload image'); return null; }
+    const { data: { publicUrl } } = supabase.storage.from('course-posters').getPublicUrl(path);
+    return publicUrl;
+  };
+
   const sendBroadcastNotification = async () => {
     if (!notifTitle.trim()) { toast.error('Title required'); return; }
     setSendingNotif(true);
-    // Get all user IDs
+    let imageUrl = '';
+    if (notifImageFile) {
+      const url = await uploadNotifImage(notifImageFile);
+      if (url) imageUrl = url;
+    }
     const { data: profiles } = await supabase.from('profiles').select('user_id');
     if (profiles && profiles.length > 0) {
       const rows = profiles.map(p => ({
@@ -282,16 +302,49 @@ export default function AdminPage() {
         title: notifTitle.trim(),
         message: notifMessage.trim(),
         type: 'admin_broadcast',
+        image_url: imageUrl,
+        priority: notifPriority,
       }));
-      // Insert in batches
       for (let i = 0; i < rows.length; i += 50) {
         await supabase.from('notifications').insert(rows.slice(i, i + 50) as any);
       }
       toast.success(`Notification sent to ${profiles.length} users!`);
-      setNotifTitle('');
-      setNotifMessage('');
+      setNotifTitle(''); setNotifMessage(''); setNotifPriority('normal'); setNotifImageFile(null);
+      loadNotifications();
     }
     setSendingNotif(false);
+  };
+
+  const loadNotifications = async () => {
+    const { data } = await supabase.from('notifications').select('*').order('created_at', { ascending: false }).limit(50);
+    // Deduplicate by title+created_at (broadcasts create one per user)
+    const seen = new Set<string>();
+    const unique: any[] = [];
+    (data || []).forEach(n => {
+      const key = `${n.title}||${n.created_at}`;
+      if (!seen.has(key)) { seen.add(key); unique.push(n); }
+    });
+    setSentNotifications(unique);
+  };
+
+  const deleteNotification = async (title: string, createdAt: string) => {
+    // Delete all copies of this broadcast
+    await supabase.from('notifications').delete().eq('title', title).eq('created_at', createdAt);
+    toast.success('Notification deleted');
+    loadNotifications();
+  };
+
+  const startEditNotif = (n: any) => {
+    setEditingNotifId(n.id);
+    setEditNotifTitle(n.title);
+    setEditNotifMessage(n.message);
+  };
+
+  const saveEditNotif = async (title: string, createdAt: string) => {
+    await supabase.from('notifications').update({ title: editNotifTitle.trim(), message: editNotifMessage.trim() } as any).eq('title', title).eq('created_at', createdAt);
+    toast.success('Notification updated');
+    setEditingNotifId(null);
+    loadNotifications();
   };
 
   const filteredProfiles = allProfiles.filter(p =>
@@ -661,10 +714,70 @@ export default function AdminPage() {
             <p className="text-xs text-muted-foreground">Send a notification to all users on the platform.</p>
             <Input value={notifTitle} onChange={e => setNotifTitle(e.target.value)} placeholder="Notification title" />
             <Textarea value={notifMessage} onChange={e => setNotifMessage(e.target.value)} placeholder="Message (optional)" rows={3} />
+            
+            {/* Priority selector */}
+            <div>
+              <label className="text-sm font-medium mb-2 block">Priority</label>
+              <div className="flex gap-2">
+                {['normal', 'important', 'urgent'].map(p => (
+                  <Button key={p} variant={notifPriority === p ? 'default' : 'outline'} size="sm"
+                    onClick={() => setNotifPriority(p)} className="capitalize">{p}</Button>
+                ))}
+              </div>
+            </div>
+
+            {/* Image upload */}
+            <div>
+              <label className="text-sm font-medium mb-2 block">Attach Image (optional)</label>
+              <input ref={notifImageRef} type="file" accept="image/*" className="hidden"
+                onChange={e => setNotifImageFile(e.target.files?.[0] || null)} />
+              <Button variant="outline" size="sm" onClick={() => notifImageRef.current?.click()} className="gap-1">
+                <Upload className="w-3 h-3" /> {notifImageFile ? notifImageFile.name : 'Upload Image'}
+              </Button>
+            </div>
+
             <Button onClick={sendBroadcastNotification} disabled={sendingNotif} className="gap-1">
               <Bell className="w-4 h-4" /> {sendingNotif ? 'Sending...' : 'Send to All Users'}
             </Button>
           </motion.div>
+
+          {/* Sent notifications list */}
+          <div className="space-y-3">
+            <h4 className="font-bold text-sm">Sent Notifications</h4>
+            {sentNotifications.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-6">No notifications sent yet</p>
+            ) : sentNotifications.map(n => (
+              <div key={n.id} className="bg-card rounded-xl border border-border p-4">
+                {editingNotifId === n.id ? (
+                  <div className="space-y-2">
+                    <Input value={editNotifTitle} onChange={e => setEditNotifTitle(e.target.value)} placeholder="Title" />
+                    <Textarea value={editNotifMessage} onChange={e => setEditNotifMessage(e.target.value)} placeholder="Message" rows={2} />
+                    <div className="flex gap-2">
+                      <Button size="sm" onClick={() => saveEditNotif(n.title, n.created_at)}>Save</Button>
+                      <Button size="sm" variant="outline" onClick={() => setEditingNotifId(null)}>Cancel</Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm">{n.title}</p>
+                      {n.message && <p className="text-xs text-muted-foreground mt-0.5">{n.message}</p>}
+                      {n.image_url && <img src={n.image_url} alt="" className="w-20 h-14 object-cover rounded mt-1" />}
+                      <p className="text-[10px] text-muted-foreground mt-1">{new Date(n.created_at).toLocaleDateString()}</p>
+                    </div>
+                    <div className="flex gap-1 shrink-0">
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => startEditNotif(n)}>
+                        <Edit3 className="w-3 h-3" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteNotification(n.title, n.created_at)}>
+                        <Trash2 className="w-3 h-3 text-destructive" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

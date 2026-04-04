@@ -32,6 +32,21 @@ serve(async (req) => {
 
     const awarded: string[] = [];
 
+    const awardBadge = async (type: string, name: string) => {
+      const { error } = await adminClient.from("user_badges").insert({ user_id: uid, badge_type: type, badge_name: name });
+      if (!error) {
+        awarded.push(name);
+        // Send notification about badge
+        await adminClient.from("notifications").insert({
+          user_id: uid,
+          title: `🏆 Badge Earned: ${name}`,
+          message: `Congratulations! You've earned the ${name} badge. Keep up the great work!`,
+          type: "badge_earned",
+          priority: "important",
+        });
+      }
+    };
+
     // Consistent badge - 7 day streak
     if (!has("consistent")) {
       const { data: sessions } = await adminClient.from("study_sessions").select("date").eq("user_id", uid).order("date", { ascending: false }).limit(365);
@@ -44,8 +59,7 @@ serve(async (req) => {
         let streak = 0;
         while (dates.has(dk(cursor))) { streak++; cursor.setDate(cursor.getDate()-1); }
         if (streak >= 7) {
-          const { error } = await adminClient.from("user_badges").insert({ user_id: uid, badge_type: "consistent", badge_name: "🔥 Consistent Learner" });
-          if (!error) awarded.push("Consistent Learner");
+          await awardBadge("consistent", "🔥 Consistent Learner");
         }
       }
     }
@@ -54,8 +68,7 @@ serve(async (req) => {
     if (!has("explorer")) {
       const { count } = await adminClient.from("user_downloads").select("id", { count: "exact", head: true }).eq("user_id", uid);
       if ((count || 0) >= 15) {
-        const { error } = await adminClient.from("user_badges").insert({ user_id: uid, badge_type: "explorer", badge_name: "🔍 Explorer" });
-        if (!error) awarded.push("Explorer");
+        await awardBadge("explorer", "🔍 Explorer");
       }
     }
 
@@ -63,8 +76,7 @@ serve(async (req) => {
     if (!has("helpful")) {
       const { count } = await adminClient.from("referrals").select("id", { count: "exact", head: true }).eq("referrer_id", uid);
       if ((count || 0) >= 3) {
-        const { error } = await adminClient.from("user_badges").insert({ user_id: uid, badge_type: "helpful", badge_name: "🤝 Helpful" });
-        if (!error) awarded.push("Helpful");
+        await awardBadge("helpful", "🤝 Helpful");
       }
     }
 
@@ -73,8 +85,7 @@ serve(async (req) => {
       const { data: results } = await adminClient.from("test_results").select("obtained_marks, total_marks").eq("user_id", uid);
       const hasTop = (results || []).some(r => r.total_marks > 0 && (r.obtained_marks / r.total_marks) >= 0.9);
       if (hasTop) {
-        const { error } = await adminClient.from("user_badges").insert({ user_id: uid, badge_type: "topper", badge_name: "🏆 Topper" });
-        if (!error) awarded.push("Topper");
+        await awardBadge("topper", "🏆 Topper");
       }
     }
 
@@ -82,8 +93,7 @@ serve(async (req) => {
     if (!has("veteran")) {
       const { count } = await adminClient.from("test_results").select("id", { count: "exact", head: true }).eq("user_id", uid);
       if ((count || 0) >= 30) {
-        const { error } = await adminClient.from("user_badges").insert({ user_id: uid, badge_type: "veteran", badge_name: "⭐ Veteran" });
-        if (!error) awarded.push("Veteran");
+        await awardBadge("veteran", "⭐ Veteran");
       }
     }
 
