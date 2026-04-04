@@ -714,10 +714,70 @@ export default function AdminPage() {
             <p className="text-xs text-muted-foreground">Send a notification to all users on the platform.</p>
             <Input value={notifTitle} onChange={e => setNotifTitle(e.target.value)} placeholder="Notification title" />
             <Textarea value={notifMessage} onChange={e => setNotifMessage(e.target.value)} placeholder="Message (optional)" rows={3} />
+            
+            {/* Priority selector */}
+            <div>
+              <label className="text-sm font-medium mb-2 block">Priority</label>
+              <div className="flex gap-2">
+                {['normal', 'important', 'urgent'].map(p => (
+                  <Button key={p} variant={notifPriority === p ? 'default' : 'outline'} size="sm"
+                    onClick={() => setNotifPriority(p)} className="capitalize">{p}</Button>
+                ))}
+              </div>
+            </div>
+
+            {/* Image upload */}
+            <div>
+              <label className="text-sm font-medium mb-2 block">Attach Image (optional)</label>
+              <input ref={notifImageRef} type="file" accept="image/*" className="hidden"
+                onChange={e => setNotifImageFile(e.target.files?.[0] || null)} />
+              <Button variant="outline" size="sm" onClick={() => notifImageRef.current?.click()} className="gap-1">
+                <Upload className="w-3 h-3" /> {notifImageFile ? notifImageFile.name : 'Upload Image'}
+              </Button>
+            </div>
+
             <Button onClick={sendBroadcastNotification} disabled={sendingNotif} className="gap-1">
               <Bell className="w-4 h-4" /> {sendingNotif ? 'Sending...' : 'Send to All Users'}
             </Button>
           </motion.div>
+
+          {/* Sent notifications list */}
+          <div className="space-y-3">
+            <h4 className="font-bold text-sm">Sent Notifications</h4>
+            {sentNotifications.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-6">No notifications sent yet</p>
+            ) : sentNotifications.map(n => (
+              <div key={n.id} className="bg-card rounded-xl border border-border p-4">
+                {editingNotifId === n.id ? (
+                  <div className="space-y-2">
+                    <Input value={editNotifTitle} onChange={e => setEditNotifTitle(e.target.value)} placeholder="Title" />
+                    <Textarea value={editNotifMessage} onChange={e => setEditNotifMessage(e.target.value)} placeholder="Message" rows={2} />
+                    <div className="flex gap-2">
+                      <Button size="sm" onClick={() => saveEditNotif(n.title, n.created_at)}>Save</Button>
+                      <Button size="sm" variant="outline" onClick={() => setEditingNotifId(null)}>Cancel</Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm">{n.title}</p>
+                      {n.message && <p className="text-xs text-muted-foreground mt-0.5">{n.message}</p>}
+                      {n.image_url && <img src={n.image_url} alt="" className="w-20 h-14 object-cover rounded mt-1" />}
+                      <p className="text-[10px] text-muted-foreground mt-1">{new Date(n.created_at).toLocaleDateString()}</p>
+                    </div>
+                    <div className="flex gap-1 shrink-0">
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => startEditNotif(n)}>
+                        <Edit3 className="w-3 h-3" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteNotification(n.title, n.created_at)}>
+                        <Trash2 className="w-3 h-3 text-destructive" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>
