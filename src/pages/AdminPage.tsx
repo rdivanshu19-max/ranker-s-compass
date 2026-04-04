@@ -62,7 +62,14 @@ export default function AdminPage() {
   // Notification state
   const [notifTitle, setNotifTitle] = useState('');
   const [notifMessage, setNotifMessage] = useState('');
+  const [notifPriority, setNotifPriority] = useState('normal');
+  const [notifImageFile, setNotifImageFile] = useState<File | null>(null);
   const [sendingNotif, setSendingNotif] = useState(false);
+  const [sentNotifications, setSentNotifications] = useState<any[]>([]);
+  const [editingNotifId, setEditingNotifId] = useState<string | null>(null);
+  const [editNotifTitle, setEditNotifTitle] = useState('');
+  const [editNotifMessage, setEditNotifMessage] = useState('');
+  const notifImageRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { loadMaterials(); loadUsers(); loadFeedbacks(); loadCourses(); }, []);
 
