@@ -147,6 +147,20 @@ export default function DashboardPage() {
     setWeeklyStats(rawDays.map(d => ({ day: d.dayName, minutes: d.minutes })));
   }, [user]);
 
+  // Check badges silently
+  const checkBadges = useCallback(async () => {
+    if (!user) return;
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/award-badges`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}`, apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
+        body: JSON.stringify({}),
+      });
+    } catch {}
+  }, [user]);
+
   useEffect(() => {
     if (!user) return;
     const load = async () => {
@@ -173,7 +187,8 @@ export default function DashboardPage() {
     };
     load();
     loadWeeklyStats();
-  }, [user, loadWeeklyStats]);
+    checkBadges();
+  }, [user, loadWeeklyStats, checkBadges]);
 
   const startTimer = () => {
     if (isTimerRunning) return;
