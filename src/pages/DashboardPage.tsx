@@ -2,6 +2,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { motion } from 'framer-motion';
+import confetti from 'canvas-confetti';
 import {
   BookOpen,
   Download,
@@ -147,17 +148,32 @@ export default function DashboardPage() {
     setWeeklyStats(rawDays.map(d => ({ day: d.dayName, minutes: d.minutes })));
   }, [user]);
 
-  // Check badges silently
+  // Check badges and celebrate new ones
   const checkBadges = useCallback(async () => {
     if (!user) return;
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
-      await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/award-badges`, {
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/award-badges`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}`, apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
         body: JSON.stringify({}),
       });
+      const result = await res.json();
+      if (result.awarded && result.awarded.length > 0) {
+        // Fire confetti celebration
+        const duration = 3000;
+        const end = Date.now() + duration;
+        const colors = ['#ff6b6b', '#ffd93d', '#6bcb77', '#4d96ff', '#ff6ecc'];
+        (function frame() {
+          confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 }, colors });
+          confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 }, colors });
+          if (Date.now() < end) requestAnimationFrame(frame);
+        })();
+        result.awarded.forEach((name: string) => {
+          toast.success(`🎉 Badge Earned: ${name}`, { description: 'Congratulations! Check your profile for details.' });
+        });
+      }
     } catch {}
   }, [user]);
 
