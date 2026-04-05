@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { motion } from 'framer-motion';
-import { GraduationCap, ExternalLink, BookOpen, Pin, Flame, TrendingUp, Star, AlertTriangle, Search, Zap, Award } from 'lucide-react';
+import { GraduationCap, ExternalLink, BookOpen, Pin, Flame, TrendingUp, Star, AlertTriangle, Search, Zap, Award, ChevronDown, ChevronUp } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 type CourseResource = { title: string; url: string; type: string };
 type Course = {
