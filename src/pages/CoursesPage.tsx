@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { motion } from 'framer-motion';
-import { GraduationCap, ExternalLink, BookOpen, Pin, Flame, TrendingUp, Star, AlertTriangle, Search, Zap, Award } from 'lucide-react';
+import { GraduationCap, ExternalLink, BookOpen, Pin, Flame, TrendingUp, Star, AlertTriangle, Search, Zap, Award, ChevronDown, ChevronUp } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 type CourseResource = { title: string; url: string; type: string };
 type Course = {
@@ -21,6 +22,7 @@ export default function CoursesPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -128,7 +130,17 @@ export default function CoursesPage() {
               )}
               <div className="p-5 space-y-3">
                 <h3 className="text-lg font-bold font-display group-hover:text-primary transition-colors">{course.title}</h3>
-                {course.description && <p className="text-sm text-muted-foreground line-clamp-2">{course.description}</p>}
+                {course.description && (
+                  <div>
+                    <p className={`text-sm text-muted-foreground ${expandedId === course.id ? '' : 'line-clamp-2'}`}>{course.description}</p>
+                    {course.description.length > 100 && (
+                      <Button variant="ghost" size="sm" className="text-xs text-primary px-0 h-6 mt-1"
+                        onClick={(e) => { e.stopPropagation(); setExpandedId(expandedId === course.id ? null : course.id); }}>
+                        {expandedId === course.id ? <><ChevronUp className="w-3 h-3 mr-1" /> Show less</> : <><ChevronDown className="w-3 h-3 mr-1" /> Read more</>}
+                      </Button>
+                    )}
+                  </div>
+                )}
                 {course.resources && course.resources.length > 0 && (
                   <div className="space-y-2 pt-2 border-t border-border">
                     <p className="text-xs font-medium text-muted-foreground">📦 {course.resources.length} Resource{course.resources.length > 1 ? 's' : ''}</p>

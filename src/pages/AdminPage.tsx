@@ -327,10 +327,19 @@ export default function AdminPage() {
     setSentNotifications(unique);
   };
 
-  const deleteNotification = async (title: string, createdAt: string) => {
-    // Delete all copies of this broadcast
-    await supabase.from('notifications').delete().eq('title', title).eq('created_at', createdAt);
-    toast.success('Notification deleted');
+  const deleteNotification = async (title: string, _createdAt: string) => {
+    // Delete all copies of this broadcast across all users by matching title
+    // created_at can have microsecond differences across batch inserts
+    const { data: matches } = await supabase.from('notifications').select('id').eq('title', title);
+    if (matches && matches.length > 0) {
+      for (let i = 0; i < matches.length; i += 50) {
+        const ids = matches.slice(i, i + 50).map(m => m.id);
+        for (const id of ids) {
+          await supabase.from('notifications').delete().eq('id', id);
+        }
+      }
+    }
+    toast.success('Notification deleted for all users');
     loadNotifications();
   };
 
