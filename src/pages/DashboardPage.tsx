@@ -2,6 +2,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { motion } from 'framer-motion';
+import confetti from 'canvas-confetti';
 import {
   BookOpen,
   Download,
