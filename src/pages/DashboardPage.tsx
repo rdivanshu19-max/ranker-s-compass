@@ -427,12 +427,18 @@ export default function DashboardPage() {
         </motion.div>
       )}
 
-      <div className="grid grid-cols-2 gap-4">
-        <Button variant="default" size="lg" onClick={() => navigate('/app/library')} className="rounded-xl">
-          <BookOpen className="w-4 h-4 mr-2" /> Browse Library
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <Button variant="default" size="lg" onClick={() => navigate('/app/library')} className="rounded-xl gap-2">
+          <BookOpen className="w-4 h-4" /> Library
         </Button>
-        <Button variant="default" size="lg" onClick={() => navigate('/app/tests')} className="rounded-xl">
-          <Star className="w-4 h-4 mr-2" /> Take a Test
+        <Button variant="default" size="lg" onClick={() => navigate('/app/tests')} className="rounded-xl gap-2">
+          <Star className="w-4 h-4" /> AI Tests
+        </Button>
+        <Button variant="outline" size="lg" onClick={() => navigate('/app/courses')} className="rounded-xl gap-2">
+          <Brain className="w-4 h-4" /> Courses
+        </Button>
+        <Button variant="outline" size="lg" onClick={() => navigate('/app/vault')} className="rounded-xl gap-2">
+          <FolderOpen className="w-4 h-4" /> Vault
         </Button>
       </div>
     </div>
