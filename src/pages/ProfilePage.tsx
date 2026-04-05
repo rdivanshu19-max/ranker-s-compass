@@ -24,6 +24,7 @@ export default function ProfilePage() {
   const [referralCode, setReferralCode] = useState('');
   const [referralCount, setReferralCount] = useState(0);
   const [badges, setBadges] = useState<any[]>([]);
+  const [badgeProgress, setBadgeProgress] = useState<Record<string, number>>({});
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
