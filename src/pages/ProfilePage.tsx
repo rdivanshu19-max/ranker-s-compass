@@ -44,6 +44,33 @@ export default function ProfilePage() {
     supabase.from('user_badges').select('*').eq('user_id', user.id).then(({ data }) => {
       setBadges(data || []);
     });
+    // Load progress data for badges
+    const loadProgress = async () => {
+      const [downloads, tests, sessions, referrals] = await Promise.all([
+        supabase.from('user_downloads').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
+        supabase.from('test_results').select('id, obtained_marks, total_marks').eq('user_id', user.id),
+        supabase.from('study_sessions').select('date').eq('user_id', user.id).order('date', { ascending: false }).limit(365),
+        supabase.from('referrals').select('id', { count: 'exact', head: true }).eq('referrer_id', user.id),
+      ]);
+      // Calculate streak
+      const dates = (sessions.data || []).map(s => s.date);
+      const daySet = new Set(dates);
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      const cursor = new Date(today);
+      if (!daySet.has(cursor.toISOString().split('T')[0])) { cursor.setDate(cursor.getDate() - 1); }
+      let streak = 0;
+      while (daySet.has(cursor.toISOString().split('T')[0])) { streak++; cursor.setDate(cursor.getDate() - 1); }
+      // Best score
+      const bestPct = Math.max(0, ...(tests.data || []).map(t => t.total_marks > 0 ? (t.obtained_marks / t.total_marks) * 100 : 0));
+      setBadgeProgress({
+        consistent: streak,
+        explorer: downloads.count || 0,
+        helpful: referrals.count || 0,
+        topper: Math.round(bestPct),
+        veteran: tests.count || 0,
+      });
+    };
+    loadProgress();
     checkBadges();
   }, [user]);
 
