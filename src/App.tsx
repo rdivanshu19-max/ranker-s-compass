@@ -19,6 +19,7 @@ import AboutPage from "./pages/AboutPage";
 import ContributePage from "./pages/ContributePage";
 import AITestPage from "./pages/AITestPage";
 import AIChatWidget from "./components/AIChatWidget";
+import AstraMentor from "./components/AstraMentor";
 import FeedbackPage from "./pages/FeedbackPage";
 import CoursesPage from "./pages/CoursesPage";
 import TermsPage from "./pages/TermsPage";
