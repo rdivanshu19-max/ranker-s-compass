@@ -45,7 +45,7 @@ const App = () => (
               <Route path="/privacy" element={<PrivacyPage />} />
               <Route path="/adsense" element={<AdSensePage />} />
               <Route path="/app" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
-                <Route index element={<><DashboardPage /><AIChatWidget /><AstraMentor /></>} />
+                <Route index element={<><DashboardPage /><AIChatWidget /></>} />
                 <Route path="library" element={<><LibraryPage /><AIChatWidget /></>} />
                 <Route path="vault" element={<><StudyVaultPage /><AIChatWidget /></>} />
                 <Route path="tests" element={<><AITestPage /><AIChatWidget /></>} />
