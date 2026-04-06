@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
+import AstraDashboard from '@/components/AstraDashboard';
 import {
   BookOpen,
   Download,
@@ -411,6 +412,11 @@ export default function DashboardPage() {
           )}
         </motion.div>
       </div>
+
+      {/* ASTRA Mentor Section */}
+      <motion.div initial="hidden" animate="visible" variants={fadeUp} transition={{ delay: 0.48 }}>
+        <AstraDashboard />
+      </motion.div>
 
       {pinnedMaterials.length > 0 && (
         <motion.div initial="hidden" animate="visible" variants={fadeUp} transition={{ delay: 0.5 }}

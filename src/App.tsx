@@ -19,7 +19,7 @@ import AboutPage from "./pages/AboutPage";
 import ContributePage from "./pages/ContributePage";
 import AITestPage from "./pages/AITestPage";
 import AIChatWidget from "./components/AIChatWidget";
-import AstraMentor from "./components/AstraMentor";
+
 import FeedbackPage from "./pages/FeedbackPage";
 import CoursesPage from "./pages/CoursesPage";
 import TermsPage from "./pages/TermsPage";
@@ -45,7 +45,7 @@ const App = () => (
               <Route path="/privacy" element={<PrivacyPage />} />
               <Route path="/adsense" element={<AdSensePage />} />
               <Route path="/app" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
-                <Route index element={<><DashboardPage /><AIChatWidget /><AstraMentor /></>} />
+                <Route index element={<><DashboardPage /><AIChatWidget /></>} />
                 <Route path="library" element={<><LibraryPage /><AIChatWidget /></>} />
                 <Route path="vault" element={<><StudyVaultPage /><AIChatWidget /></>} />
                 <Route path="tests" element={<><AITestPage /><AIChatWidget /></>} />
