@@ -13,6 +13,7 @@ const navItems = [
   { to: '/app/vault', icon: FolderLock, label: 'Vault' },
   { to: '/app/feedback', icon: MessageSquare, label: 'Feedback' },
   { to: '/app/profile', icon: User, label: 'Profile' },
+  { to: '/app/about', icon: User, label: 'About' },
 ];
 
 export default function AppLayout() {
