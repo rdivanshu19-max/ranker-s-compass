@@ -90,7 +90,7 @@ export default function AITestPage() {
   const getTestConfig = () => {
     const isFullExam = classLevel === 'Full' && subject === 'Full';
     const isFullSubject = subject !== 'Full' && chapter === 'Full';
-    let numQ = 10, totalMarks = 40, duration = 20 * 60;
+    let numQ = 15, totalMarks = 60, duration = 25 * 60;
     if (isFullExam) {
       if (examType === 'JEE') { numQ = 75; totalMarks = 300; duration = 3 * 60 * 60; }
       else { numQ = 180; totalMarks = 720; duration = 3 * 60 * 60; }
