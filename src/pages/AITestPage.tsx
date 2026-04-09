@@ -609,7 +609,7 @@ const duration = numQ * 2 * 60;
 
     </div>
   
-)}
+
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-2">
         <div className="flex items-center justify-between">
@@ -658,16 +658,34 @@ const duration = numQ * 2 * 60;
         )}
 
         {availableChapters.length > 0 && (
-          <div>
-            <label className="text-sm font-medium mb-2 block">Chapter</label>
-            <div className="flex flex-wrap gap-1.5 max-h-44 overflow-y-auto pr-1">
-              <Button variant={chapter === 'Full' ? 'default' : 'outline'} size="sm" onClick={() => setChapter('Full')}>All Chapters</Button>
-              {availableChapters.map((item) => (
-                <Button key={item} variant={chapter === item ? 'default' : 'outline'} size="sm" className="text-xs" onClick={() => setChapter(item)}>{item}</Button>
-              ))}
-            </div>
-          </div>
-        )}
+  <div>
+    <label className="text-sm font-medium mb-2 block">Chapter</label>
+
+    <div className="flex flex-wrap gap-1.5 max-h-44 overflow-y-auto pr-1">
+
+      <Button
+        variant={chapter === 'Full' ? 'default' : 'outline'}
+        size="sm"
+        onClick={() => setChapter('Full')}
+      >
+        All Chapters
+      </Button>
+
+      {availableChapters.map((item) => (
+        <Button
+          key={item}
+          variant={chapter === item ? 'default' : 'outline'}
+          size="sm"
+          className="text-xs"
+          onClick={() => setChapter(item)}
+        >
+          {item}
+        </Button>
+      ))}
+
+    </div>
+  </div>
+)}
 
         <div className="bg-muted/50 rounded-xl p-4 text-sm space-y-1">
           <p><strong>Pattern:</strong> +4 correct, -1 incorrect, 0 unanswered</p>
@@ -675,15 +693,20 @@ const duration = numQ * 2 * 60;
           <p><strong>Questions:</strong> {currentConfig.numQ} | <strong>Total Marks:</strong> {currentConfig.totalMarks}</p>
         </div>
 
-        <Button variant="hero" size="xl" className="w-full" onClick={() => {
-  if (chapter !== 'Full') {
-    setShowSelector(true);
-  } else {
-    startTest();
-  }
-}}
-          <FlaskConical className="w-5 h-5 mr-2" /> Start Test
-        </Button>
+        <Button
+  variant="hero"
+  size="xl"
+  className="w-full"
+  onClick={() => {
+    if (chapter !== 'Full') {
+      setShowSelector(true);
+    } else {
+      startTest();
+    }
+  }}>
+  <FlaskConical className="w-5 h-5 mr-2" />
+  Start Test
+</Button>
       </motion.div>
     </div>
   );
