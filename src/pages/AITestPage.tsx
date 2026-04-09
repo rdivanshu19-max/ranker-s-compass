@@ -59,6 +59,8 @@ export default function AITestPage() {
   const [subject, setSubject] = useState<string | 'Full'>('Full');
   const [chapter, setChapter] = useState<string | 'Full'>('Full');
   const [showTutorial, setShowTutorial] = useState(false);
+  const [showSelector, setShowSelector] = useState(false);
+const [questionCount, setQuestionCount] = useState(15);
 
   const [questions, setQuestions] = useState<Question[]>([]);
   const [answers, setAnswers] = useState<Record<number, number>>({});
@@ -164,7 +166,15 @@ export default function AITestPage() {
 
   const startTest = async () => {
     setState('loading');
-    const { numQ, duration } = getTestConfig();
+    const config = getTestConfig();
+
+let numQ = config.numQ;
+
+if (chapter !== 'Full') {
+  numQ = questionCount;
+}
+
+const duration = numQ * 2 * 60;
     const distribution = getSubjectDistribution();
     try {
       const body: any = { examType, numQuestions: numQ };
@@ -556,6 +566,50 @@ export default function AITestPage() {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <TutorialOverlay />
+      {showSelector && (
+  <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+    <div className="bg-card border border-border rounded-2xl p-6 w-[90%] max-w-md animate-in fade-in zoom-in">
+
+      <h2 className="text-lg font-bold mb-4 text-center">Custom Question Selector</h2>
+
+      <div className="flex gap-3 justify-center mb-6">
+        {[10, 15, 20].map((num) => (
+          <button
+            key={num}
+            onClick={() => setQuestionCount(num)}
+            className={`px-4 py-2 rounded-xl font-medium transition ${
+              questionCount === num
+                ? 'bg-primary text-white shadow-md'
+                : 'bg-muted hover:bg-muted/70'
+            }`}
+          >
+            {num}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex justify-between">
+        <button
+          onClick={() => setShowSelector(false)}
+          className="text-sm text-muted-foreground"
+        >
+          Cancel
+        </button>
+
+        <button
+          onClick={() => {
+            setShowSelector(false);
+            startTest();
+          }}
+          className="bg-primary text-white px-4 py-2 rounded-xl"
+        >
+          Start Test
+        </button>
+      </div>
+
+    </div>
+  </div>
+)}
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-2">
         <div className="flex items-center justify-between">
@@ -621,7 +675,13 @@ export default function AITestPage() {
           <p><strong>Questions:</strong> {currentConfig.numQ} | <strong>Total Marks:</strong> {currentConfig.totalMarks}</p>
         </div>
 
-        <Button variant="hero" size="xl" className="w-full" onClick={startTest}>
+        <Button variant="hero" size="xl" className="w-full" onClick={() => {
+  if (chapter !== 'Full') {
+    setShowSelector(true);
+  } else {
+    startTest();
+  }
+}}
           <FlaskConical className="w-5 h-5 mr-2" /> Start Test
         </Button>
       </motion.div>
