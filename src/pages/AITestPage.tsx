@@ -164,12 +164,8 @@ export default function AITestPage() {
 
   const startTest = async () => {
     setState('loading');
-    if (window.gtag) {
-  window.gtag('event', 'test_started', {
-    exam: examType,
-    subject: subject,
-    chapter: chapter
-  });
+    if ((window as any).gtag) {
+      (window as any).gtag('event', 'test_started', { exam: examType, subject, chapter });
     }
     const { numQ, duration } = getTestConfig();
     const distribution = getSubjectDistribution();
@@ -231,13 +227,8 @@ export default function AITestPage() {
     const total = questions.length * 4;
     const res: ResultState = { correct, incorrect, unanswered, obtained, total, negativeMarks: incorrect, attempted: correct + incorrect, subjectScores, timePerQuestion: questionTimes };
     setResult(res);
-    if (window.gtag) {
-  window.gtag('event', 'test_completed', {
-    score: obtained,
-    total: total,
-    correct: correct,
-    incorrect: incorrect
-  });
+    if ((window as any).gtag) {
+      (window as any).gtag('event', 'test_completed', { score: obtained, total, correct, incorrect });
     }
     setState('result');
     if (user) {
