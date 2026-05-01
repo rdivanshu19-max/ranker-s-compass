@@ -6,6 +6,14 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const DAILY_LIMIT = 10;
+
+function istDate(): string {
+  const now = new Date();
+  const ist = new Date(now.getTime() + 5.5 * 3600 * 1000);
+  return ist.toISOString().split("T")[0];
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -28,30 +36,52 @@ serve(async (req) => {
     const { data: { user }, error: userError } = await userClient.auth.getUser();
     if (userError || !user) throw new Error("Unauthorized");
 
-    // Fetch user data
+    // Enforce daily limit
+    const today = istDate();
+    const { data: usage } = await userClient
+      .from("ai_usage")
+      .select("count")
+      .eq("user_id", user.id)
+      .eq("feature", "ai_mentor")
+      .eq("usage_date", today)
+      .maybeSingle();
+    const current = usage?.count ?? 0;
+    if (current >= DAILY_LIMIT) {
+      return new Response(JSON.stringify({
+        error: `Daily limit reached (${DAILY_LIMIT} mentor chats/day). Resets at midnight IST.`,
+        limitReached: true,
+      }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+    if (usage) {
+      await userClient.from("ai_usage").update({ count: current + 1 })
+        .eq("user_id", user.id).eq("feature", "ai_mentor").eq("usage_date", today);
+    } else {
+      await userClient.from("ai_usage").insert({
+        user_id: user.id, feature: "ai_mentor", usage_date: today, count: 1,
+      });
+    }
+
+    // Persist last user message to history (non-blocking)
+    const lastUserMsg = [...messages].reverse().find((m: any) => m.role === "user");
+    if (lastUserMsg) {
+      userClient.from("astra_chat_history").insert({
+        user_id: user.id, role: "user", content: lastUserMsg.content,
+      }).then(() => {});
+    }
+
     const [testResultsRes, profileRes, sessionsRes] = await Promise.all([
-      userClient
-        .from("test_results")
+      userClient.from("test_results")
         .select("subject, chapter, obtained_marks, total_marks, exam_type, incorrect, correct, total_questions, created_at")
-        .order("created_at", { ascending: false })
-        .limit(30),
-      userClient
-        .from("profiles")
-        .select("display_name")
-        .eq("user_id", user.id)
-        .single(),
-      userClient
-        .from("study_sessions")
-        .select("date, duration_minutes")
-        .order("date", { ascending: false })
-        .limit(30),
+        .order("created_at", { ascending: false }).limit(30),
+      userClient.from("profiles").select("display_name").eq("user_id", user.id).single(),
+      userClient.from("study_sessions").select("date, duration_minutes")
+        .order("date", { ascending: false }).limit(30),
     ]);
 
     const testResults = testResultsRes.data;
     const profile = profileRes.data;
     const sessions = sessionsRes.data;
 
-    // Build performance summary
     let perfSummary = "";
     if (testResults && testResults.length > 0) {
       const bySubject: Record<string, { total: number; obtained: number; count: number; errors: number }> = {};
@@ -64,15 +94,10 @@ serve(async (req) => {
         bySubject[key].errors += r.incorrect || 0;
       });
       const topics = Object.entries(bySubject).map(([topic, v]) => ({
-        topic,
-        avgScore: Math.round((v.obtained / v.total) * 100),
-        tests: v.count,
-        errors: v.errors,
+        topic, avgScore: Math.round((v.obtained / v.total) * 100), tests: v.count, errors: v.errors,
       })).sort((a, b) => a.avgScore - b.avgScore);
-
       const weak = topics.filter(t => t.avgScore < 60).slice(0, 5);
       const strong = topics.filter(t => t.avgScore >= 60).sort((a, b) => b.avgScore - a.avgScore).slice(0, 5);
-
       perfSummary = `\n\nSTUDENT PERFORMANCE DATA:
 Strong topics: ${strong.map(t => `${t.topic} (${t.avgScore}% avg, ${t.tests} tests)`).join(", ") || "None yet"}
 Weak topics: ${weak.map(t => `${t.topic} (${t.avgScore}% avg, ${t.tests} tests, ${t.errors} errors)`).join(", ") || "None yet"}
@@ -81,19 +106,17 @@ Exam type: ${testResults[0]?.exam_type || "Unknown"}
 MISTAKE PATTERNS: ${topics.filter(t => t.errors > 2).map(t => `${t.topic}: ${t.errors} total errors across ${t.tests} tests`).join("; ") || "Not enough data"}`;
     }
 
-    // Study consistency
     let studyInfo = "";
     if (sessions && sessions.length > 0) {
       const totalMins = sessions.reduce((s, r) => s + r.duration_minutes, 0);
       const uniqueDays = new Set(sessions.map(s => s.date)).size;
-      studyInfo = `\nSTUDY HABITS: ${uniqueDays} study days in recent history, ${totalMins} total minutes studied, avg ${Math.round(totalMins / uniqueDays)} min/day.`;
+      studyInfo = `\nSTUDY HABITS: ${uniqueDays} study days in recent history, ${totalMins} total minutes studied, avg ${Math.round(totalMins / Math.max(1, uniqueDays))} min/day.`;
     }
 
-    // Mode & exam context
     const modeLabel = mode === "beast" ? "BEAST MODE (maximum intensity, push hard)" :
                       mode === "lazy" ? "LAZY MODE (gentle, basics, short sessions)" :
                       "NORMAL MODE (balanced approach)";
-    
+
     let examContext = "";
     if (examDate) {
       const daysLeft = Math.max(0, Math.ceil((new Date(examDate).getTime() - Date.now()) / 86400000));
@@ -111,17 +134,19 @@ MISTAKE PATTERNS: ${topics.filter(t => t.errors > 2).map(t => `${t.topic}: ${t.e
       taskContext = `\nTODAY'S TASKS: ${done}/${dailyTasks.length} completed (${Math.round((done / dailyTasks.length) * 100)}%). Consistency score: ${consistencyScore || 0}%`;
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+    const OPENROUTER_API_KEY = Deno.env.get("OPENROUTER_API_KEY");
+    if (!OPENROUTER_API_KEY) throw new Error("OPENROUTER_API_KEY not configured");
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${OPENROUTER_API_KEY}`,
         "Content-Type": "application/json",
+        "HTTP-Referer": "https://rankers-stars.vercel.app",
+        "X-Title": "Rankers Star",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "meta-llama/llama-3.3-70b-instruct:free",
         messages: [
           {
             role: "system",
@@ -134,11 +159,11 @@ ${taskContext}
 ${perfSummary}
 
 Your capabilities:
-1. DAILY PLANNING: Create specific daily study plans with exact time allocations (e.g., "2h Physics - Mechanics, 1h Chemistry - Organic")
-2. TASK GENERATION: When asked for a plan, generate numbered tasks that the student can check off. Format: "1. [Task description]"
-3. WEAK TOPIC ATTACK: When asked to fix a weak topic, provide: 1 key concept summary → suggest specific practice → recommend a test
+1. DAILY PLANNING: Create specific daily study plans with exact time allocations.
+2. TASK GENERATION: When asked for a plan, generate numbered tasks. Format: "1. [Task]"
+3. WEAK TOPIC ATTACK: For weak topics: 1 key concept summary → suggest practice → recommend a test
 4. MISTAKE ANALYSIS: Analyze error patterns and give specific fix strategies
-5. SMART NUDGES: Give honest, personalized nudges based on actual data
+5. SMART NUDGES: Honest, personalized nudges based on actual data
 6. EXAM COUNTDOWN: Adapt intensity based on days left
 7. INSTANT TASKS: When asked "what now?", give ONE specific task with exact time
 
@@ -165,23 +190,54 @@ Rules:
 
     if (!response.ok) {
       if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }), {
+        return new Response(JSON.stringify({ error: "AI service busy. Please try again." }), {
           status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "AI credits exhausted. Please try again later." }), {
-          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
       const t = await response.text();
-      console.error("ASTRA error:", response.status, t);
-      return new Response(JSON.stringify({ error: "Something went wrong. Please try again." }), {
+      console.error("ASTRA OpenRouter error:", response.status, t);
+      return new Response(JSON.stringify({ error: "AI service error. Please try again." }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    return new Response(response.body, {
+    // Tee stream — capture assistant content for history persistence
+    const [streamForClient, streamForCapture] = response.body!.tee();
+    (async () => {
+      try {
+        const reader = streamForCapture.getReader();
+        const decoder = new TextDecoder();
+        let buf = "";
+        let assistant = "";
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buf += decoder.decode(value, { stream: true });
+          let idx: number;
+          while ((idx = buf.indexOf("\n")) !== -1) {
+            const line = buf.slice(0, idx).trim();
+            buf = buf.slice(idx + 1);
+            if (!line.startsWith("data: ")) continue;
+            const data = line.slice(6).trim();
+            if (data === "[DONE]") break;
+            try {
+              const parsed = JSON.parse(data);
+              const c = parsed.choices?.[0]?.delta?.content || "";
+              assistant += c;
+            } catch {}
+          }
+        }
+        if (assistant.trim()) {
+          await userClient.from("astra_chat_history").insert({
+            user_id: user.id, role: "assistant", content: assistant.trim(),
+          });
+        }
+      } catch (e) {
+        console.error("history capture error:", e);
+      }
+    })();
+
+    return new Response(streamForClient, {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
   } catch (e) {
