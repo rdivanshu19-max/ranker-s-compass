@@ -9,6 +9,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
+import AILoadingScreen from '@/components/AILoadingScreen';
 
 const JEE_SUBJECTS = ['Physics', 'Chemistry', 'Mathematics'];
 const NEET_SUBJECTS = ['Physics', 'Chemistry', 'Biology'];
@@ -327,12 +328,10 @@ export default function AITestPage() {
   if (state === 'loading') {
     return (
       <div className="min-h-[60vh] grid place-items-center">
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="text-center space-y-4">
-          <div className="mx-auto animate-spin w-12 h-12 border-4 border-primary border-t-transparent rounded-full" />
-          <p className="text-lg font-bold font-display">Generating your test...</p>
-          <p className="text-muted-foreground">AI is crafting {getTestConfig().numQ} exam-style questions for {examType}</p>
-          <p className="text-xs text-muted-foreground">This may take a moment for large tests</p>
-        </motion.div>
+        <AILoadingScreen
+          message={`Generating ${getTestConfig().numQ} questions...`}
+          subMessage={`AI is crafting ${examType} exam-style questions. Large tests (75+) may take 20-40 seconds.`}
+        />
       </div>
     );
   }
