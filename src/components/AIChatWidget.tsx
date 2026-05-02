@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageCircle, X, Send, Bot, Sparkles, AlertTriangle, ImagePlus } from 'lucide-react';
+import { MessageCircle, X, Send, Bot, Sparkles, AlertTriangle, ImagePlus, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import ReactMarkdown from 'react-markdown';
 import { useAuth } from '@/contexts/AuthContext';
+import AILoadingScreen from '@/components/AILoadingScreen';
+import { useAILimit } from '@/hooks/useAILimit';
 
 type Msg = { role: 'user' | 'assistant'; content: string; image?: string };
 
@@ -43,6 +45,7 @@ const toBase64 = (file: File): Promise<string> =>
 
 export default function AIChatWidget() {
   const { session } = useAuth();
+  const { remaining, limit, refresh: refreshLimit, resetIn } = useAILimit('ai_chat');
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([
     { role: 'assistant', content: "Hi! I'm **RankerPulse** 🚀 — your AI study assistant!\n\nI can help with:\n- 📚 Solving doubts (text or image)\n- 🧠 JEE/NEET concepts\n- 🎯 Study strategy\n- 📝 Quick revision\n\nSend a photo of your question or type it!" },
