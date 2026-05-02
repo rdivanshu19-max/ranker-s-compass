@@ -32,47 +32,55 @@ Return ONLY a JSON object with this exact structure (no markdown fences, no othe
 
 Each question must have exactly 4 options. correctAnswer is the index 0-3 of the correct option.`;
 
-  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "llama-3.3-70b-versatile",
-      messages: [
-        { role: "system", content: "You are an expert MCQ question generator for Indian competitive exams (JEE/NEET). Always return valid JSON only — no markdown, no commentary." },
-        { role: "user", content: prompt },
-      ],
-      response_format: { type: "json_object" },
-      temperature: 0.8,
-    }),
-  });
-
-  if (!response.ok) {
-    const t = await response.text();
-    console.error(`Groq batch error (attempt ${attempt}):`, response.status, t);
-    if (attempt < 2) return generateBatch(apiKey, examType, subject, chapter, count, attempt + 1);
-    if (response.status === 429) throw new Error("AI service rate limited. Please try again in a moment.");
-    throw new Error("Failed to generate questions. Please try again.");
-  }
-
-  const data = await response.json();
-  const content = data.choices?.[0]?.message?.content;
-  if (!content) {
-    if (attempt < 2) return generateBatch(apiKey, examType, subject, chapter, count, attempt + 1);
-    throw new Error("No questions returned");
-  }
-
   try {
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "llama-3.3-70b-versatile",
+        messages: [
+          { role: "system", content: "You are an expert MCQ question generator for Indian competitive exams (JEE/NEET). Always return valid JSON only — no markdown, no commentary." },
+          { role: "user", content: prompt },
+        ],
+        response_format: { type: "json_object" },
+        temperature: 0.8,
+      }),
+    });
+
+    if (!response.ok) {
+      const t = await response.text();
+      console.error(`Groq batch error (attempt ${attempt}):`, response.status, t);
+      if (attempt < 4) {
+        await new Promise(r => setTimeout(r, attempt * 600));
+        return generateBatch(apiKey, examType, subject, chapter, count, attempt + 1);
+      }
+      return [];
+    }
+
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content;
+    if (!content) {
+      if (attempt < 4) return generateBatch(apiKey, examType, subject, chapter, count, attempt + 1);
+      return [];
+    }
+
     const parsed = JSON.parse(content);
     const qs = parsed.questions || [];
-    if (!Array.isArray(qs) || qs.length === 0) throw new Error("No questions");
+    if (!Array.isArray(qs) || qs.length === 0) {
+      if (attempt < 4) return generateBatch(apiKey, examType, subject, chapter, count, attempt + 1);
+      return [];
+    }
     return qs.filter((q: any) =>
       q && q.question && Array.isArray(q.options) && q.options.length === 4 &&
       typeof q.correctAnswer === "number" && q.correctAnswer >= 0 && q.correctAnswer < 4
     );
   } catch (e) {
-    console.error("JSON parse failed (attempt", attempt, "):", e);
-    if (attempt < 2) return generateBatch(apiKey, examType, subject, chapter, count, attempt + 1);
-    throw new Error("Invalid response from AI. Please try again.");
+    console.error("Batch exception (attempt", attempt, "):", e);
+    if (attempt < 4) {
+      await new Promise(r => setTimeout(r, attempt * 600));
+      return generateBatch(apiKey, examType, subject, chapter, count, attempt + 1);
+    }
+    return [];
   }
 }
 
@@ -83,33 +91,46 @@ async function generateInParallel(
   chapter: string | null,
   total: number,
 ): Promise<any[]> {
-  const batches: number[] = [];
-  let remaining = total;
-  while (remaining > 0) {
-    const c = Math.min(BATCH_SIZE, remaining);
-    batches.push(c);
-    remaining -= c;
-  }
-  const results = await Promise.all(
-    batches.map(c => generateBatch(apiKey, examType, subject, chapter, c).catch(err => {
-      console.error("Batch failed permanently:", err);
-      return [] as any[];
-    }))
-  );
+  const buildBatches = (n: number) => {
+    const out: number[] = [];
+    let r = n;
+    while (r > 0) { const c = Math.min(BATCH_SIZE, r); out.push(c); r -= c; }
+    return out;
+  };
 
-  // Merge & dedupe by question text
-  const seen = new Set<string>();
-  const merged: any[] = [];
-  let id = 1;
-  for (const batch of results) {
-    for (const q of batch) {
-      const key = q.question.trim().toLowerCase().slice(0, 100);
-      if (seen.has(key)) continue;
-      seen.add(key);
-      merged.push({ ...q, id: id++, subject: q.subject || subject || "General" });
+  const dedupeMerge = (existing: any[], incoming: any[][]) => {
+    const seen = new Set<string>(existing.map(q => q.question.trim().toLowerCase().slice(0, 100)));
+    const merged = [...existing];
+    for (const batch of incoming) {
+      for (const q of batch) {
+        const key = q.question.trim().toLowerCase().slice(0, 100);
+        if (seen.has(key)) continue;
+        seen.add(key);
+        merged.push({ ...q, subject: q.subject || subject || "General" });
+      }
     }
+    return merged;
+  };
+
+  // First pass: full parallel
+  const batches = buildBatches(total);
+  const firstResults = await Promise.all(
+    batches.map(c => generateBatch(apiKey, examType, subject, chapter, c))
+  );
+  let merged = dedupeMerge([], firstResults);
+
+  // Top-up passes: fill any shortfall (up to 2 retries)
+  for (let pass = 0; pass < 2 && merged.length < total; pass++) {
+    const missing = total - merged.length;
+    const fillBatches = buildBatches(Math.ceil(missing * 1.3)); // overshoot for dedup loss
+    const fillResults = await Promise.all(
+      fillBatches.map(c => generateBatch(apiKey, examType, subject, chapter, c))
+    );
+    merged = dedupeMerge(merged, fillResults);
   }
-  return merged;
+
+  // Trim & re-id
+  return merged.slice(0, total).map((q, i) => ({ ...q, id: i + 1 }));
 }
 
 serve(async (req) => {
