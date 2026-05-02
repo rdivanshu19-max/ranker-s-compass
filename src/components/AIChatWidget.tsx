@@ -168,11 +168,20 @@ export default function AIChatWidget() {
                   <p className="text-xs text-muted-foreground">Text + Image doubt solving</p>
                 </div>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => setOpen(false)}><X className="w-4 h-4" /></Button>
+              <div className="flex items-center gap-1.5">
+                <span className={`text-[10px] px-2 py-0.5 rounded-full border flex items-center gap-1 ${
+                  remaining === 0 ? 'bg-destructive/10 border-destructive/30 text-destructive'
+                    : 'bg-primary/10 border-primary/30 text-primary'
+                }`} title={remaining === 0 ? `Resets in ${resetIn}` : `${remaining} left today`}>
+                  <Zap className="w-2.5 h-2.5" /> {remaining}/{limit}
+                </span>
+                <Button variant="ghost" size="icon" onClick={() => setOpen(false)}><X className="w-4 h-4" /></Button>
+              </div>
             </div>
 
             <div className="px-4 pt-2 text-[11px] text-muted-foreground border-b border-border/70 pb-2">
               <AlertTriangle className="w-3 h-3 inline mr-1" /> AI-generated responses — verify critical formulas from trusted books.
+              {remaining === 0 && <span className="ml-1 text-destructive">• Daily limit reached, resets in {resetIn}</span>}
             </div>
 
             <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3">
@@ -191,9 +200,7 @@ export default function AIChatWidget() {
                 </div>
               ))}
               {loading && messages[messages.length - 1]?.role === 'user' && (
-                <div className="flex gap-1 items-center text-muted-foreground text-sm">
-                  <Bot className="w-4 h-4" /><span className="animate-pulse">Thinking...</span>
-                </div>
+                <AILoadingScreen message="RankerPulse is thinking..." subMessage="Analyzing your question with care 🧠" />
               )}
             </div>
 
