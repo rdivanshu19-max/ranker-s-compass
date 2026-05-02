@@ -139,7 +139,7 @@ export default function AIChatWidget() {
       }
     } catch (e: any) {
       setMessages(prev => [...prev, { role: 'assistant', content: `Sorry, something went wrong: ${e.message}` }]);
-    } finally { setLoading(false); }
+    } finally { setLoading(false); refreshLimit(); }
   };
 
   return (
