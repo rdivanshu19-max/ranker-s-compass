@@ -134,19 +134,17 @@ MISTAKE PATTERNS: ${topics.filter(t => t.errors > 2).map(t => `${t.topic}: ${t.e
       taskContext = `\nTODAY'S TASKS: ${done}/${dailyTasks.length} completed (${Math.round((done / dailyTasks.length) * 100)}%). Consistency score: ${consistencyScore || 0}%`;
     }
 
-    const OPENROUTER_API_KEY = Deno.env.get("OPENROUTER_API_KEY");
-    if (!OPENROUTER_API_KEY) throw new Error("OPENROUTER_API_KEY not configured");
+    const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
+    if (!GROQ_API_KEY) throw new Error("GROQ_API_KEY not configured");
 
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+        Authorization: `Bearer ${GROQ_API_KEY}`,
         "Content-Type": "application/json",
-        "HTTP-Referer": "https://rankers-stars.vercel.app",
-        "X-Title": "Rankers Star",
       },
       body: JSON.stringify({
-        model: "meta-llama/llama-3.3-70b-instruct:free",
+        model: "llama-3.3-70b-versatile",
         messages: [
           {
             role: "system",
@@ -195,7 +193,7 @@ Rules:
         });
       }
       const t = await response.text();
-      console.error("ASTRA OpenRouter error:", response.status, t);
+      console.error("ASTRA Groq error:", response.status, t);
       return new Response(JSON.stringify({ error: "AI service error. Please try again." }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
