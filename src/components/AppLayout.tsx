@@ -50,12 +50,6 @@ export default function AppLayout() {
           </div>
         </div>
       </header>
-            <Button variant="ghost" size="icon" onClick={() => { signOut(); navigate('/'); }}>
-              <LogOut className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-      </header>
 
       <main className="flex-1 container mx-auto px-4 py-6">
         <Outlet />
