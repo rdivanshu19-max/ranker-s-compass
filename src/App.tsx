@@ -15,6 +15,7 @@ import LibraryPage from "./pages/LibraryPage";
 import StudyVaultPage from "./pages/StudyVaultPage";
 import ProfilePage from "./pages/ProfilePage";
 import AdminPage from "./pages/AdminPage";
+import ModeratorPage from "./pages/ModeratorPage";
 import AboutPage from "./pages/AboutPage";
 import ContributePage from "./pages/ContributePage";
 import AITestPage from "./pages/AITestPage";
@@ -53,6 +54,7 @@ const App = () => (
                 <Route path="profile" element={<ProfilePage />} />
                 <Route path="feedback" element={<><FeedbackPage /><AIChatWidget /></>} />
                 <Route path="admin" element={<AdminPage />} />
+                <Route path="moderator" element={<ModeratorPage />} />
                 <Route path="about" element={<AboutPage />} />
                 <Route path="contribute" element={<ContributePage />} />
               </Route>
