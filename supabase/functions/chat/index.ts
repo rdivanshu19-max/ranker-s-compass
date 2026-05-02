@@ -58,29 +58,27 @@ serve(async (req) => {
       }
     }
 
-    const OPENROUTER_API_KEY = Deno.env.get("OPENROUTER_API_KEY");
-    if (!OPENROUTER_API_KEY) throw new Error("OPENROUTER_API_KEY is not configured");
+    const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
+    if (!GROQ_API_KEY) throw new Error("GROQ_API_KEY is not configured");
 
-    // OpenRouter free vision-capable text model
-    const model = "meta-llama/llama-3.3-70b-instruct:free";
+    // Groq text model (fast, reliable, no vision)
+    const model = "llama-3.3-70b-versatile";
 
-    // Strip images for text-only model (OpenRouter free llama doesn't support vision reliably)
+    // Strip images for text-only model
     const cleanedMessages = messages.map((m: any) => {
       if (Array.isArray(m.content)) {
         const textParts = m.content.filter((p: any) => p.type === "text").map((p: any) => p.text).join("\n");
         const hasImg = m.content.some((p: any) => p.type === "image_url");
-        return { role: m.role, content: hasImg ? `${textParts}\n\n[User attached an image. Please describe what you would solve if you could see it, or ask the user to describe it in text.]` : textParts };
+        return { role: m.role, content: hasImg ? `${textParts}\n\n[User attached an image. Please ask them to describe it in text since image vision is not available right now.]` : textParts };
       }
       return m;
     });
 
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+        Authorization: `Bearer ${GROQ_API_KEY}`,
         "Content-Type": "application/json",
-        "HTTP-Referer": "https://rankers-stars.vercel.app",
-        "X-Title": "Rankers Star",
       },
       body: JSON.stringify({
         model,
@@ -118,7 +116,7 @@ Rules:
         });
       }
       const t = await response.text();
-      console.error("OpenRouter error:", response.status, t);
+      console.error("Groq error:", response.status, t);
       return new Response(JSON.stringify({ error: "AI service error. Please try again." }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });

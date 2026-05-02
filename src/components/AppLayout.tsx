@@ -1,7 +1,7 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
-import { LayoutDashboard, Library, FolderLock, User, FlaskConical, Sun, Moon, LogOut, Shield, MessageSquare, GraduationCap,Info } from 'lucide-react';
+import { LayoutDashboard, Library, FolderLock, User, FlaskConical, Sun, Moon, LogOut, Shield, MessageSquare, GraduationCap, Info, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import NotificationBell from '@/components/NotificationBell';
 
@@ -17,7 +17,7 @@ const navItems = [
 ];
 
 export default function AppLayout() {
-  const { profile, isAdmin, signOut } = useAuth();
+  const { profile, isAdmin, isModerator, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
@@ -34,6 +34,11 @@ export default function AppLayout() {
             <Button variant="ghost" size="icon" onClick={toggleTheme}>
               {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </Button>
+            {isModerator && !isAdmin && (
+              <Button variant="ghost" size="icon" onClick={() => navigate('/app/moderator')} title="Moderator Panel">
+                <ShieldCheck className="w-4 h-4 text-primary" />
+              </Button>
+            )}
             {isAdmin && (
               <Button variant="ghost" size="icon" onClick={() => navigate('/app/admin')} title="Admin Panel">
                 <Shield className="w-4 h-4 text-primary" />
