@@ -8,6 +8,7 @@ interface AuthContextType {
   loading: boolean;
   profile: { display_name: string; bio: string } | null;
   isAdmin: boolean;
+  isModerator: boolean;
   signUp: (email: string, password: string, displayName: string) => Promise<any>;
   signIn: (email: string, password: string) => Promise<any>;
   requestPasswordReset: (email: string) => Promise<any>;
@@ -41,12 +42,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<{ display_name: string; bio: string } | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isModerator, setIsModerator] = useState(false);
 
   const fetchProfile = async (userId: string) => {
     const { data } = await supabase.from('profiles').select('display_name, bio').eq('user_id', userId).single();
     if (data) setProfile(data);
     const { data: roles } = await supabase.from('user_roles').select('role').eq('user_id', userId);
     setIsAdmin(roles?.some(r => r.role === 'admin') || false);
+    setIsModerator(roles?.some(r => r.role === 'moderator') || false);
   };
 
   const refreshProfile = async () => {
@@ -62,6 +65,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else {
         setProfile(null);
         setIsAdmin(false);
+        setIsModerator(false);
       }
       setLoading(false);
     });
@@ -105,11 +109,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setSession(null);
     setProfile(null);
     setIsAdmin(false);
+    setIsModerator(false);
   };
 
   return (
     <AuthContext.Provider
-      value={{ user, session, loading, profile, isAdmin, signUp, signIn, requestPasswordReset, signOut, refreshProfile }}
+      value={{ user, session, loading, profile, isAdmin, isModerator, signUp, signIn, requestPasswordReset, signOut, refreshProfile }}
     >
       {children}
     </AuthContext.Provider>
