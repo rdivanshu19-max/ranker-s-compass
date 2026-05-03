@@ -86,15 +86,19 @@ export default function ModeratorPage() {
   };
 
   const submitReport = async () => {
-    if (!reportedUserId.trim() || !reportReason.trim()) {
-      toast.error('User ID and reason required'); return;
+    if (!selectedUser || !reportReason.trim()) {
+      toast.error('Select a user and write a reason'); return;
     }
     const { error } = await supabase.from('user_reports').insert({
-      reporter_id: user?.id, reported_user_id: reportedUserId, reason: reportReason,
+      reporter_id: user?.id, reported_user_id: selectedUser.user_id, reason: reportReason,
     });
     if (error) { toast.error(error.message); return; }
+    await supabase.from('activity_log').insert({
+      actor_id: user!.id, actor_role: 'moderator', action: 'report_user',
+      target_type: 'user', target_id: selectedUser.user_id, details: { reason: reportReason } as any,
+    });
     toast.success('Report submitted to admins');
-    setReportedUserId(''); setReportReason('');
+    setSelectedUser(null); setUserSearch(''); setReportReason('');
     load();
   };
 
