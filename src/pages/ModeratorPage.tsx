@@ -22,13 +22,14 @@ export default function ModeratorPage() {
   const [types, setTypes] = useState<string[]>([]);
   const [adding, setAdding] = useState(false);
 
-  // Course state
   const [cTitle, setCTitle] = useState('');
   const [cDesc, setCDesc] = useState('');
   const [addingCourse, setAddingCourse] = useState(false);
 
-  // Reports
-  const [reportedUserId, setReportedUserId] = useState('');
+  // Reports + user search
+  const [userSearch, setUserSearch] = useState('');
+  const [allUsers, setAllUsers] = useState<any[]>([]);
+  const [selectedUser, setSelectedUser] = useState<any | null>(null);
   const [reportReason, setReportReason] = useState('');
   const [myReports, setMyReports] = useState<any[]>([]);
 
@@ -37,15 +38,21 @@ export default function ModeratorPage() {
   if (!isModerator && !isAdmin) return <Navigate to="/app" replace />;
 
   const load = async () => {
-    const [m, c, r] = await Promise.all([
+    const [m, c, r, u] = await Promise.all([
       supabase.from('materials').select('*').order('created_at', { ascending: false }).limit(50),
       supabase.from('courses').select('*').order('created_at', { ascending: false }).limit(50),
       supabase.from('user_reports').select('*').eq('reporter_id', user?.id).order('created_at', { ascending: false }),
+      supabase.from('profiles').select('user_id, display_name').order('display_name'),
     ]);
     setMaterials(m.data || []);
     setCourses(c.data || []);
     setMyReports(r.data || []);
+    setAllUsers(u.data || []);
   };
+
+  const filteredUsers = userSearch.trim().length >= 2
+    ? allUsers.filter(u => u.display_name?.toLowerCase().includes(userSearch.toLowerCase()) && u.user_id !== user?.id).slice(0, 8)
+    : [];
 
   const toggleType = (t: string) =>
     setTypes(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t]);
