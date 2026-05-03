@@ -245,6 +245,7 @@ export default function AstraDashboard() {
       setMessages(prev => [...prev, { role: 'assistant', content: `❌ ${e.message || 'Something went wrong.'}` }]);
     }
     setLoading(false);
+    refreshLimit();
   };
 
   const parseTasks = (text: string) => {
