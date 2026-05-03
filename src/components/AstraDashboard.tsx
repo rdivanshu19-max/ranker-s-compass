@@ -128,6 +128,58 @@ export default function AstraDashboard() {
     load();
   }, [user]);
 
+  // Load saved chat history on mount
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data } = await supabase
+        .from('astra_chat_history')
+        .select('role, content, created_at')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: true })
+        .limit(40);
+      if (data && data.length > 0) {
+        setMessages(data.map(m => ({ role: m.role as 'user' | 'assistant', content: m.content })));
+        setHistoryLoaded(true);
+      }
+    })();
+  }, [user]);
+
+  // Setup Web Speech Recognition
+  useEffect(() => {
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) return;
+    const rec = new SR();
+    rec.continuous = false;
+    rec.interimResults = false;
+    rec.lang = 'en-IN';
+    rec.onresult = (e: any) => {
+      const transcript = Array.from(e.results).map((r: any) => r[0].transcript).join(' ');
+      setInput(prev => prev ? `${prev} ${transcript}` : transcript);
+    };
+    rec.onend = () => setListening(false);
+    rec.onerror = () => { setListening(false); toast.error('Voice input error. Please try again.'); };
+    recognitionRef.current = rec;
+  }, []);
+
+  const toggleVoice = () => {
+    const rec = recognitionRef.current;
+    if (!rec) { toast.error('Voice input not supported in this browser'); return; }
+    if (listening) { rec.stop(); setListening(false); }
+    else {
+      try { rec.start(); setListening(true); setChatOpen(true); }
+      catch { setListening(false); }
+    }
+  };
+
+  const deleteHistory = async () => {
+    if (!user) return;
+    await supabase.from('astra_chat_history').delete().eq('user_id', user.id);
+    setMessages([]);
+    setHistoryLoaded(false);
+    toast.success('Chat history cleared');
+  };
+
   const sendMessage = async (text?: string) => {
     const msg = text || input.trim();
     if (!msg || loading || !user) return;
