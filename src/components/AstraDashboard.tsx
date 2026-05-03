@@ -5,7 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Bot, Send, Sparkles, Target, TrendingUp, AlertTriangle,
   Zap, Calendar, Brain, Flame, Clock, CheckCircle2, Circle,
-  ChevronDown, ChevronUp, BookOpen, BarChart3, Skull, Smile, Award
+  ChevronDown, ChevronUp, BookOpen, BarChart3, Skull, Smile, Award,
+  Mic, MicOff, Trash2, History,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,6 +15,12 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import ReactMarkdown from 'react-markdown';
 import { toast } from 'sonner';
+import { useAILimit } from '@/hooks/useAILimit';
+import AILoadingScreen from '@/components/AILoadingScreen';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 type Message = { role: 'user' | 'assistant'; content: string };
 type StudyMode = 'lazy' | 'normal' | 'beast';
