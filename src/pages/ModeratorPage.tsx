@@ -193,7 +193,29 @@ export default function ModeratorPage() {
           <div className="bg-card border border-border rounded-xl p-4 space-y-3">
             <h2 className="font-semibold flex items-center gap-2"><Flag className="w-4 h-4" /> Report a User</h2>
             <p className="text-xs text-muted-foreground">Report misbehavior. Admins will review and act.</p>
-            <Input placeholder="Reported User ID (uuid)" value={reportedUserId} onChange={e => setReportedUserId(e.target.value)} />
+            {selectedUser ? (
+              <div className="flex items-center justify-between gap-2 bg-primary/10 border border-primary/30 rounded-lg p-2">
+                <span className="text-sm font-medium">📌 {selectedUser.display_name}</span>
+                <Button variant="ghost" size="sm" onClick={() => setSelectedUser(null)}>Change</Button>
+              </div>
+            ) : (
+              <div className="relative">
+                <Input placeholder="Search user by name (min 2 chars)..." value={userSearch} onChange={e => setUserSearch(e.target.value)} />
+                {filteredUsers.length > 0 && (
+                  <div className="absolute z-10 mt-1 w-full bg-popover border border-border rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                    {filteredUsers.map(u => (
+                      <button key={u.user_id} onClick={() => { setSelectedUser(u); setUserSearch(''); }}
+                        className="w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-full bg-primary/15 text-primary text-xs font-bold flex items-center justify-center">
+                          {u.display_name?.[0]?.toUpperCase()}
+                        </div>
+                        {u.display_name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
             <Textarea placeholder="Reason (be specific — what did they do?)" value={reportReason} onChange={e => setReportReason(e.target.value)} rows={3} />
             <Button onClick={submitReport} className="w-full">Submit Report</Button>
           </div>
