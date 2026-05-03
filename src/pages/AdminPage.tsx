@@ -826,6 +826,88 @@ export default function AdminPage() {
           </div>
         </div>
       )}
+
+      {/* ========== MODERATORS TAB ========== */}
+      {tab === 'moderators' && (
+        <div className="space-y-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input value={searchUser} onChange={e => setSearchUser(e.target.value)} placeholder="Search users by name..." className="pl-9" />
+          </div>
+          <p className="text-sm text-muted-foreground">{moderators.size} moderators · {filteredProfiles.length} users shown</p>
+          <div className="space-y-2">
+            {filteredProfiles.map(p => {
+              const isMod = moderators.has(p.user_id);
+              return (
+                <div key={p.id} className={`bg-card rounded-xl border p-4 flex items-center justify-between gap-3 ${isMod ? 'border-primary/40 bg-primary/5' : 'border-border'}`}>
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold shrink-0 ${isMod ? 'bg-primary text-primary-foreground' : 'bg-primary/10 text-primary'}`}>
+                      {p.display_name?.[0]?.toUpperCase() || '?'}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-medium text-sm truncate flex items-center gap-2">
+                        {p.display_name}
+                        {isMod && <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary text-primary-foreground font-bold">MOD</span>}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground truncate">{p.user_id.slice(0, 12)}…</p>
+                    </div>
+                  </div>
+                  {p.user_id !== user?.id && (
+                    isMod ? (
+                      <Button variant="outline" size="sm" onClick={() => demoteModerator(p.user_id)} className="gap-1 text-xs">
+                        <UserMinus className="w-3 h-3" /> Demote
+                      </Button>
+                    ) : (
+                      <Button size="sm" onClick={() => promoteModerator(p.user_id)} className="gap-1 text-xs">
+                        <UserPlus className="w-3 h-3" /> Promote
+                      </Button>
+                    )
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ========== REPORTS TAB ========== */}
+      {tab === 'reports' && (
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">{reports.length} reports total</p>
+          {reports.length === 0 ? (
+            <p className="text-center py-10 text-muted-foreground">No reports yet</p>
+          ) : reports.map(r => {
+            const reported = allProfiles.find(p => p.user_id === r.reported_user_id);
+            const reporter = allProfiles.find(p => p.user_id === r.reporter_id);
+            return (
+              <div key={r.id} className="bg-card rounded-xl border border-border p-4 space-y-2">
+                <div className="flex items-start justify-between gap-3 flex-wrap">
+                  <div className="min-w-0">
+                    <p className="text-sm">
+                      <span className="font-bold">{reporter?.display_name || 'Mod'}</span> reported{' '}
+                      <span className="font-bold text-destructive">{reported?.display_name || r.reported_user_id.slice(0, 8)}</span>
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{new Date(r.created_at).toLocaleString()}</p>
+                  </div>
+                  <span className={`text-[10px] px-2 py-1 rounded-full font-bold uppercase ${
+                    r.status === 'reviewed' ? 'bg-blue-500/15 text-blue-500' :
+                    r.status === 'action_taken' ? 'bg-emerald-500/15 text-emerald-500' :
+                    r.status === 'rejected' ? 'bg-destructive/15 text-destructive' :
+                    'bg-yellow-500/15 text-yellow-500'
+                  }`}>{r.status}</span>
+                </div>
+                <p className="text-sm bg-muted/40 rounded-lg p-3">{r.reason}</p>
+                {r.admin_notes && <p className="text-xs text-muted-foreground italic">Notes: {r.admin_notes}</p>}
+                <div className="flex gap-2 flex-wrap pt-1">
+                  <Button size="sm" variant="outline" onClick={() => updateReportStatus(r.id, 'reviewed')}>Mark Reviewed</Button>
+                  <Button size="sm" onClick={() => updateReportStatus(r.id, 'action_taken')} className="bg-emerald-600 hover:bg-emerald-700">Action Taken</Button>
+                  <Button size="sm" variant="outline" onClick={() => updateReportStatus(r.id, 'rejected')}>Reject</Button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
