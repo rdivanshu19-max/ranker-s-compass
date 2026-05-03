@@ -10,21 +10,18 @@ export const AI_LIMITS: Record<AIFeature, number> = {
   ai_mentor: 10,
 };
 
-// Today's date in IST (YYYY-MM-DD)
 function istDate(): string {
   const now = new Date();
   const ist = new Date(now.getTime() + 5.5 * 3600 * 1000);
   return ist.toISOString().split('T')[0];
 }
 
-// Milliseconds until next IST midnight
 export function msUntilISTMidnight(): number {
   const now = new Date();
   const istNow = new Date(now.getTime() + 5.5 * 3600 * 1000);
   const tomorrow = new Date(Date.UTC(
     istNow.getUTCFullYear(), istNow.getUTCMonth(), istNow.getUTCDate() + 1, 0, 0, 0
   ));
-  // tomorrow is IST midnight expressed as UTC components — convert back to real UTC
   return tomorrow.getTime() - 5.5 * 3600 * 1000 - now.getTime();
 }
 
@@ -36,12 +33,12 @@ export function formatResetTime(): string {
 }
 
 export function useAILimit(feature: AIFeature) {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [used, setUsed] = useState(0);
   const limit = AI_LIMITS[feature];
 
   const refresh = useCallback(async () => {
-    if (!user) return;
+    if (!user || isAdmin) return;
     const { data } = await supabase
       .from('ai_usage')
       .select('count')
@@ -50,9 +47,13 @@ export function useAILimit(feature: AIFeature) {
       .eq('usage_date', istDate())
       .maybeSingle();
     setUsed(data?.count ?? 0);
-  }, [user, feature]);
+  }, [user, feature, isAdmin]);
 
   useEffect(() => { refresh(); }, [refresh]);
 
-  return { used, limit, remaining: Math.max(0, limit - used), refresh, resetIn: formatResetTime() };
+  if (isAdmin) {
+    return { used: 0, limit: Infinity, remaining: Infinity, refresh, resetIn: formatResetTime(), unlimited: true };
+  }
+
+  return { used, limit, remaining: Math.max(0, limit - used), refresh, resetIn: formatResetTime(), unlimited: false };
 }
