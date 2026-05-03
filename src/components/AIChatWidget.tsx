@@ -45,7 +45,7 @@ const toBase64 = (file: File): Promise<string> =>
 
 export default function AIChatWidget() {
   const { session } = useAuth();
-  const { remaining, limit, refresh: refreshLimit, resetIn } = useAILimit('ai_chat');
+  const { remaining, limit, refresh: refreshLimit, resetIn, unlimited } = useAILimit('ai_chat');
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([
     { role: 'assistant', content: "Hi! I'm **RankerPulse** 🚀 — your AI study assistant!\n\nI can help with:\n- 📚 Solving doubts (text or image)\n- 🧠 JEE/NEET concepts\n- 🎯 Study strategy\n- 📝 Quick revision\n\nSend a photo of your question or type it!" },
