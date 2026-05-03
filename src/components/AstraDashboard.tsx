@@ -56,10 +56,14 @@ function saveTasks(tasks: DailyTask[]) {
 
 export default function AstraDashboard() {
   const { user } = useAuth();
+  const { remaining, limit, refresh: refreshLimit, resetIn, unlimited } = useAILimit('ai_mentor');
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+  const [listening, setListening] = useState(false);
+  const [historyLoaded, setHistoryLoaded] = useState(false);
+  const recognitionRef = useRef<any>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const [mode, setMode] = useState<StudyMode>(() =>
