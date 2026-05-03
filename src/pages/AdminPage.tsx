@@ -74,7 +74,41 @@ export default function AdminPage() {
   const [editNotifMessage, setEditNotifMessage] = useState('');
   const notifImageRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { loadMaterials(); loadUsers(); loadFeedbacks(); loadCourses(); loadNotifications(); }, []);
+  useEffect(() => { loadMaterials(); loadUsers(); loadFeedbacks(); loadCourses(); loadNotifications(); loadModerators(); loadReports(); }, []);
+
+  const loadModerators = async () => {
+    const { data } = await supabase.from('user_roles').select('user_id').eq('role', 'moderator');
+    setModerators(new Set((data || []).map((r: any) => r.user_id)));
+  };
+
+  const loadReports = async () => {
+    const { data } = await supabase.from('user_reports').select('*').order('created_at', { ascending: false });
+    setReports(data || []);
+  };
+
+  const promoteModerator = async (userId: string) => {
+    const { error } = await supabase.from('user_roles').insert({ user_id: userId, role: 'moderator' as any });
+    if (error) { toast.error(error.message); return; }
+    await supabase.from('activity_log').insert({ actor_id: user!.id, actor_role: 'admin', action: 'promote_moderator', target_type: 'user', target_id: userId });
+    await supabase.from('notifications').insert({ user_id: userId, title: '🛡️ You are now a Moderator', message: 'You can add materials/courses and report users.', type: 'admin_broadcast', priority: 'important' } as any);
+    toast.success('Promoted to moderator');
+    loadModerators();
+  };
+
+  const demoteModerator = async (userId: string) => {
+    const { error } = await supabase.from('user_roles').delete().eq('user_id', userId).eq('role', 'moderator' as any);
+    if (error) { toast.error(error.message); return; }
+    await supabase.from('activity_log').insert({ actor_id: user!.id, actor_role: 'admin', action: 'demote_moderator', target_type: 'user', target_id: userId });
+    toast.success('Moderator removed');
+    loadModerators();
+  };
+
+  const updateReportStatus = async (id: string, status: string, notes?: string) => {
+    await supabase.from('user_reports').update({ status, admin_notes: notes ?? null, updated_at: new Date().toISOString() }).eq('id', id);
+    await supabase.from('activity_log').insert({ actor_id: user!.id, actor_role: 'admin', action: `report_${status}`, target_type: 'report', target_id: id });
+    toast.success(`Report marked ${status}`);
+    loadReports();
+  };
 
   if (!isAdmin) return <Navigate to="/app" replace />;
 
