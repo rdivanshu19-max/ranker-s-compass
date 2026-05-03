@@ -532,23 +532,25 @@ export default function AstraDashboard() {
                 </div>
               ))}
               {loading && messages[messages.length - 1]?.role !== 'assistant' && (
-                <div className="flex justify-start">
-                  <div className="bg-muted/50 border border-border rounded-xl px-3 py-2">
-                    <div className="flex gap-1">
-                      <div className="w-2 h-2 rounded-full bg-violet-500 animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <div className="w-2 h-2 rounded-full bg-violet-500 animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <div className="w-2 h-2 rounded-full bg-violet-500 animate-bounce" style={{ animationDelay: '300ms' }} />
-                    </div>
-                  </div>
-                </div>
+                <AILoadingScreen message="ASTRA is thinking..." subMessage="Analyzing your performance & crafting a plan 🌟" />
               )}
             </div>
             <div className="px-6 pb-4">
+              {!unlimited && remaining === 0 && (
+                <div className="mb-2 text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded-lg px-3 py-2">
+                  Daily ASTRA limit reached. Resets in <strong>{resetIn}</strong>.
+                </div>
+              )}
               <div className="flex gap-2">
+                <Button type="button" size="icon" variant={listening ? 'default' : 'outline'} onClick={toggleVoice}
+                  className={`shrink-0 h-9 w-9 ${listening ? 'bg-destructive text-destructive-foreground animate-pulse' : ''}`}
+                  title={listening ? 'Stop listening' : 'Voice input (Hindi/English)'}>
+                  {listening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                </Button>
                 <Textarea value={input} onChange={e => setInput(e.target.value)} onKeyDown={handleKeyDown}
-                  placeholder="Ask ASTRA anything..." rows={1}
+                  placeholder={listening ? '🎤 Listening...' : 'Ask ASTRA anything (or tap mic to speak)...'} rows={1}
                   className="resize-none text-sm min-h-[36px] max-h-20" />
-                <Button size="icon" onClick={() => sendMessage()} disabled={loading || !input.trim()}
+                <Button size="icon" onClick={() => sendMessage()} disabled={loading || !input.trim() || (!unlimited && remaining === 0)}
                   className="shrink-0 bg-gradient-to-br from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-white h-9 w-9">
                   <Send className="w-4 h-4" />
                 </Button>
