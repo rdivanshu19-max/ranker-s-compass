@@ -45,7 +45,7 @@ const toBase64 = (file: File): Promise<string> =>
 
 export default function AIChatWidget() {
   const { session } = useAuth();
-  const { remaining, limit, refresh: refreshLimit, resetIn } = useAILimit('ai_chat');
+  const { remaining, limit, refresh: refreshLimit, resetIn, unlimited } = useAILimit('ai_chat');
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([
     { role: 'assistant', content: "Hi! I'm **RankerPulse** 🚀 — your AI study assistant!\n\nI can help with:\n- 📚 Solving doubts (text or image)\n- 🧠 JEE/NEET concepts\n- 🎯 Study strategy\n- 📝 Quick revision\n\nSend a photo of your question or type it!" },
@@ -169,19 +169,29 @@ export default function AIChatWidget() {
                 </div>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className={`text-[10px] px-2 py-0.5 rounded-full border flex items-center gap-1 ${
-                  remaining === 0 ? 'bg-destructive/10 border-destructive/30 text-destructive'
-                    : 'bg-primary/10 border-primary/30 text-primary'
-                }`} title={remaining === 0 ? `Resets in ${resetIn}` : `${remaining} left today`}>
-                  <Zap className="w-2.5 h-2.5" /> {remaining}/{limit}
-                </span>
+                {unlimited ? (
+                  <span className="text-[10px] px-2 py-0.5 rounded-full border bg-primary/10 border-primary/30 text-primary flex items-center gap-1" title="Admin – unlimited">
+                    <Zap className="w-2.5 h-2.5" /> ∞
+                  </span>
+                ) : (
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full border flex items-center gap-1 ${
+                    remaining === 0 ? 'bg-destructive/10 border-destructive/30 text-destructive'
+                      : 'bg-primary/10 border-primary/30 text-primary'
+                  }`} title={remaining === 0 ? `Resets in ${resetIn}` : `${remaining} left today, resets in ${resetIn}`}>
+                    <Zap className="w-2.5 h-2.5" /> {remaining}/{limit}
+                  </span>
+                )}
                 <Button variant="ghost" size="icon" onClick={() => setOpen(false)}><X className="w-4 h-4" /></Button>
               </div>
             </div>
 
-            <div className="px-4 pt-2 text-[11px] text-muted-foreground border-b border-border/70 pb-2">
-              <AlertTriangle className="w-3 h-3 inline mr-1" /> AI-generated responses — verify critical formulas from trusted books.
-              {remaining === 0 && <span className="ml-1 text-destructive">• Daily limit reached, resets in {resetIn}</span>}
+            <div className="px-4 pt-2 text-[11px] text-muted-foreground border-b border-border/70 pb-2 flex items-center justify-between gap-2 flex-wrap">
+              <span><AlertTriangle className="w-3 h-3 inline mr-1" /> AI-generated — verify critical formulas.</span>
+              {!unlimited && (
+                <span className={remaining === 0 ? 'text-destructive font-medium' : 'text-primary font-medium'}>
+                  {remaining === 0 ? `Limit reached • resets in ${resetIn}` : `${remaining}/${limit} left • resets in ${resetIn}`}
+                </span>
+              )}
             </div>
 
             <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3">

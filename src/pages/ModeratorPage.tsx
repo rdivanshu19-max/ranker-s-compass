@@ -22,13 +22,14 @@ export default function ModeratorPage() {
   const [types, setTypes] = useState<string[]>([]);
   const [adding, setAdding] = useState(false);
 
-  // Course state
   const [cTitle, setCTitle] = useState('');
   const [cDesc, setCDesc] = useState('');
   const [addingCourse, setAddingCourse] = useState(false);
 
-  // Reports
-  const [reportedUserId, setReportedUserId] = useState('');
+  // Reports + user search
+  const [userSearch, setUserSearch] = useState('');
+  const [allUsers, setAllUsers] = useState<any[]>([]);
+  const [selectedUser, setSelectedUser] = useState<any | null>(null);
   const [reportReason, setReportReason] = useState('');
   const [myReports, setMyReports] = useState<any[]>([]);
 
@@ -37,15 +38,21 @@ export default function ModeratorPage() {
   if (!isModerator && !isAdmin) return <Navigate to="/app" replace />;
 
   const load = async () => {
-    const [m, c, r] = await Promise.all([
+    const [m, c, r, u] = await Promise.all([
       supabase.from('materials').select('*').order('created_at', { ascending: false }).limit(50),
       supabase.from('courses').select('*').order('created_at', { ascending: false }).limit(50),
       supabase.from('user_reports').select('*').eq('reporter_id', user?.id).order('created_at', { ascending: false }),
+      supabase.from('profiles').select('user_id, display_name').order('display_name'),
     ]);
     setMaterials(m.data || []);
     setCourses(c.data || []);
     setMyReports(r.data || []);
+    setAllUsers(u.data || []);
   };
+
+  const filteredUsers = userSearch.trim().length >= 2
+    ? allUsers.filter(u => u.display_name?.toLowerCase().includes(userSearch.toLowerCase()) && u.user_id !== user?.id).slice(0, 8)
+    : [];
 
   const toggleType = (t: string) =>
     setTypes(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t]);
@@ -79,15 +86,19 @@ export default function ModeratorPage() {
   };
 
   const submitReport = async () => {
-    if (!reportedUserId.trim() || !reportReason.trim()) {
-      toast.error('User ID and reason required'); return;
+    if (!selectedUser || !reportReason.trim()) {
+      toast.error('Select a user and write a reason'); return;
     }
     const { error } = await supabase.from('user_reports').insert({
-      reporter_id: user?.id, reported_user_id: reportedUserId, reason: reportReason,
+      reporter_id: user?.id, reported_user_id: selectedUser.user_id, reason: reportReason,
     });
     if (error) { toast.error(error.message); return; }
+    await supabase.from('activity_log').insert({
+      actor_id: user!.id, actor_role: 'moderator', action: 'report_user',
+      target_type: 'user', target_id: selectedUser.user_id, details: { reason: reportReason } as any,
+    });
     toast.success('Report submitted to admins');
-    setReportedUserId(''); setReportReason('');
+    setSelectedUser(null); setUserSearch(''); setReportReason('');
     load();
   };
 
@@ -182,7 +193,29 @@ export default function ModeratorPage() {
           <div className="bg-card border border-border rounded-xl p-4 space-y-3">
             <h2 className="font-semibold flex items-center gap-2"><Flag className="w-4 h-4" /> Report a User</h2>
             <p className="text-xs text-muted-foreground">Report misbehavior. Admins will review and act.</p>
-            <Input placeholder="Reported User ID (uuid)" value={reportedUserId} onChange={e => setReportedUserId(e.target.value)} />
+            {selectedUser ? (
+              <div className="flex items-center justify-between gap-2 bg-primary/10 border border-primary/30 rounded-lg p-2">
+                <span className="text-sm font-medium">📌 {selectedUser.display_name}</span>
+                <Button variant="ghost" size="sm" onClick={() => setSelectedUser(null)}>Change</Button>
+              </div>
+            ) : (
+              <div className="relative">
+                <Input placeholder="Search user by name (min 2 chars)..." value={userSearch} onChange={e => setUserSearch(e.target.value)} />
+                {filteredUsers.length > 0 && (
+                  <div className="absolute z-10 mt-1 w-full bg-popover border border-border rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                    {filteredUsers.map(u => (
+                      <button key={u.user_id} onClick={() => { setSelectedUser(u); setUserSearch(''); }}
+                        className="w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-full bg-primary/15 text-primary text-xs font-bold flex items-center justify-center">
+                          {u.display_name?.[0]?.toUpperCase()}
+                        </div>
+                        {u.display_name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
             <Textarea placeholder="Reason (be specific — what did they do?)" value={reportReason} onChange={e => setReportReason(e.target.value)} rows={3} />
             <Button onClick={submitReport} className="w-full">Submit Report</Button>
           </div>

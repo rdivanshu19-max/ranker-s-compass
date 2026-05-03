@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import {
   Shield, Plus, Trash2, Pin, ToggleLeft, ToggleRight, Edit3, AlertTriangle,
   Users, Ban, Search, MessageSquare, CheckCircle, GraduationCap, Bell, Upload, Tag, Image,
+  ShieldCheck, Flag, UserPlus, UserMinus,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,7 +35,9 @@ export default function AdminPage() {
   const [editDescription, setEditDescription] = useState('');
   const [editMode, setEditMode] = useState<'categories' | 'title'>('categories');
   const [pinnedCount, setPinnedCount] = useState(0);
-  const [tab, setTab] = useState<'materials' | 'users' | 'feedback' | 'courses' | 'notifications'>('materials');
+  const [tab, setTab] = useState<'materials' | 'users' | 'feedback' | 'courses' | 'notifications' | 'moderators' | 'reports'>('materials');
+  const [moderators, setModerators] = useState<Set<string>>(new Set());
+  const [reports, setReports] = useState<any[]>([]);
   const [allProfiles, setAllProfiles] = useState<any[]>([]);
   const [bannedUsers, setBannedUsers] = useState<Set<string>>(new Set());
   const [searchUser, setSearchUser] = useState('');
@@ -71,7 +74,41 @@ export default function AdminPage() {
   const [editNotifMessage, setEditNotifMessage] = useState('');
   const notifImageRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { loadMaterials(); loadUsers(); loadFeedbacks(); loadCourses(); loadNotifications(); }, []);
+  useEffect(() => { loadMaterials(); loadUsers(); loadFeedbacks(); loadCourses(); loadNotifications(); loadModerators(); loadReports(); }, []);
+
+  const loadModerators = async () => {
+    const { data } = await supabase.from('user_roles').select('user_id').eq('role', 'moderator');
+    setModerators(new Set((data || []).map((r: any) => r.user_id)));
+  };
+
+  const loadReports = async () => {
+    const { data } = await supabase.from('user_reports').select('*').order('created_at', { ascending: false });
+    setReports(data || []);
+  };
+
+  const promoteModerator = async (userId: string) => {
+    const { error } = await supabase.from('user_roles').insert({ user_id: userId, role: 'moderator' as any });
+    if (error) { toast.error(error.message); return; }
+    await supabase.from('activity_log').insert({ actor_id: user!.id, actor_role: 'admin', action: 'promote_moderator', target_type: 'user', target_id: userId });
+    await supabase.from('notifications').insert({ user_id: userId, title: '🛡️ You are now a Moderator', message: 'You can add materials/courses and report users.', type: 'admin_broadcast', priority: 'important' } as any);
+    toast.success('Promoted to moderator');
+    loadModerators();
+  };
+
+  const demoteModerator = async (userId: string) => {
+    const { error } = await supabase.from('user_roles').delete().eq('user_id', userId).eq('role', 'moderator' as any);
+    if (error) { toast.error(error.message); return; }
+    await supabase.from('activity_log').insert({ actor_id: user!.id, actor_role: 'admin', action: 'demote_moderator', target_type: 'user', target_id: userId });
+    toast.success('Moderator removed');
+    loadModerators();
+  };
+
+  const updateReportStatus = async (id: string, status: string, notes?: string) => {
+    await supabase.from('user_reports').update({ status, admin_notes: notes ?? null, updated_at: new Date().toISOString() }).eq('id', id);
+    await supabase.from('activity_log').insert({ actor_id: user!.id, actor_role: 'admin', action: `report_${status}`, target_type: 'report', target_id: id });
+    toast.success(`Report marked ${status}`);
+    loadReports();
+  };
 
   if (!isAdmin) return <Navigate to="/app" replace />;
 
@@ -371,8 +408,8 @@ export default function AdminPage() {
           <p className="text-muted-foreground mt-1">Manage materials, users, feedback, courses & notifications</p>
         </div>
         <div className="flex gap-2 flex-wrap">
-          {(['materials', 'users', 'feedback', 'courses', 'notifications'] as const).map(t => {
-            const icons = { materials: null, users: Users, feedback: MessageSquare, courses: GraduationCap, notifications: Bell };
+          {(['materials', 'users', 'feedback', 'courses', 'notifications', 'moderators', 'reports'] as const).map(t => {
+            const icons: any = { materials: null, users: Users, feedback: MessageSquare, courses: GraduationCap, notifications: Bell, moderators: ShieldCheck, reports: Flag };
             const Icon = icons[t];
             return (
               <Button key={t} variant={tab === t ? 'default' : 'outline'} size="sm" onClick={() => setTab(t)} className="gap-1 capitalize">
@@ -787,6 +824,88 @@ export default function AdminPage() {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* ========== MODERATORS TAB ========== */}
+      {tab === 'moderators' && (
+        <div className="space-y-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input value={searchUser} onChange={e => setSearchUser(e.target.value)} placeholder="Search users by name..." className="pl-9" />
+          </div>
+          <p className="text-sm text-muted-foreground">{moderators.size} moderators · {filteredProfiles.length} users shown</p>
+          <div className="space-y-2">
+            {filteredProfiles.map(p => {
+              const isMod = moderators.has(p.user_id);
+              return (
+                <div key={p.id} className={`bg-card rounded-xl border p-4 flex items-center justify-between gap-3 ${isMod ? 'border-primary/40 bg-primary/5' : 'border-border'}`}>
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold shrink-0 ${isMod ? 'bg-primary text-primary-foreground' : 'bg-primary/10 text-primary'}`}>
+                      {p.display_name?.[0]?.toUpperCase() || '?'}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-medium text-sm truncate flex items-center gap-2">
+                        {p.display_name}
+                        {isMod && <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary text-primary-foreground font-bold">MOD</span>}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground truncate">{p.user_id.slice(0, 12)}…</p>
+                    </div>
+                  </div>
+                  {p.user_id !== user?.id && (
+                    isMod ? (
+                      <Button variant="outline" size="sm" onClick={() => demoteModerator(p.user_id)} className="gap-1 text-xs">
+                        <UserMinus className="w-3 h-3" /> Demote
+                      </Button>
+                    ) : (
+                      <Button size="sm" onClick={() => promoteModerator(p.user_id)} className="gap-1 text-xs">
+                        <UserPlus className="w-3 h-3" /> Promote
+                      </Button>
+                    )
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ========== REPORTS TAB ========== */}
+      {tab === 'reports' && (
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">{reports.length} reports total</p>
+          {reports.length === 0 ? (
+            <p className="text-center py-10 text-muted-foreground">No reports yet</p>
+          ) : reports.map(r => {
+            const reported = allProfiles.find(p => p.user_id === r.reported_user_id);
+            const reporter = allProfiles.find(p => p.user_id === r.reporter_id);
+            return (
+              <div key={r.id} className="bg-card rounded-xl border border-border p-4 space-y-2">
+                <div className="flex items-start justify-between gap-3 flex-wrap">
+                  <div className="min-w-0">
+                    <p className="text-sm">
+                      <span className="font-bold">{reporter?.display_name || 'Mod'}</span> reported{' '}
+                      <span className="font-bold text-destructive">{reported?.display_name || r.reported_user_id.slice(0, 8)}</span>
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{new Date(r.created_at).toLocaleString()}</p>
+                  </div>
+                  <span className={`text-[10px] px-2 py-1 rounded-full font-bold uppercase ${
+                    r.status === 'reviewed' ? 'bg-blue-500/15 text-blue-500' :
+                    r.status === 'action_taken' ? 'bg-emerald-500/15 text-emerald-500' :
+                    r.status === 'rejected' ? 'bg-destructive/15 text-destructive' :
+                    'bg-yellow-500/15 text-yellow-500'
+                  }`}>{r.status}</span>
+                </div>
+                <p className="text-sm bg-muted/40 rounded-lg p-3">{r.reason}</p>
+                {r.admin_notes && <p className="text-xs text-muted-foreground italic">Notes: {r.admin_notes}</p>}
+                <div className="flex gap-2 flex-wrap pt-1">
+                  <Button size="sm" variant="outline" onClick={() => updateReportStatus(r.id, 'reviewed')}>Mark Reviewed</Button>
+                  <Button size="sm" onClick={() => updateReportStatus(r.id, 'action_taken')} className="bg-emerald-600 hover:bg-emerald-700">Action Taken</Button>
+                  <Button size="sm" variant="outline" onClick={() => updateReportStatus(r.id, 'rejected')}>Reject</Button>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

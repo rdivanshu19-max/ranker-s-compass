@@ -36,29 +36,31 @@ serve(async (req) => {
     const { data: { user }, error: userError } = await userClient.auth.getUser();
     if (userError || !user) throw new Error("Unauthorized");
 
-    // Enforce daily limit
-    const today = istDate();
-    const { data: usage } = await userClient
-      .from("ai_usage")
-      .select("count")
-      .eq("user_id", user.id)
-      .eq("feature", "ai_mentor")
-      .eq("usage_date", today)
-      .maybeSingle();
-    const current = usage?.count ?? 0;
-    if (current >= DAILY_LIMIT) {
-      return new Response(JSON.stringify({
-        error: `Daily limit reached (${DAILY_LIMIT} mentor chats/day). Resets at midnight IST.`,
-        limitReached: true,
-      }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-    if (usage) {
-      await userClient.from("ai_usage").update({ count: current + 1 })
-        .eq("user_id", user.id).eq("feature", "ai_mentor").eq("usage_date", today);
-    } else {
-      await userClient.from("ai_usage").insert({
-        user_id: user.id, feature: "ai_mentor", usage_date: today, count: 1,
-      });
+    // Admin bypass
+    const { data: roles } = await userClient.from("user_roles").select("role").eq("user_id", user.id);
+    const isAdmin = !!roles?.some((r: any) => r.role === "admin");
+
+    if (!isAdmin) {
+      const today = istDate();
+      const { data: usage } = await userClient
+        .from("ai_usage").select("count")
+        .eq("user_id", user.id).eq("feature", "ai_mentor").eq("usage_date", today)
+        .maybeSingle();
+      const current = usage?.count ?? 0;
+      if (current >= DAILY_LIMIT) {
+        return new Response(JSON.stringify({
+          error: `Daily limit reached (${DAILY_LIMIT} mentor chats/day). Resets at midnight IST.`,
+          limitReached: true,
+        }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      if (usage) {
+        await userClient.from("ai_usage").update({ count: current + 1 })
+          .eq("user_id", user.id).eq("feature", "ai_mentor").eq("usage_date", today);
+      } else {
+        await userClient.from("ai_usage").insert({
+          user_id: user.id, feature: "ai_mentor", usage_date: today, count: 1,
+        });
+      }
     }
 
     // Persist last user message to history (non-blocking)

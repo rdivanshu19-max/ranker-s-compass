@@ -5,7 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Bot, Send, Sparkles, Target, TrendingUp, AlertTriangle,
   Zap, Calendar, Brain, Flame, Clock, CheckCircle2, Circle,
-  ChevronDown, ChevronUp, BookOpen, BarChart3, Skull, Smile, Award
+  ChevronDown, ChevronUp, BookOpen, BarChart3, Skull, Smile, Award,
+  Mic, MicOff, Trash2, History,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,6 +15,12 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import ReactMarkdown from 'react-markdown';
 import { toast } from 'sonner';
+import { useAILimit } from '@/hooks/useAILimit';
+import AILoadingScreen from '@/components/AILoadingScreen';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 type Message = { role: 'user' | 'assistant'; content: string };
 type StudyMode = 'lazy' | 'normal' | 'beast';
@@ -49,10 +56,14 @@ function saveTasks(tasks: DailyTask[]) {
 
 export default function AstraDashboard() {
   const { user } = useAuth();
+  const { remaining, limit, refresh: refreshLimit, resetIn, unlimited } = useAILimit('ai_mentor');
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+  const [listening, setListening] = useState(false);
+  const [historyLoaded, setHistoryLoaded] = useState(false);
+  const recognitionRef = useRef<any>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const [mode, setMode] = useState<StudyMode>(() =>
@@ -116,6 +127,58 @@ export default function AstraDashboard() {
     };
     load();
   }, [user]);
+
+  // Load saved chat history on mount
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data } = await supabase
+        .from('astra_chat_history')
+        .select('role, content, created_at')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: true })
+        .limit(40);
+      if (data && data.length > 0) {
+        setMessages(data.map(m => ({ role: m.role as 'user' | 'assistant', content: m.content })));
+        setHistoryLoaded(true);
+      }
+    })();
+  }, [user]);
+
+  // Setup Web Speech Recognition
+  useEffect(() => {
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) return;
+    const rec = new SR();
+    rec.continuous = false;
+    rec.interimResults = false;
+    rec.lang = 'en-IN';
+    rec.onresult = (e: any) => {
+      const transcript = Array.from(e.results).map((r: any) => r[0].transcript).join(' ');
+      setInput(prev => prev ? `${prev} ${transcript}` : transcript);
+    };
+    rec.onend = () => setListening(false);
+    rec.onerror = () => { setListening(false); toast.error('Voice input error. Please try again.'); };
+    recognitionRef.current = rec;
+  }, []);
+
+  const toggleVoice = () => {
+    const rec = recognitionRef.current;
+    if (!rec) { toast.error('Voice input not supported in this browser'); return; }
+    if (listening) { rec.stop(); setListening(false); }
+    else {
+      try { rec.start(); setListening(true); setChatOpen(true); }
+      catch { setListening(false); }
+    }
+  };
+
+  const deleteHistory = async () => {
+    if (!user) return;
+    await supabase.from('astra_chat_history').delete().eq('user_id', user.id);
+    setMessages([]);
+    setHistoryLoaded(false);
+    toast.success('Chat history cleared');
+  };
 
   const sendMessage = async (text?: string) => {
     const msg = text || input.trim();
@@ -182,6 +245,7 @@ export default function AstraDashboard() {
       setMessages(prev => [...prev, { role: 'assistant', content: `❌ ${e.message || 'Something went wrong.'}` }]);
     }
     setLoading(false);
+    refreshLimit();
   };
 
   const parseTasks = (text: string) => {
@@ -236,29 +300,72 @@ export default function AstraDashboard() {
   );
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-      className="bg-card rounded-2xl border border-border overflow-hidden">
+    <motion.div id="astra-mentor" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+      className="relative bg-card rounded-2xl border-2 border-violet-500/30 overflow-hidden shadow-2xl shadow-violet-500/20">
+      {/* Animated glow ring */}
+      <div className="pointer-events-none absolute -inset-px rounded-2xl bg-gradient-to-r from-violet-500/20 via-fuchsia-500/20 to-violet-500/20 opacity-60 blur-md animate-pulse" />
+
       {/* Header */}
-      <div className="bg-gradient-to-r from-violet-500/10 via-fuchsia-500/10 to-violet-500/5 border-b border-border px-6 py-4">
-        <div className="flex items-center justify-between">
+      <div className="relative bg-gradient-to-r from-violet-500/15 via-fuchsia-500/10 to-violet-500/5 border-b border-border px-6 py-5">
+        <div className="flex items-start justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center">
-              <Bot className="w-5 h-5 text-white" />
+            <div className="relative w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-violet-500/40">
+              <Bot className="w-6 h-6 text-white" />
+              <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-emerald-400 ring-2 ring-card animate-pulse" />
             </div>
             <div>
-              <h3 className="font-bold text-lg font-display flex items-center gap-2">
+              <h3 className="font-bold text-xl font-display flex items-center gap-2">
                 ASTRA Mentor
-                <Badge variant="secondary" className="text-[10px]">AI</Badge>
+                <Badge className="bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white border-0 text-[10px]">
+                  <Sparkles className="w-2.5 h-2.5 mr-1" /> AI
+                </Badge>
               </h3>
               <p className="text-xs text-muted-foreground">Your Personal AI Study Coach & Planner</p>
             </div>
           </div>
-          {daysLeft !== null && (
-            <div className="text-center bg-destructive/10 border border-destructive/20 rounded-xl px-3 py-1.5">
-              <div className="text-lg font-bold text-destructive font-display">{daysLeft}</div>
-              <div className="text-[10px] text-destructive/70">days left</div>
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            {unlimited ? (
+              <span className="text-xs px-3 py-1.5 rounded-xl border border-primary/30 bg-primary/10 text-primary font-semibold flex items-center gap-1.5">
+                <Zap className="w-3 h-3" /> Unlimited
+              </span>
+            ) : (
+              <div className={`text-xs px-3 py-1.5 rounded-xl border font-semibold flex items-center gap-1.5 ${
+                remaining === 0 ? 'border-destructive/30 bg-destructive/10 text-destructive'
+                  : 'border-violet-500/30 bg-violet-500/10 text-violet-500'
+              }`} title={`Resets in ${resetIn}`}>
+                <Zap className="w-3 h-3" />
+                <span>{remaining}/{limit}</span>
+                <span className="text-[9px] opacity-70 ml-1">· {resetIn}</span>
+              </div>
+            )}
+            {messages.length > 0 && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8" title="Clear chat history">
+                    <Trash2 className="w-4 h-4 text-muted-foreground" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Clear ASTRA chat history?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This permanently deletes your full conversation with ASTRA. Your study plan and tasks remain.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={deleteHistory} className="bg-destructive text-destructive-foreground">Delete</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+            {daysLeft !== null && (
+              <div className="text-center bg-destructive/10 border border-destructive/20 rounded-xl px-3 py-1.5">
+                <div className="text-lg font-bold text-destructive font-display leading-none">{daysLeft}</div>
+                <div className="text-[10px] text-destructive/70">days left</div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -425,23 +532,25 @@ export default function AstraDashboard() {
                 </div>
               ))}
               {loading && messages[messages.length - 1]?.role !== 'assistant' && (
-                <div className="flex justify-start">
-                  <div className="bg-muted/50 border border-border rounded-xl px-3 py-2">
-                    <div className="flex gap-1">
-                      <div className="w-2 h-2 rounded-full bg-violet-500 animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <div className="w-2 h-2 rounded-full bg-violet-500 animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <div className="w-2 h-2 rounded-full bg-violet-500 animate-bounce" style={{ animationDelay: '300ms' }} />
-                    </div>
-                  </div>
-                </div>
+                <AILoadingScreen message="ASTRA is thinking..." subMessage="Analyzing your performance & crafting a plan 🌟" />
               )}
             </div>
             <div className="px-6 pb-4">
+              {!unlimited && remaining === 0 && (
+                <div className="mb-2 text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded-lg px-3 py-2">
+                  Daily ASTRA limit reached. Resets in <strong>{resetIn}</strong>.
+                </div>
+              )}
               <div className="flex gap-2">
+                <Button type="button" size="icon" variant={listening ? 'default' : 'outline'} onClick={toggleVoice}
+                  className={`shrink-0 h-9 w-9 ${listening ? 'bg-destructive text-destructive-foreground animate-pulse' : ''}`}
+                  title={listening ? 'Stop listening' : 'Voice input (Hindi/English)'}>
+                  {listening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                </Button>
                 <Textarea value={input} onChange={e => setInput(e.target.value)} onKeyDown={handleKeyDown}
-                  placeholder="Ask ASTRA anything..." rows={1}
+                  placeholder={listening ? '🎤 Listening...' : 'Ask ASTRA anything (or tap mic to speak)...'} rows={1}
                   className="resize-none text-sm min-h-[36px] max-h-20" />
-                <Button size="icon" onClick={() => sendMessage()} disabled={loading || !input.trim()}
+                <Button size="icon" onClick={() => sendMessage()} disabled={loading || !input.trim() || (!unlimited && remaining === 0)}
                   className="shrink-0 bg-gradient-to-br from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-white h-9 w-9">
                   <Send className="w-4 h-4" />
                 </Button>
