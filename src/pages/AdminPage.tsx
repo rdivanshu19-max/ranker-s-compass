@@ -408,8 +408,8 @@ export default function AdminPage() {
           <p className="text-muted-foreground mt-1">Manage materials, users, feedback, courses & notifications</p>
         </div>
         <div className="flex gap-2 flex-wrap">
-          {(['materials', 'users', 'feedback', 'courses', 'notifications'] as const).map(t => {
-            const icons = { materials: null, users: Users, feedback: MessageSquare, courses: GraduationCap, notifications: Bell };
+          {(['materials', 'users', 'feedback', 'courses', 'notifications', 'moderators', 'reports'] as const).map(t => {
+            const icons: any = { materials: null, users: Users, feedback: MessageSquare, courses: GraduationCap, notifications: Bell, moderators: ShieldCheck, reports: Flag };
             const Icon = icons[t];
             return (
               <Button key={t} variant={tab === t ? 'default' : 'outline'} size="sm" onClick={() => setTab(t)} className="gap-1 capitalize">
