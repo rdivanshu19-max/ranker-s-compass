@@ -35,7 +35,9 @@ export default function AdminPage() {
   const [editDescription, setEditDescription] = useState('');
   const [editMode, setEditMode] = useState<'categories' | 'title'>('categories');
   const [pinnedCount, setPinnedCount] = useState(0);
-  const [tab, setTab] = useState<'materials' | 'users' | 'feedback' | 'courses' | 'notifications'>('materials');
+  const [tab, setTab] = useState<'materials' | 'users' | 'feedback' | 'courses' | 'notifications' | 'moderators' | 'reports'>('materials');
+  const [moderators, setModerators] = useState<Set<string>>(new Set());
+  const [reports, setReports] = useState<any[]>([]);
   const [allProfiles, setAllProfiles] = useState<any[]>([]);
   const [bannedUsers, setBannedUsers] = useState<Set<string>>(new Set());
   const [searchUser, setSearchUser] = useState('');
