@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import {
   Shield, Plus, Trash2, Pin, ToggleLeft, ToggleRight, Edit3, AlertTriangle,
   Users, Ban, Search, MessageSquare, CheckCircle, GraduationCap, Bell, Upload, Tag, Image,
+  ShieldCheck, Flag, UserPlus, UserMinus,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
