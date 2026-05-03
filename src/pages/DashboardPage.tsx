@@ -413,6 +413,25 @@ export default function DashboardPage() {
         </motion.div>
       </div>
 
+      {/* ASTRA Mentor — promoted */}
+      <motion.button initial="hidden" animate="visible" variants={fadeUp} transition={{ delay: 0.15 }}
+        onClick={() => document.getElementById('astra-mentor')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+        className="w-full text-left rounded-2xl border-2 border-violet-500/40 bg-gradient-to-r from-violet-500/15 via-fuchsia-500/10 to-violet-500/5 p-4 hover:border-violet-500/70 transition-all shadow-lg shadow-violet-500/10 hover:shadow-violet-500/30 group">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-violet-500/40 shrink-0">
+            <Brain className="w-6 h-6 text-white" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-bold font-display flex items-center gap-2">
+              ASTRA Mentor is ready for you 🌟
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-500 font-bold">NEW</span>
+            </p>
+            <p className="text-xs text-muted-foreground">Tap to get your daily plan, voice-chat, and weak-topic strategy →</p>
+          </div>
+          <Sparkles className="w-5 h-5 text-violet-500 group-hover:scale-125 transition-transform" />
+        </div>
+      </motion.button>
+
       {/* ASTRA Mentor Section */}
       <motion.div initial="hidden" animate="visible" variants={fadeUp} transition={{ delay: 0.48 }}>
         <AstraDashboard />
