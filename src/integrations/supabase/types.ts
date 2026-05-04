@@ -82,6 +82,7 @@ export type Database = {
           content: string
           created_at: string
           id: string
+          read_at: string | null
           role: string
           user_id: string
         }
@@ -89,6 +90,7 @@ export type Database = {
           content: string
           created_at?: string
           id?: string
+          read_at?: string | null
           role: string
           user_id: string
         }
@@ -96,6 +98,7 @@ export type Database = {
           content?: string
           created_at?: string
           id?: string
+          read_at?: string | null
           role?: string
           user_id?: string
         }
@@ -593,6 +596,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_user_lookup: {
+        Args: never
+        Returns: {
+          created_at: string
+          display_name: string
+          email: string
+          user_id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
