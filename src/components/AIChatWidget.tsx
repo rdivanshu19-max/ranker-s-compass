@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { MessageCircle, X, Send, Bot, Sparkles, AlertTriangle, ImagePlus, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import ReactMarkdown from 'react-markdown';
+import MarkdownMath from '@/components/MarkdownMath';
 import { useAuth } from '@/contexts/AuthContext';
 import AILoadingScreen from '@/components/AILoadingScreen';
 import { useAILimit } from '@/hooks/useAILimit';
@@ -126,12 +126,11 @@ export default function AIChatWidget() {
             const content = parsed.choices?.[0]?.delta?.content;
             if (content) {
               assistantSoFar += content;
-              const normalized = normalizeMathText(assistantSoFar);
               setMessages(prev => {
                 const last = prev[prev.length - 1];
                 if (last?.role === 'assistant' && prev.length > newMsgs.length)
-                  return prev.map((msg, i) => i === prev.length - 1 ? { ...msg, content: normalized } : msg);
-                return [...prev, { role: 'assistant', content: normalized }];
+                  return prev.map((msg, i) => i === prev.length - 1 ? { ...msg, content: assistantSoFar } : msg);
+                return [...prev, { role: 'assistant', content: assistantSoFar }];
               });
             }
           } catch { buffer = `${line}\n${buffer}`; break; }
@@ -202,9 +201,7 @@ export default function AIChatWidget() {
                       <img src={m.image} alt="Question" className="rounded-lg max-h-40 mb-2 border border-border/30" />
                     )}
                     {m.role === 'assistant' ? (
-                      <div className="prose prose-sm dark:prose-invert max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
-                        <ReactMarkdown>{m.content}</ReactMarkdown>
-                      </div>
+                      <MarkdownMath>{m.content}</MarkdownMath>
                     ) : m.content}
                   </div>
                 </div>
