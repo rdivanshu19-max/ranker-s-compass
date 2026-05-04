@@ -13,7 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import ReactMarkdown from 'react-markdown';
+import MarkdownMath from '@/components/MarkdownMath';
 import { toast } from 'sonner';
 import { useAILimit } from '@/hooks/useAILimit';
 import AILoadingScreen from '@/components/AILoadingScreen';
@@ -524,9 +524,7 @@ export default function AstraDashboard() {
                       : 'bg-muted/50 border border-border'
                   }`}>
                     {msg.role === 'assistant' ? (
-                      <div className="prose prose-sm dark:prose-invert max-w-none [&_p]:mb-1 [&_ul]:my-1 [&_ol]:my-1 [&_li]:my-0">
-                        <ReactMarkdown>{msg.content || '...'}</ReactMarkdown>
-                      </div>
+                      <MarkdownMath className="[&_p]:mb-1 [&_ul]:my-1 [&_ol]:my-1 [&_li]:my-0">{msg.content || '...'}</MarkdownMath>
                     ) : msg.content}
                   </div>
                 </div>

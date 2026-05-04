@@ -56,6 +56,29 @@ export default function AIChatWidget() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const recognitionRef = useRef<any>(null);
+  const [listening, setListening] = useState(false);
+
+  useEffect(() => {
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) return;
+    const rec = new SR();
+    rec.continuous = false; rec.interimResults = false; rec.lang = 'en-IN';
+    rec.onresult = (e: any) => {
+      const t = Array.from(e.results).map((r: any) => r[0].transcript).join(' ');
+      setInput(prev => prev ? `${prev} ${t}` : t);
+    };
+    rec.onend = () => setListening(false);
+    rec.onerror = () => setListening(false);
+    recognitionRef.current = rec;
+  }, []);
+
+  const toggleVoice = () => {
+    const rec = recognitionRef.current;
+    if (!rec) { alert('Voice input not supported in this browser'); return; }
+    if (listening) { rec.stop(); setListening(false); }
+    else { try { rec.start(); setListening(true); } catch { setListening(false); } }
+  };
 
   const authHeader = useMemo(() => session?.access_token ?? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY, [session?.access_token]);
 
@@ -223,7 +246,12 @@ export default function AIChatWidget() {
                 <Button type="button" variant="ghost" size="icon" onClick={() => fileInputRef.current?.click()} className="shrink-0">
                   <ImagePlus className="w-4 h-4" />
                 </Button>
-                <Input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ask your doubt or send a photo..." className="flex-1 text-sm" disabled={loading} />
+                <Button type="button" variant={listening ? 'default' : 'ghost'} size="icon" onClick={toggleVoice}
+                  className={`shrink-0 ${listening ? 'bg-destructive text-destructive-foreground animate-pulse' : ''}`}
+                  title={listening ? 'Stop listening' : 'Voice input (Hindi/English)'}>
+                  {listening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                </Button>
+                <Input value={input} onChange={(e) => setInput(e.target.value)} placeholder={listening ? '🎤 Listening...' : 'Ask your doubt or send a photo...'} className="flex-1 text-sm" disabled={loading} />
                 <Button type="submit" size="icon" disabled={loading || (!input.trim() && !imagePreview)}><Send className="w-4 h-4" /></Button>
               </form>
             </div>
