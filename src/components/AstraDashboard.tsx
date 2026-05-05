@@ -17,12 +17,13 @@ import MarkdownMath from '@/components/MarkdownMath';
 import { toast } from 'sonner';
 import { useAILimit } from '@/hooks/useAILimit';
 import AILoadingScreen from '@/components/AILoadingScreen';
+import confetti from 'canvas-confetti';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
-type Message = { role: 'user' | 'assistant'; content: string };
+type Message = { id?: string; role: 'user' | 'assistant'; content: string; created_at?: string; read_at?: string | null };
 type StudyMode = 'lazy' | 'normal' | 'beast';
 type DailyTask = { id: string; text: string; done: boolean };
 
@@ -63,6 +64,7 @@ export default function AstraDashboard() {
   const [chatOpen, setChatOpen] = useState(false);
   const [listening, setListening] = useState(false);
   const [historyLoaded, setHistoryLoaded] = useState(false);
+  const unreadCount = messages.filter(m => m.role === 'assistant' && !m.read_at).length;
   const recognitionRef = useRef<any>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -134,16 +136,24 @@ export default function AstraDashboard() {
     (async () => {
       const { data } = await supabase
         .from('astra_chat_history')
-        .select('role, content, created_at')
+        .select('id, role, content, created_at, read_at')
         .eq('user_id', user.id)
         .order('created_at', { ascending: true })
         .limit(40);
       if (data && data.length > 0) {
-        setMessages(data.map(m => ({ role: m.role as 'user' | 'assistant', content: m.content })));
+        setMessages(data.map(m => ({ id: m.id, role: m.role as 'user' | 'assistant', content: m.content, created_at: m.created_at, read_at: m.read_at })));
         setHistoryLoaded(true);
       }
     })();
   }, [user]);
+
+  useEffect(() => {
+    if (!user || !chatOpen || unreadCount === 0) return;
+    supabase.from('astra_chat_history').update({ read_at: new Date().toISOString() } as any)
+      .eq('user_id', user.id).eq('role', 'assistant').is('read_at', null).then(() => {
+        setMessages(prev => prev.map(m => m.role === 'assistant' ? { ...m, read_at: m.read_at || new Date().toISOString() } : m));
+      });
+  }, [user, chatOpen, unreadCount]);
 
   // Setup Web Speech Recognition
   useEffect(() => {
@@ -271,6 +281,7 @@ export default function AstraDashboard() {
     saveTasks(updated);
     const allDone = updated.every(t => t.done);
     if (allDone && updated.length > 0) {
+      confetti({ particleCount: 140, spread: 80, origin: { y: 0.75 }, colors: ['#f97316', '#facc15', '#22c55e'] });
       toast.success('🎉 All tasks completed! Great job!');
     }
   };
