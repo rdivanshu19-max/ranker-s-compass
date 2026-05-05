@@ -509,6 +509,9 @@ export default function AstraDashboard() {
           className="flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors w-full">
           <Bot className="w-4 h-4" />
           Chat with ASTRA
+          {unreadCount > 0 && !chatOpen && (
+            <span className="ml-1 rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground">{unreadCount} new</span>
+          )}
           {chatOpen ? <ChevronUp className="w-4 h-4 ml-auto" /> : <ChevronDown className="w-4 h-4 ml-auto" />}
         </button>
       </div>
@@ -537,6 +540,9 @@ export default function AstraDashboard() {
                     {msg.role === 'assistant' ? (
                       <MarkdownMath className="[&_p]:mb-1 [&_ul]:my-1 [&_ol]:my-1 [&_li]:my-0">{msg.content || '...'}</MarkdownMath>
                     ) : msg.content}
+                    <div className={`mt-1 text-[10px] ${msg.role === 'user' ? 'text-white/70' : 'text-muted-foreground'}`}>
+                      {msg.role === 'assistant' && !msg.read_at ? 'New • unread' : msg.role === 'assistant' ? 'Read' : 'Sent'}
+                    </div>
                   </div>
                 </div>
               ))}
