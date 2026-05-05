@@ -549,6 +549,7 @@ export type Database = {
           reported_user_id: string
           reporter_id: string
           status: string
+          status_timeline: Json
           updated_at: string
         }
         Insert: {
@@ -559,6 +560,7 @@ export type Database = {
           reported_user_id: string
           reporter_id: string
           status?: string
+          status_timeline?: Json
           updated_at?: string
         }
         Update: {
@@ -569,6 +571,7 @@ export type Database = {
           reported_user_id?: string
           reporter_id?: string
           status?: string
+          status_timeline?: Json
           updated_at?: string
         }
         Relationships: []
@@ -603,6 +606,7 @@ export type Database = {
           display_name: string
           email: string
           user_id: string
+          username: string
         }[]
       }
       has_role: {
