@@ -914,11 +914,40 @@ export default function AdminPage() {
                 </div>
                 <p className="text-sm bg-muted/40 rounded-lg p-3">{r.reason}</p>
                 {r.admin_notes && <p className="text-xs text-muted-foreground italic">Notes: {r.admin_notes}</p>}
+                <div className="rounded-lg border border-border bg-muted/20 p-3 space-y-2">
+                  <p className="text-xs font-semibold uppercase text-muted-foreground">Status timeline</p>
+                  <div className="grid sm:grid-cols-3 gap-2">
+                    {['pending', 'reviewed', 'action_taken'].map((step) => {
+                      const done = r.status === step || (Array.isArray(r.status_timeline) && r.status_timeline.some((x: any) => x.status === step));
+                      return <div key={step} className={`rounded-lg border px-3 py-2 text-xs ${done ? 'border-primary/30 bg-primary/10 text-primary' : 'border-border text-muted-foreground'}`}>{done ? '✓' : '○'} {step.replace('_', ' ')}</div>;
+                    })}
+                  </div>
+                </div>
+                <Textarea value={reportNotes[r.id] || ''} onChange={e => setReportNotes(prev => ({ ...prev, [r.id]: e.target.value }))} placeholder="Admin note / action summary" rows={2} />
                 <div className="flex gap-2 flex-wrap pt-1">
                   <Button size="sm" variant="outline" onClick={() => updateReportStatus(r.id, 'reviewed')}>Mark Reviewed</Button>
                   <Button size="sm" onClick={() => updateReportStatus(r.id, 'action_taken')} className="bg-emerald-600 hover:bg-emerald-700">Action Taken</Button>
                   <Button size="sm" variant="outline" onClick={() => updateReportStatus(r.id, 'rejected')}>Reject</Button>
                 </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {tab === 'logs' && (
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">Recent uploads, edits, role changes, and report actions</p>
+          {activityLogs.map(log => {
+            const actor = allProfiles.find(p => p.user_id === log.actor_id);
+            return (
+              <div key={log.id} className="bg-card rounded-xl border border-border p-4 flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold capitalize">{log.action.replaceAll('_', ' ')}</p>
+                  <p className="text-xs text-muted-foreground">By {actor?.display_name || log.actor_role} • {log.target_type}{log.target_id ? ` • ${String(log.target_id).slice(0, 32)}` : ''}</p>
+                  {log.details && Object.keys(log.details).length > 0 && <pre className="mt-2 max-h-24 overflow-auto rounded bg-muted/40 p-2 text-[10px] text-muted-foreground">{JSON.stringify(log.details, null, 2)}</pre>}
+                </div>
+                <span className="text-[10px] text-muted-foreground whitespace-nowrap">{new Date(log.created_at).toLocaleString()}</span>
               </div>
             );
           })}
