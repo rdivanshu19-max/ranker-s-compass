@@ -42,7 +42,7 @@ export default function ModeratorPage() {
       supabase.from('materials').select('*').order('created_at', { ascending: false }).limit(50),
       supabase.from('courses').select('*').order('created_at', { ascending: false }).limit(50),
       supabase.from('user_reports').select('*').eq('reporter_id', user?.id).order('created_at', { ascending: false }),
-      supabase.from('profiles').select('user_id, display_name').order('display_name'),
+      supabase.rpc('get_user_lookup' as any),
     ]);
     setMaterials(m.data || []);
     setCourses(c.data || []);
@@ -51,7 +51,10 @@ export default function ModeratorPage() {
   };
 
   const filteredUsers = userSearch.trim().length >= 2
-    ? allUsers.filter(u => u.display_name?.toLowerCase().includes(userSearch.toLowerCase()) && u.user_id !== user?.id).slice(0, 8)
+    ? allUsers.filter(u => {
+        const q = userSearch.toLowerCase();
+        return u.user_id !== user?.id && (u.display_name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q) || u.username?.toLowerCase().includes(q));
+      }).slice(0, 8)
     : [];
 
   const toggleType = (t: string) =>
@@ -209,7 +212,10 @@ export default function ModeratorPage() {
                         <div className="w-6 h-6 rounded-full bg-primary/15 text-primary text-xs font-bold flex items-center justify-center">
                           {u.display_name?.[0]?.toUpperCase()}
                         </div>
-                        {u.display_name}
+                        <span className="min-w-0">
+                          <span className="block font-medium truncate">{u.display_name}</span>
+                          <span className="block text-[10px] text-muted-foreground truncate">{u.email || u.username}</span>
+                        </span>
                       </button>
                     ))}
                   </div>
