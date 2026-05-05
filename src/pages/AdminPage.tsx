@@ -535,14 +535,14 @@ export default function AdminPage() {
           <p className="text-sm text-muted-foreground">{filteredProfiles.length} users total</p>
           <div className="space-y-2">
             {filteredProfiles.map(p => (
-              <div key={p.id} className={`bg-card rounded-xl border p-4 flex items-center justify-between gap-3 ${bannedUsers.has(p.user_id) ? 'border-destructive/30 bg-destructive/5' : 'border-border'}`}>
+              <div key={p.user_id} className={`bg-card rounded-xl border p-4 flex items-center justify-between gap-3 ${bannedUsers.has(p.user_id) ? 'border-destructive/30 bg-destructive/5' : 'border-border'}`}>
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shrink-0">
                     {p.display_name?.[0]?.toUpperCase() || '?'}
                   </div>
                   <div className="min-w-0">
                     <p className="font-medium text-sm truncate">{p.display_name}</p>
-                    <p className="text-xs text-muted-foreground truncate">{p.user_id}</p>
+                    <p className="text-xs text-muted-foreground truncate">{p.email || p.username || p.user_id}</p>
                     {bannedUsers.has(p.user_id) && (
                       <span className="text-[10px] bg-destructive/10 text-destructive px-2 py-0.5 rounded-full">BANNED</span>
                     )}
@@ -855,7 +855,7 @@ export default function AdminPage() {
             {filteredProfiles.map(p => {
               const isMod = moderators.has(p.user_id);
               return (
-                <div key={p.id} className={`bg-card rounded-xl border p-4 flex items-center justify-between gap-3 ${isMod ? 'border-primary/40 bg-primary/5' : 'border-border'}`}>
+                <div key={p.user_id} className={`bg-card rounded-xl border p-4 flex items-center justify-between gap-3 ${isMod ? 'border-primary/40 bg-primary/5' : 'border-border'}`}>
                   <div className="flex items-center gap-3 flex-1 min-w-0">
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold shrink-0 ${isMod ? 'bg-primary text-primary-foreground' : 'bg-primary/10 text-primary'}`}>
                       {p.display_name?.[0]?.toUpperCase() || '?'}
@@ -865,7 +865,7 @@ export default function AdminPage() {
                         {p.display_name}
                         {isMod && <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary text-primary-foreground font-bold">MOD</span>}
                       </p>
-                      <p className="text-[10px] text-muted-foreground truncate">{p.user_id.slice(0, 12)}…</p>
+                      <p className="text-[10px] text-muted-foreground truncate">{p.email || p.username || `${p.user_id.slice(0, 12)}…`}</p>
                     </div>
                   </div>
                   {p.user_id !== user?.id && (
