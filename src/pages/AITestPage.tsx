@@ -580,9 +580,14 @@ export default function AITestPage() {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-2">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold font-display">AI <span className="text-gradient">Mock Tests</span> 🎯</h1>
-          <Button variant="ghost" size="icon" onClick={() => setShowTutorial(true)} title="How it works">
-            <HelpCircle className="w-5 h-5 text-muted-foreground" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <span className={`text-xs px-3 py-1.5 rounded-xl border font-semibold ${unlimited ? 'border-primary/30 bg-primary/10 text-primary' : remaining === 0 ? 'border-destructive/30 bg-destructive/10 text-destructive' : 'border-primary/30 bg-primary/10 text-primary'}`}>
+              {unlimited ? 'Unlimited tests' : `${remaining}/${limit} tests left · resets in ${resetIn}`}
+            </span>
+            <Button variant="ghost" size="icon" onClick={() => setShowTutorial(true)} title="How it works">
+              <HelpCircle className="w-5 h-5 text-muted-foreground" />
+            </Button>
+          </div>
         </div>
         <p className="text-muted-foreground">Practice with AI-generated CBT-mode tests matching actual exam patterns.</p>
       </motion.div>
@@ -641,7 +646,7 @@ export default function AITestPage() {
           <p><strong>Questions:</strong> {currentConfig.numQ} | <strong>Total Marks:</strong> {currentConfig.totalMarks}</p>
         </div>
 
-        <Button variant="hero" size="xl" className="w-full" onClick={startTest}>
+        <Button variant="hero" size="xl" className="w-full" onClick={startTest} disabled={!unlimited && remaining === 0}>
           <FlaskConical className="w-5 h-5 mr-2" /> Start Test
         </Button>
       </motion.div>
