@@ -10,6 +10,8 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
 import AILoadingScreen from '@/components/AILoadingScreen';
+import MarkdownMath from '@/components/MarkdownMath';
+import { useAILimit } from '@/hooks/useAILimit';
 
 const JEE_SUBJECTS = ['Physics', 'Chemistry', 'Mathematics'];
 const NEET_SUBJECTS = ['Physics', 'Chemistry', 'Biology'];
@@ -72,6 +74,7 @@ export default function AITestPage() {
   const questionStartRef = useRef<number>(Date.now());
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const subjects = examType === 'JEE' ? JEE_SUBJECTS : NEET_SUBJECTS;
+  const { remaining, limit, resetIn, refresh: refreshLimit, unlimited } = useAILimit('ai_test');
 
   const attemptedCount = useMemo(() => Object.keys(answers).length, [answers]);
   const reviewCount = useMemo(() => markedForReview.size, [markedForReview]);
@@ -164,6 +167,10 @@ export default function AITestPage() {
   };
 
   const startTest = async () => {
+    if (!unlimited && remaining <= 0) {
+      toast.error(`Daily AI test limit reached. Resets in ${resetIn}.`);
+      return;
+    }
     setState('loading');
     if ((window as any).gtag) {
       (window as any).gtag('event', 'test_started', { exam: examType, subject, chapter });
@@ -182,6 +189,9 @@ export default function AITestPage() {
       const { data, error } = await supabase.functions.invoke('generate-test', { body });
       if (error) throw error;
       if (!data?.questions || data.questions.length === 0) throw new Error('No questions generated');
+      if (data.questions.length < numQ) {
+        toast.warning(`Generated ${data.questions.length}/${numQ} questions. You can start now or retry for a full set.`);
+      }
       setQuestions(data.questions);
       setAnswers({});
       setMarkedForReview(new Set());
@@ -199,6 +209,8 @@ export default function AITestPage() {
       const msg = e.message || 'Something went wrong. Please try again.';
       toast.error(msg.includes('fetch') ? 'Something went wrong. Please check your connection and try again.' : msg);
       setState('config');
+    } finally {
+      refreshLimit();
     }
   };
 
@@ -377,12 +389,15 @@ export default function AITestPage() {
                   {markedForReview.has(currentQ) ? 'Marked for Review' : 'Mark for Review'}
                 </Button>
               </div>
-              <h3 className="text-lg font-medium leading-relaxed">Q{currentQ + 1}. {q.question}</h3>
+              <div className="text-lg font-medium leading-relaxed flex gap-1.5">
+                <span className="shrink-0">Q{currentQ + 1}.</span>
+                <MarkdownMath className="text-lg [&_p]:my-0">{q.question}</MarkdownMath>
+              </div>
               <div className="space-y-2">
                 {q.options.map((opt, oi) => (
                   <button key={oi} type="button" onClick={() => setAnswers((prev) => ({ ...prev, [currentQ]: oi }))}
                     className={`w-full text-left p-3 rounded-xl border transition-all ${answers[currentQ] === oi ? 'border-primary bg-primary/10 font-medium' : 'border-border hover:border-primary/40'}`}>
-                    <span className="font-bold mr-2">{String.fromCharCode(65 + oi)}.</span>{opt}
+                    <span className="font-bold mr-2">{String.fromCharCode(65 + oi)}.</span><MarkdownMath className="inline-block align-top [&_p]:my-0">{opt}</MarkdownMath>
                   </button>
                 ))}
               </div>
@@ -533,14 +548,14 @@ export default function AITestPage() {
               return (
                 <div key={i} className={`p-4 rounded-xl border ${isUnanswered ? 'border-destructive/30 bg-destructive/5' : isCorrect ? 'border-green-500/30 bg-green-500/5' : 'border-destructive/30 bg-destructive/5'}`}>
                   <div className="flex justify-between items-start">
-                    <p className="font-medium text-sm flex-1">Q{i + 1}. {q.question}</p>
+                    <div className="font-medium text-sm flex-1 flex gap-1.5"><span>Q{i + 1}.</span><MarkdownMath className="[&_p]:my-0">{q.question}</MarkdownMath></div>
                     <span className="text-[10px] text-muted-foreground whitespace-nowrap ml-2">{timeSpent}s</span>
                   </div>
-                  <p className="text-xs mt-1 text-green-600">✅ Correct: {String.fromCharCode(65 + q.correctAnswer)}. {q.options[q.correctAnswer]}</p>
+                  <div className="text-xs mt-1 text-green-600 flex gap-1">✅ Correct: {String.fromCharCode(65 + q.correctAnswer)}. <MarkdownMath className="[&_p]:my-0">{q.options[q.correctAnswer]}</MarkdownMath></div>
                   {!isUnanswered && !isCorrect && (
-                    <p className="text-xs text-destructive">❌ Your answer: {String.fromCharCode(65 + answers[i])}. {q.options[answers[i]]}</p>
+                    <div className="text-xs text-destructive flex gap-1">❌ Your answer: {String.fromCharCode(65 + answers[i])}. <MarkdownMath className="[&_p]:my-0">{q.options[answers[i]]}</MarkdownMath></div>
                   )}
-                  <p className="text-xs text-muted-foreground mt-1">💡 {q.explanation}</p>
+                  <div className="text-xs text-muted-foreground mt-1 flex gap-1">💡 <MarkdownMath className="[&_p]:my-0">{q.explanation}</MarkdownMath></div>
                 </div>
               );
             })}
@@ -565,9 +580,14 @@ export default function AITestPage() {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-2">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold font-display">AI <span className="text-gradient">Mock Tests</span> 🎯</h1>
-          <Button variant="ghost" size="icon" onClick={() => setShowTutorial(true)} title="How it works">
-            <HelpCircle className="w-5 h-5 text-muted-foreground" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <span className={`text-xs px-3 py-1.5 rounded-xl border font-semibold ${unlimited ? 'border-primary/30 bg-primary/10 text-primary' : remaining === 0 ? 'border-destructive/30 bg-destructive/10 text-destructive' : 'border-primary/30 bg-primary/10 text-primary'}`}>
+              {unlimited ? 'Unlimited tests' : `${remaining}/${limit} tests left · resets in ${resetIn}`}
+            </span>
+            <Button variant="ghost" size="icon" onClick={() => setShowTutorial(true)} title="How it works">
+              <HelpCircle className="w-5 h-5 text-muted-foreground" />
+            </Button>
+          </div>
         </div>
         <p className="text-muted-foreground">Practice with AI-generated CBT-mode tests matching actual exam patterns.</p>
       </motion.div>
@@ -626,7 +646,7 @@ export default function AITestPage() {
           <p><strong>Questions:</strong> {currentConfig.numQ} | <strong>Total Marks:</strong> {currentConfig.totalMarks}</p>
         </div>
 
-        <Button variant="hero" size="xl" className="w-full" onClick={startTest}>
+        <Button variant="hero" size="xl" className="w-full" onClick={startTest} disabled={!unlimited && remaining === 0}>
           <FlaskConical className="w-5 h-5 mr-2" /> Start Test
         </Button>
       </motion.div>

@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import {
   Shield, Plus, Trash2, Pin, ToggleLeft, ToggleRight, Edit3, AlertTriangle,
   Users, Ban, Search, MessageSquare, CheckCircle, GraduationCap, Bell, Upload, Tag, Image,
-  ShieldCheck, Flag, UserPlus, UserMinus,
+  ShieldCheck, Flag, UserPlus, UserMinus, History,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,9 +35,11 @@ export default function AdminPage() {
   const [editDescription, setEditDescription] = useState('');
   const [editMode, setEditMode] = useState<'categories' | 'title'>('categories');
   const [pinnedCount, setPinnedCount] = useState(0);
-  const [tab, setTab] = useState<'materials' | 'users' | 'feedback' | 'courses' | 'notifications' | 'moderators' | 'reports'>('materials');
+  const [tab, setTab] = useState<'materials' | 'users' | 'feedback' | 'courses' | 'notifications' | 'moderators' | 'reports' | 'logs'>('materials');
   const [moderators, setModerators] = useState<Set<string>>(new Set());
   const [reports, setReports] = useState<any[]>([]);
+  const [activityLogs, setActivityLogs] = useState<any[]>([]);
+  const [reportNotes, setReportNotes] = useState<Record<string, string>>({});
   const [allProfiles, setAllProfiles] = useState<any[]>([]);
   const [bannedUsers, setBannedUsers] = useState<Set<string>>(new Set());
   const [searchUser, setSearchUser] = useState('');
@@ -74,7 +76,7 @@ export default function AdminPage() {
   const [editNotifMessage, setEditNotifMessage] = useState('');
   const notifImageRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { loadMaterials(); loadUsers(); loadFeedbacks(); loadCourses(); loadNotifications(); loadModerators(); loadReports(); }, []);
+  useEffect(() => { loadMaterials(); loadUsers(); loadFeedbacks(); loadCourses(); loadNotifications(); loadModerators(); loadReports(); loadActivityLogs(); }, []);
 
   const loadModerators = async () => {
     const { data } = await supabase.from('user_roles').select('user_id').eq('role', 'moderator');
@@ -84,6 +86,11 @@ export default function AdminPage() {
   const loadReports = async () => {
     const { data } = await supabase.from('user_reports').select('*').order('created_at', { ascending: false });
     setReports(data || []);
+  };
+
+  const loadActivityLogs = async () => {
+    const { data } = await supabase.from('activity_log').select('*').order('created_at', { ascending: false }).limit(120);
+    setActivityLogs(data || []);
   };
 
   const promoteModerator = async (userId: string) => {
@@ -103,11 +110,12 @@ export default function AdminPage() {
     loadModerators();
   };
 
-  const updateReportStatus = async (id: string, status: string, notes?: string) => {
-    await supabase.from('user_reports').update({ status, admin_notes: notes ?? null, updated_at: new Date().toISOString() }).eq('id', id);
+  const updateReportStatus = async (id: string, status: string) => {
+    const notes = reportNotes[id] || '';
+    await supabase.from('user_reports').update({ status, admin_notes: notes || null, updated_at: new Date().toISOString() } as any).eq('id', id);
     await supabase.from('activity_log').insert({ actor_id: user!.id, actor_role: 'admin', action: `report_${status}`, target_type: 'report', target_id: id });
     toast.success(`Report marked ${status}`);
-    loadReports();
+    loadReports(); loadActivityLogs();
   };
 
   if (!isAdmin) return <Navigate to="/app" replace />;
@@ -120,8 +128,12 @@ export default function AdminPage() {
   };
 
   const loadUsers = async () => {
-    const { data: profiles } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
-    setAllProfiles(profiles || []);
+    const { data: lookup } = await supabase.rpc('get_user_lookup' as any);
+    if (lookup) setAllProfiles(lookup as any[]);
+    else {
+      const { data: profiles } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
+      setAllProfiles(profiles || []);
+    }
     const { data: bans } = await supabase.from('banned_users').select('user_id');
     setBannedUsers(new Set((bans || []).map(b => b.user_id)));
   };
@@ -141,6 +153,7 @@ export default function AdminPage() {
     if (selectedTypes.length === 0) { toast.error('Select at least one type'); return; }
     const { error } = await supabase.from('materials').insert({ title, link, description: description.trim() || '', types: selectedTypes, uploaded_by: user!.id });
     if (error) { toast.error('Failed: ' + error.message); return; }
+    await supabase.from('activity_log').insert({ actor_id: user!.id, actor_role: 'admin', action: 'upload_material', target_type: 'material', target_id: title.trim(), details: { title, link, types: selectedTypes } as any });
     toast.success('Material uploaded!');
     setTitle(''); setLink(''); setDescription(''); setSelectedTypes([]); setAdding(false);
     loadMaterials();
@@ -178,6 +191,7 @@ export default function AdminPage() {
   const saveEditTitle = async (id: string) => {
     if (!editTitle.trim()) { toast.error('Title cannot be empty'); return; }
     await supabase.from('materials').update({ title: editTitle.trim(), description: editDescription.trim() }).eq('id', id);
+    await supabase.from('activity_log').insert({ actor_id: user!.id, actor_role: 'admin', action: 'edit_material', target_type: 'material', target_id: id, details: { title: editTitle.trim() } as any });
     toast.success('Material updated!');
     setEditingId(null);
     loadMaterials();
@@ -275,6 +289,7 @@ export default function AdminPage() {
       created_by: user!.id,
     } as any);
     if (error) { toast.error('Failed: ' + error.message); return; }
+    await supabase.from('activity_log').insert({ actor_id: user!.id, actor_role: 'admin', action: 'upload_course', target_type: 'course', target_id: courseTitle.trim(), details: { title: courseTitle.trim(), resources: courseResources.filter(r => r.url.trim()).length, tags: courseTags } as any });
     toast.success('Course added!');
     setCourseTitle(''); setCourseDesc(''); setCoursePosterFile(null); setCourseResources([]); setCourseTags([]); setAddingCourse(false);
     loadCourses();
@@ -306,6 +321,7 @@ export default function AdminPage() {
       if (url) updates.poster_url = url;
     }
     await supabase.from('courses').update(updates).eq('id', id);
+    await supabase.from('activity_log').insert({ actor_id: user!.id, actor_role: 'admin', action: 'edit_course', target_type: 'course', target_id: id, details: updates });
     toast.success('Course updated!');
     setEditingCourseId(null);
     loadCourses();
@@ -393,10 +409,10 @@ export default function AdminPage() {
     loadNotifications();
   };
 
-  const filteredProfiles = allProfiles.filter(p =>
-    p.display_name?.toLowerCase().includes(searchUser.toLowerCase()) ||
-    p.user_id?.toLowerCase().includes(searchUser.toLowerCase())
-  );
+  const filteredProfiles = allProfiles.filter(p => {
+    const q = searchUser.toLowerCase();
+    return p.display_name?.toLowerCase().includes(q) || p.email?.toLowerCase().includes(q) || p.username?.toLowerCase().includes(q) || p.user_id?.toLowerCase().includes(q);
+  });
 
   return (
     <div className="space-y-6">
@@ -408,8 +424,8 @@ export default function AdminPage() {
           <p className="text-muted-foreground mt-1">Manage materials, users, feedback, courses & notifications</p>
         </div>
         <div className="flex gap-2 flex-wrap">
-          {(['materials', 'users', 'feedback', 'courses', 'notifications', 'moderators', 'reports'] as const).map(t => {
-            const icons: any = { materials: null, users: Users, feedback: MessageSquare, courses: GraduationCap, notifications: Bell, moderators: ShieldCheck, reports: Flag };
+          {(['materials', 'users', 'feedback', 'courses', 'notifications', 'moderators', 'reports', 'logs'] as const).map(t => {
+            const icons: any = { materials: null, users: Users, feedback: MessageSquare, courses: GraduationCap, notifications: Bell, moderators: ShieldCheck, reports: Flag, logs: History };
             const Icon = icons[t];
             return (
               <Button key={t} variant={tab === t ? 'default' : 'outline'} size="sm" onClick={() => setTab(t)} className="gap-1 capitalize">
@@ -519,14 +535,14 @@ export default function AdminPage() {
           <p className="text-sm text-muted-foreground">{filteredProfiles.length} users total</p>
           <div className="space-y-2">
             {filteredProfiles.map(p => (
-              <div key={p.id} className={`bg-card rounded-xl border p-4 flex items-center justify-between gap-3 ${bannedUsers.has(p.user_id) ? 'border-destructive/30 bg-destructive/5' : 'border-border'}`}>
+              <div key={p.user_id} className={`bg-card rounded-xl border p-4 flex items-center justify-between gap-3 ${bannedUsers.has(p.user_id) ? 'border-destructive/30 bg-destructive/5' : 'border-border'}`}>
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shrink-0">
                     {p.display_name?.[0]?.toUpperCase() || '?'}
                   </div>
                   <div className="min-w-0">
                     <p className="font-medium text-sm truncate">{p.display_name}</p>
-                    <p className="text-xs text-muted-foreground truncate">{p.user_id}</p>
+                    <p className="text-xs text-muted-foreground truncate">{p.email || p.username || p.user_id}</p>
                     {bannedUsers.has(p.user_id) && (
                       <span className="text-[10px] bg-destructive/10 text-destructive px-2 py-0.5 rounded-full">BANNED</span>
                     )}
@@ -839,7 +855,7 @@ export default function AdminPage() {
             {filteredProfiles.map(p => {
               const isMod = moderators.has(p.user_id);
               return (
-                <div key={p.id} className={`bg-card rounded-xl border p-4 flex items-center justify-between gap-3 ${isMod ? 'border-primary/40 bg-primary/5' : 'border-border'}`}>
+                <div key={p.user_id} className={`bg-card rounded-xl border p-4 flex items-center justify-between gap-3 ${isMod ? 'border-primary/40 bg-primary/5' : 'border-border'}`}>
                   <div className="flex items-center gap-3 flex-1 min-w-0">
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold shrink-0 ${isMod ? 'bg-primary text-primary-foreground' : 'bg-primary/10 text-primary'}`}>
                       {p.display_name?.[0]?.toUpperCase() || '?'}
@@ -849,7 +865,7 @@ export default function AdminPage() {
                         {p.display_name}
                         {isMod && <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary text-primary-foreground font-bold">MOD</span>}
                       </p>
-                      <p className="text-[10px] text-muted-foreground truncate">{p.user_id.slice(0, 12)}…</p>
+                      <p className="text-[10px] text-muted-foreground truncate">{p.email || p.username || `${p.user_id.slice(0, 12)}…`}</p>
                     </div>
                   </div>
                   {p.user_id !== user?.id && (
@@ -898,11 +914,40 @@ export default function AdminPage() {
                 </div>
                 <p className="text-sm bg-muted/40 rounded-lg p-3">{r.reason}</p>
                 {r.admin_notes && <p className="text-xs text-muted-foreground italic">Notes: {r.admin_notes}</p>}
+                <div className="rounded-lg border border-border bg-muted/20 p-3 space-y-2">
+                  <p className="text-xs font-semibold uppercase text-muted-foreground">Status timeline</p>
+                  <div className="grid sm:grid-cols-3 gap-2">
+                    {['pending', 'reviewed', 'action_taken'].map((step) => {
+                      const done = r.status === step || (Array.isArray(r.status_timeline) && r.status_timeline.some((x: any) => x.status === step));
+                      return <div key={step} className={`rounded-lg border px-3 py-2 text-xs ${done ? 'border-primary/30 bg-primary/10 text-primary' : 'border-border text-muted-foreground'}`}>{done ? '✓' : '○'} {step.replace('_', ' ')}</div>;
+                    })}
+                  </div>
+                </div>
+                <Textarea value={reportNotes[r.id] || ''} onChange={e => setReportNotes(prev => ({ ...prev, [r.id]: e.target.value }))} placeholder="Admin note / action summary" rows={2} />
                 <div className="flex gap-2 flex-wrap pt-1">
                   <Button size="sm" variant="outline" onClick={() => updateReportStatus(r.id, 'reviewed')}>Mark Reviewed</Button>
                   <Button size="sm" onClick={() => updateReportStatus(r.id, 'action_taken')} className="bg-emerald-600 hover:bg-emerald-700">Action Taken</Button>
                   <Button size="sm" variant="outline" onClick={() => updateReportStatus(r.id, 'rejected')}>Reject</Button>
                 </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {tab === 'logs' && (
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">Recent uploads, edits, role changes, and report actions</p>
+          {activityLogs.map(log => {
+            const actor = allProfiles.find(p => p.user_id === log.actor_id);
+            return (
+              <div key={log.id} className="bg-card rounded-xl border border-border p-4 flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold capitalize">{log.action.replaceAll('_', ' ')}</p>
+                  <p className="text-xs text-muted-foreground">By {actor?.display_name || log.actor_role} • {log.target_type}{log.target_id ? ` • ${String(log.target_id).slice(0, 32)}` : ''}</p>
+                  {log.details && Object.keys(log.details).length > 0 && <pre className="mt-2 max-h-24 overflow-auto rounded bg-muted/40 p-2 text-[10px] text-muted-foreground">{JSON.stringify(log.details, null, 2)}</pre>}
+                </div>
+                <span className="text-[10px] text-muted-foreground whitespace-nowrap">{new Date(log.created_at).toLocaleString()}</span>
               </div>
             );
           })}

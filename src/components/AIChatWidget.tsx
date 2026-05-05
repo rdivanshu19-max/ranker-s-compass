@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageCircle, X, Send, Bot, Sparkles, AlertTriangle, ImagePlus, Zap } from 'lucide-react';
+import { MessageCircle, X, Send, Bot, Sparkles, AlertTriangle, ImagePlus, Zap, Mic, MicOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import MarkdownMath from '@/components/MarkdownMath';
