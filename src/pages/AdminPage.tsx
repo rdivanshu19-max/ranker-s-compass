@@ -289,6 +289,7 @@ export default function AdminPage() {
       created_by: user!.id,
     } as any);
     if (error) { toast.error('Failed: ' + error.message); return; }
+    await supabase.from('activity_log').insert({ actor_id: user!.id, actor_role: 'admin', action: 'upload_course', target_type: 'course', target_id: courseTitle.trim(), details: { title: courseTitle.trim(), resources: courseResources.filter(r => r.url.trim()).length, tags: courseTags } as any });
     toast.success('Course added!');
     setCourseTitle(''); setCourseDesc(''); setCoursePosterFile(null); setCourseResources([]); setCourseTags([]); setAddingCourse(false);
     loadCourses();
@@ -320,6 +321,7 @@ export default function AdminPage() {
       if (url) updates.poster_url = url;
     }
     await supabase.from('courses').update(updates).eq('id', id);
+    await supabase.from('activity_log').insert({ actor_id: user!.id, actor_role: 'admin', action: 'edit_course', target_type: 'course', target_id: id, details: updates });
     toast.success('Course updated!');
     setEditingCourseId(null);
     loadCourses();
