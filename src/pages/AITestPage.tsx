@@ -10,6 +10,8 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
 import AILoadingScreen from '@/components/AILoadingScreen';
+import MarkdownMath from '@/components/MarkdownMath';
+import { useAILimit } from '@/hooks/useAILimit';
 
 const JEE_SUBJECTS = ['Physics', 'Chemistry', 'Mathematics'];
 const NEET_SUBJECTS = ['Physics', 'Chemistry', 'Biology'];
@@ -72,6 +74,7 @@ export default function AITestPage() {
   const questionStartRef = useRef<number>(Date.now());
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const subjects = examType === 'JEE' ? JEE_SUBJECTS : NEET_SUBJECTS;
+  const { remaining, limit, resetIn, refresh: refreshLimit, unlimited } = useAILimit('ai_test');
 
   const attemptedCount = useMemo(() => Object.keys(answers).length, [answers]);
   const reviewCount = useMemo(() => markedForReview.size, [markedForReview]);
@@ -164,6 +167,10 @@ export default function AITestPage() {
   };
 
   const startTest = async () => {
+    if (!unlimited && remaining <= 0) {
+      toast.error(`Daily AI test limit reached. Resets in ${resetIn}.`);
+      return;
+    }
     setState('loading');
     if ((window as any).gtag) {
       (window as any).gtag('event', 'test_started', { exam: examType, subject, chapter });
@@ -182,6 +189,9 @@ export default function AITestPage() {
       const { data, error } = await supabase.functions.invoke('generate-test', { body });
       if (error) throw error;
       if (!data?.questions || data.questions.length === 0) throw new Error('No questions generated');
+      if (data.questions.length < numQ) {
+        toast.warning(`Generated ${data.questions.length}/${numQ} questions. You can start now or retry for a full set.`);
+      }
       setQuestions(data.questions);
       setAnswers({});
       setMarkedForReview(new Set());
@@ -199,6 +209,8 @@ export default function AITestPage() {
       const msg = e.message || 'Something went wrong. Please try again.';
       toast.error(msg.includes('fetch') ? 'Something went wrong. Please check your connection and try again.' : msg);
       setState('config');
+    } finally {
+      refreshLimit();
     }
   };
 
