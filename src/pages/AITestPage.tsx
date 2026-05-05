@@ -389,12 +389,15 @@ export default function AITestPage() {
                   {markedForReview.has(currentQ) ? 'Marked for Review' : 'Mark for Review'}
                 </Button>
               </div>
-              <h3 className="text-lg font-medium leading-relaxed">Q{currentQ + 1}. {q.question}</h3>
+              <div className="text-lg font-medium leading-relaxed flex gap-1.5">
+                <span className="shrink-0">Q{currentQ + 1}.</span>
+                <MarkdownMath className="text-lg [&_p]:my-0">{q.question}</MarkdownMath>
+              </div>
               <div className="space-y-2">
                 {q.options.map((opt, oi) => (
                   <button key={oi} type="button" onClick={() => setAnswers((prev) => ({ ...prev, [currentQ]: oi }))}
                     className={`w-full text-left p-3 rounded-xl border transition-all ${answers[currentQ] === oi ? 'border-primary bg-primary/10 font-medium' : 'border-border hover:border-primary/40'}`}>
-                    <span className="font-bold mr-2">{String.fromCharCode(65 + oi)}.</span>{opt}
+                    <span className="font-bold mr-2">{String.fromCharCode(65 + oi)}.</span><MarkdownMath className="inline-block align-top [&_p]:my-0">{opt}</MarkdownMath>
                   </button>
                 ))}
               </div>
@@ -545,14 +548,14 @@ export default function AITestPage() {
               return (
                 <div key={i} className={`p-4 rounded-xl border ${isUnanswered ? 'border-destructive/30 bg-destructive/5' : isCorrect ? 'border-green-500/30 bg-green-500/5' : 'border-destructive/30 bg-destructive/5'}`}>
                   <div className="flex justify-between items-start">
-                    <p className="font-medium text-sm flex-1">Q{i + 1}. {q.question}</p>
+                    <div className="font-medium text-sm flex-1 flex gap-1.5"><span>Q{i + 1}.</span><MarkdownMath className="[&_p]:my-0">{q.question}</MarkdownMath></div>
                     <span className="text-[10px] text-muted-foreground whitespace-nowrap ml-2">{timeSpent}s</span>
                   </div>
-                  <p className="text-xs mt-1 text-green-600">✅ Correct: {String.fromCharCode(65 + q.correctAnswer)}. {q.options[q.correctAnswer]}</p>
+                  <div className="text-xs mt-1 text-green-600 flex gap-1">✅ Correct: {String.fromCharCode(65 + q.correctAnswer)}. <MarkdownMath className="[&_p]:my-0">{q.options[q.correctAnswer]}</MarkdownMath></div>
                   {!isUnanswered && !isCorrect && (
-                    <p className="text-xs text-destructive">❌ Your answer: {String.fromCharCode(65 + answers[i])}. {q.options[answers[i]]}</p>
+                    <div className="text-xs text-destructive flex gap-1">❌ Your answer: {String.fromCharCode(65 + answers[i])}. <MarkdownMath className="[&_p]:my-0">{q.options[answers[i]]}</MarkdownMath></div>
                   )}
-                  <p className="text-xs text-muted-foreground mt-1">💡 {q.explanation}</p>
+                  <div className="text-xs text-muted-foreground mt-1 flex gap-1">💡 <MarkdownMath className="[&_p]:my-0">{q.explanation}</MarkdownMath></div>
                 </div>
               );
             })}
