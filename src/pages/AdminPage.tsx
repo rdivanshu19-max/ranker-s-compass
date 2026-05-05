@@ -35,9 +35,11 @@ export default function AdminPage() {
   const [editDescription, setEditDescription] = useState('');
   const [editMode, setEditMode] = useState<'categories' | 'title'>('categories');
   const [pinnedCount, setPinnedCount] = useState(0);
-  const [tab, setTab] = useState<'materials' | 'users' | 'feedback' | 'courses' | 'notifications' | 'moderators' | 'reports'>('materials');
+  const [tab, setTab] = useState<'materials' | 'users' | 'feedback' | 'courses' | 'notifications' | 'moderators' | 'reports' | 'logs'>('materials');
   const [moderators, setModerators] = useState<Set<string>>(new Set());
   const [reports, setReports] = useState<any[]>([]);
+  const [activityLogs, setActivityLogs] = useState<any[]>([]);
+  const [reportNotes, setReportNotes] = useState<Record<string, string>>({});
   const [allProfiles, setAllProfiles] = useState<any[]>([]);
   const [bannedUsers, setBannedUsers] = useState<Set<string>>(new Set());
   const [searchUser, setSearchUser] = useState('');
@@ -74,7 +76,7 @@ export default function AdminPage() {
   const [editNotifMessage, setEditNotifMessage] = useState('');
   const notifImageRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { loadMaterials(); loadUsers(); loadFeedbacks(); loadCourses(); loadNotifications(); loadModerators(); loadReports(); }, []);
+  useEffect(() => { loadMaterials(); loadUsers(); loadFeedbacks(); loadCourses(); loadNotifications(); loadModerators(); loadReports(); loadActivityLogs(); }, []);
 
   const loadModerators = async () => {
     const { data } = await supabase.from('user_roles').select('user_id').eq('role', 'moderator');
@@ -84,6 +86,11 @@ export default function AdminPage() {
   const loadReports = async () => {
     const { data } = await supabase.from('user_reports').select('*').order('created_at', { ascending: false });
     setReports(data || []);
+  };
+
+  const loadActivityLogs = async () => {
+    const { data } = await supabase.from('activity_log').select('*').order('created_at', { ascending: false }).limit(120);
+    setActivityLogs(data || []);
   };
 
   const promoteModerator = async (userId: string) => {
@@ -103,11 +110,12 @@ export default function AdminPage() {
     loadModerators();
   };
 
-  const updateReportStatus = async (id: string, status: string, notes?: string) => {
-    await supabase.from('user_reports').update({ status, admin_notes: notes ?? null, updated_at: new Date().toISOString() }).eq('id', id);
+  const updateReportStatus = async (id: string, status: string) => {
+    const notes = reportNotes[id] || '';
+    await supabase.from('user_reports').update({ status, admin_notes: notes || null, updated_at: new Date().toISOString() } as any).eq('id', id);
     await supabase.from('activity_log').insert({ actor_id: user!.id, actor_role: 'admin', action: `report_${status}`, target_type: 'report', target_id: id });
     toast.success(`Report marked ${status}`);
-    loadReports();
+    loadReports(); loadActivityLogs();
   };
 
   if (!isAdmin) return <Navigate to="/app" replace />;
@@ -120,8 +128,12 @@ export default function AdminPage() {
   };
 
   const loadUsers = async () => {
-    const { data: profiles } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
-    setAllProfiles(profiles || []);
+    const { data: lookup } = await supabase.rpc('get_user_lookup' as any);
+    if (lookup) setAllProfiles(lookup as any[]);
+    else {
+      const { data: profiles } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
+      setAllProfiles(profiles || []);
+    }
     const { data: bans } = await supabase.from('banned_users').select('user_id');
     setBannedUsers(new Set((bans || []).map(b => b.user_id)));
   };
@@ -141,6 +153,7 @@ export default function AdminPage() {
     if (selectedTypes.length === 0) { toast.error('Select at least one type'); return; }
     const { error } = await supabase.from('materials').insert({ title, link, description: description.trim() || '', types: selectedTypes, uploaded_by: user!.id });
     if (error) { toast.error('Failed: ' + error.message); return; }
+    await supabase.from('activity_log').insert({ actor_id: user!.id, actor_role: 'admin', action: 'upload_material', target_type: 'material', target_id: title.trim(), details: { title, link, types: selectedTypes } as any });
     toast.success('Material uploaded!');
     setTitle(''); setLink(''); setDescription(''); setSelectedTypes([]); setAdding(false);
     loadMaterials();
@@ -178,6 +191,7 @@ export default function AdminPage() {
   const saveEditTitle = async (id: string) => {
     if (!editTitle.trim()) { toast.error('Title cannot be empty'); return; }
     await supabase.from('materials').update({ title: editTitle.trim(), description: editDescription.trim() }).eq('id', id);
+    await supabase.from('activity_log').insert({ actor_id: user!.id, actor_role: 'admin', action: 'edit_material', target_type: 'material', target_id: id, details: { title: editTitle.trim() } as any });
     toast.success('Material updated!');
     setEditingId(null);
     loadMaterials();
