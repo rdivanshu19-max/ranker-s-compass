@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import {
   Shield, Plus, Trash2, Pin, ToggleLeft, ToggleRight, Edit3, AlertTriangle,
   Users, Ban, Search, MessageSquare, CheckCircle, GraduationCap, Bell, Upload, Tag, Image,
-  ShieldCheck, Flag, UserPlus, UserMinus,
+  ShieldCheck, Flag, UserPlus, UserMinus, History,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -407,10 +407,10 @@ export default function AdminPage() {
     loadNotifications();
   };
 
-  const filteredProfiles = allProfiles.filter(p =>
-    p.display_name?.toLowerCase().includes(searchUser.toLowerCase()) ||
-    p.user_id?.toLowerCase().includes(searchUser.toLowerCase())
-  );
+  const filteredProfiles = allProfiles.filter(p => {
+    const q = searchUser.toLowerCase();
+    return p.display_name?.toLowerCase().includes(q) || p.email?.toLowerCase().includes(q) || p.username?.toLowerCase().includes(q) || p.user_id?.toLowerCase().includes(q);
+  });
 
   return (
     <div className="space-y-6">
@@ -422,8 +422,8 @@ export default function AdminPage() {
           <p className="text-muted-foreground mt-1">Manage materials, users, feedback, courses & notifications</p>
         </div>
         <div className="flex gap-2 flex-wrap">
-          {(['materials', 'users', 'feedback', 'courses', 'notifications', 'moderators', 'reports'] as const).map(t => {
-            const icons: any = { materials: null, users: Users, feedback: MessageSquare, courses: GraduationCap, notifications: Bell, moderators: ShieldCheck, reports: Flag };
+          {(['materials', 'users', 'feedback', 'courses', 'notifications', 'moderators', 'reports', 'logs'] as const).map(t => {
+            const icons: any = { materials: null, users: Users, feedback: MessageSquare, courses: GraduationCap, notifications: Bell, moderators: ShieldCheck, reports: Flag, logs: History };
             const Icon = icons[t];
             return (
               <Button key={t} variant={tab === t ? 'default' : 'outline'} size="sm" onClick={() => setTab(t)} className="gap-1 capitalize">
