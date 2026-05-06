@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { motion } from 'framer-motion';
-import { Shield, Plus, Edit3, GraduationCap, BookOpen, Flag } from 'lucide-react';
+import { Shield, Plus, GraduationCap, BookOpen, Flag, Upload, Tag, Trash2, Link as LinkIcon, CheckCircle, Clock3, CircleDot } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -10,6 +10,42 @@ import { toast } from 'sonner';
 import { Navigate } from 'react-router-dom';
 
 const TYPES = ['Lectures', 'Lecture PDF', 'Books', 'PYQs', 'JEE', 'NEET', 'Physics', 'Chemistry', 'Maths', 'Biology', 'Boards'];
+const COURSE_TAGS = ['popular', 'hot', 'most used', 'boards'];
+
+type CourseResource = { title: string; url: string; type: string };
+
+const statusSteps = ['pending', 'reviewed', 'action_taken'];
+const formatStatus = (status: string) => status.replace(/_/g, ' ');
+const statusTone = (status: string) =>
+  status === 'action_taken' ? 'bg-primary/15 text-primary border-primary/30' :
+  status === 'reviewed' ? 'bg-secondary text-secondary-foreground border-border' :
+  status === 'rejected' ? 'bg-destructive/15 text-destructive border-destructive/30' :
+  'bg-muted text-muted-foreground border-border';
+
+function ReportTimeline({ report }: { report: any }) {
+  const timeline = Array.isArray(report.status_timeline) ? report.status_timeline : [];
+  return (
+    <div className="mt-3 rounded-lg border border-border bg-muted/20 p-3">
+      <p className="text-xs font-semibold uppercase text-muted-foreground mb-3">Status timeline</p>
+      <div className="grid gap-2 sm:grid-cols-3">
+        {statusSteps.map((step) => {
+          const item = timeline.find((entry: any) => entry.status === step);
+          const done = Boolean(item) || report.status === step;
+          const Icon = done ? CheckCircle : step === 'pending' ? Clock3 : CircleDot;
+          return (
+            <div key={step} className={`rounded-lg border px-3 py-2 text-xs ${done ? 'border-primary/30 bg-primary/10 text-primary' : 'border-border text-muted-foreground'}`}>
+              <div className="flex items-center gap-1.5 font-semibold capitalize">
+                <Icon className="h-3.5 w-3.5" /> {formatStatus(step)}
+              </div>
+              {item?.at && <p className="mt-1 text-[10px] text-muted-foreground">{new Date(item.at).toLocaleString()}</p>}
+              {item?.note && <p className="mt-1 line-clamp-2 text-[10px] text-muted-foreground">{item.note}</p>}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 export default function ModeratorPage() {
   const { isModerator, isAdmin, user } = useAuth();
@@ -24,9 +60,12 @@ export default function ModeratorPage() {
 
   const [cTitle, setCTitle] = useState('');
   const [cDesc, setCDesc] = useState('');
+  const [coursePosterFile, setCoursePosterFile] = useState<File | null>(null);
+  const [courseTags, setCourseTags] = useState<string[]>([]);
+  const [courseResources, setCourseResources] = useState<CourseResource[]>([{ title: '', url: '', type: 'link' }]);
   const [addingCourse, setAddingCourse] = useState(false);
+  const posterInputRef = useRef<HTMLInputElement>(null);
 
-  // Reports + user search
   const [userSearch, setUserSearch] = useState('');
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
@@ -57,8 +96,21 @@ export default function ModeratorPage() {
       }).slice(0, 8)
     : [];
 
-  const toggleType = (t: string) =>
-    setTypes(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t]);
+  const toggleType = (t: string) => setTypes(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t]);
+  const toggleCourseTag = (t: string) => setCourseTags(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t]);
+  const addResourceField = () => setCourseResources(prev => [...prev, { title: '', url: '', type: 'link' }]);
+  const updateResource = (index: number, field: keyof CourseResource, value: string) =>
+    setCourseResources(prev => prev.map((r, i) => i === index ? { ...r, [field]: value } : r));
+  const removeResource = (index: number) => setCourseResources(prev => prev.filter((_, i) => i !== index));
+
+  const uploadPoster = async (file: File): Promise<string | null> => {
+    const ext = file.name.split('.').pop();
+    const path = `moderator-${user?.id}-${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from('course-posters').upload(path, file);
+    if (error) { toast.error('Poster upload failed: ' + error.message); return null; }
+    const { data: { publicUrl } } = supabase.storage.from('course-posters').getPublicUrl(path);
+    return publicUrl;
+  };
 
   const addMaterial = async () => {
     if (!title.trim() || !link.trim() || types.length === 0) {
@@ -70,21 +122,42 @@ export default function ModeratorPage() {
     });
     setAdding(false);
     if (error) { toast.error(error.message); return; }
+    await supabase.from('activity_log').insert({
+      actor_id: user!.id, actor_role: isAdmin ? 'admin' : 'moderator', action: 'upload_material',
+      target_type: 'material', target_id: title.trim(), details: { title, link, types } as any,
+    });
     toast.success('Material added');
     setTitle(''); setLink(''); setDescription(''); setTypes([]);
     load();
   };
 
   const addCourse = async () => {
-    if (!cTitle.trim()) { toast.error('Title required'); return; }
+    if (!cTitle.trim()) { toast.error('Course title required'); return; }
+    const resources = courseResources.filter(r => r.url.trim()).map(r => ({ title: r.title.trim() || 'Resource', url: r.url.trim(), type: r.type || 'link' }));
+    if (resources.length === 0) { toast.error('Add at least one course resource link'); return; }
     setAddingCourse(true);
+    let posterUrl = '';
+    if (coursePosterFile) {
+      const url = await uploadPoster(coursePosterFile);
+      if (!url) { setAddingCourse(false); return; }
+      posterUrl = url;
+    }
     const { error } = await supabase.from('courses').insert({
-      title: cTitle, description: cDesc, created_by: user?.id, resources: [], tags: [],
-    });
+      title: cTitle.trim(),
+      description: cDesc.trim(),
+      poster_url: posterUrl,
+      created_by: user?.id,
+      resources,
+      tags: courseTags,
+    } as any);
     setAddingCourse(false);
     if (error) { toast.error(error.message); return; }
+    await supabase.from('activity_log').insert({
+      actor_id: user!.id, actor_role: isAdmin ? 'admin' : 'moderator', action: 'upload_course',
+      target_type: 'course', target_id: cTitle.trim(), details: { title: cTitle.trim(), resources: resources.length, tags: courseTags } as any,
+    });
     toast.success('Course added');
-    setCTitle(''); setCDesc('');
+    setCTitle(''); setCDesc(''); setCoursePosterFile(null); setCourseTags([]); setCourseResources([{ title: '', url: '', type: 'link' }]);
     load();
   };
 
@@ -97,7 +170,7 @@ export default function ModeratorPage() {
     });
     if (error) { toast.error(error.message); return; }
     await supabase.from('activity_log').insert({
-      actor_id: user!.id, actor_role: 'moderator', action: 'report_user',
+      actor_id: user!.id, actor_role: isAdmin ? 'admin' : 'moderator', action: 'report_user',
       target_type: 'user', target_id: selectedUser.user_id, details: { reason: reportReason } as any,
     });
     toast.success('Report submitted to admins');
@@ -106,25 +179,25 @@ export default function ModeratorPage() {
   };
 
   return (
-    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="max-w-4xl mx-auto space-y-6">
+    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="max-w-5xl mx-auto space-y-6">
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center">
           <Shield className="w-5 h-5 text-primary" />
         </div>
         <div>
           <h1 className="text-2xl font-bold font-display">Moderator Panel</h1>
-          <p className="text-sm text-muted-foreground">Add materials & courses, report problem users. (No delete access)</p>
+          <p className="text-sm text-muted-foreground">Add materials, publish courses, and track reports without delete access.</p>
         </div>
       </div>
 
-      <div className="flex gap-2 border-b border-border">
+      <div className="flex gap-2 border-b border-border overflow-x-auto">
         {[
           { k: 'materials' as const, l: 'Materials', i: BookOpen },
           { k: 'courses' as const, l: 'Courses', i: GraduationCap },
           { k: 'reports' as const, l: 'Report User', i: Flag },
         ].map(t => (
           <button key={t.k} onClick={() => setTab(t.k)}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-1.5 ${
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-1.5 whitespace-nowrap ${
               tab === t.k ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}>
             <t.i className="w-4 h-4" /> {t.l}
@@ -168,12 +241,48 @@ export default function ModeratorPage() {
 
       {tab === 'courses' && (
         <div className="space-y-4">
-          <div className="bg-card border border-border rounded-xl p-4 space-y-3">
+          <div className="bg-card border border-border rounded-xl p-4 sm:p-5 space-y-4">
             <h2 className="font-semibold flex items-center gap-2"><Plus className="w-4 h-4" /> Add Course</h2>
             <Input placeholder="Course title" value={cTitle} onChange={e => setCTitle(e.target.value)} />
             <Textarea placeholder="Description" value={cDesc} onChange={e => setCDesc(e.target.value)} rows={3} />
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Poster Image</label>
+              <input ref={posterInputRef} type="file" accept="image/*" className="hidden" onChange={e => setCoursePosterFile(e.target.files?.[0] || null)} />
+              <Button variant="outline" type="button" onClick={() => posterInputRef.current?.click()} className="gap-2">
+                <Upload className="w-4 h-4" /> {coursePosterFile ? coursePosterFile.name : 'Upload Poster'}
+              </Button>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Tags</label>
+              <div className="flex flex-wrap gap-2">
+                {COURSE_TAGS.map(t => (
+                  <Button key={t} variant={courseTags.includes(t) ? 'default' : 'outline'} size="sm" onClick={() => toggleCourseTag(t)} className="gap-1">
+                    <Tag className="w-3 h-3" /> {t}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <label className="text-sm font-medium">Resources</label>
+                <Button variant="outline" size="sm" type="button" onClick={addResourceField} className="gap-1"><Plus className="w-3 h-3" /> Add</Button>
+              </div>
+              {courseResources.map((r, i) => (
+                <div key={i} className="grid gap-2 sm:grid-cols-[1fr_1.4fr_auto]">
+                  <Input value={r.title} onChange={e => updateResource(i, 'title', e.target.value)} placeholder="Resource title" />
+                  <Input value={r.url} onChange={e => updateResource(i, 'url', e.target.value)} placeholder="Resource link / URL" />
+                  <Button variant="ghost" size="icon" type="button" onClick={() => removeResource(i)} disabled={courseResources.length === 1}>
+                    <Trash2 className="w-4 h-4 text-destructive" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+
             <Button onClick={addCourse} disabled={addingCourse} className="w-full">
-              {addingCourse ? 'Adding...' : 'Add Course'}
+              {addingCourse ? 'Publishing...' : 'Add Course'}
             </Button>
           </div>
 
@@ -181,9 +290,14 @@ export default function ModeratorPage() {
             <h2 className="font-semibold mb-2">Recent Courses</h2>
             <div className="space-y-2">
               {courses.slice(0, 10).map(c => (
-                <div key={c.id} className="bg-card border border-border rounded-lg p-3 text-sm">
-                  <p className="font-medium">{c.title}</p>
-                  <p className="text-xs text-muted-foreground line-clamp-2">{c.description}</p>
+                <div key={c.id} className="bg-card border border-border rounded-lg p-3 text-sm flex gap-3">
+                  {c.poster_url && <img src={c.poster_url} alt={`${c.title} poster`} className="h-16 w-24 rounded-md object-cover border border-border" loading="lazy" />}
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium">{c.title}</p>
+                    <p className="text-xs text-muted-foreground line-clamp-2">{c.description}</p>
+                    {c.resources?.length > 0 && <p className="text-xs text-primary mt-1"><LinkIcon className="inline h-3 w-3" /> {c.resources.length} resource(s)</p>}
+                    {c.tags?.length > 0 && <div className="flex flex-wrap gap-1 mt-1">{c.tags.map((t: string) => <span key={t} className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] text-primary">{t}</span>)}</div>}
+                  </div>
                 </div>
               ))}
             </div>
@@ -203,7 +317,7 @@ export default function ModeratorPage() {
               </div>
             ) : (
               <div className="relative">
-                <Input placeholder="Search user by name (min 2 chars)..." value={userSearch} onChange={e => setUserSearch(e.target.value)} />
+                <Input placeholder="Search user by name, email, username..." value={userSearch} onChange={e => setUserSearch(e.target.value)} />
                 {filteredUsers.length > 0 && (
                   <div className="absolute z-10 mt-1 w-full bg-popover border border-border rounded-lg shadow-lg max-h-60 overflow-y-auto">
                     {filteredUsers.map(u => (
@@ -228,19 +342,16 @@ export default function ModeratorPage() {
 
           <div>
             <h2 className="font-semibold mb-2">My Reports</h2>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {myReports.map(r => (
                 <div key={r.id} className="bg-card border border-border rounded-lg p-3 text-sm">
                   <div className="flex justify-between gap-2">
-                    <span className="text-xs text-muted-foreground truncate">{r.reported_user_id}</span>
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full ${
-                      r.status === 'resolved' ? 'bg-green-500/10 text-green-600' :
-                      r.status === 'rejected' ? 'bg-destructive/10 text-destructive' :
-                      'bg-yellow-500/10 text-yellow-600'
-                    }`}>{r.status}</span>
+                    <span className="text-xs text-muted-foreground truncate">User: {r.reported_user_id}</span>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full border capitalize ${statusTone(r.status)}`}>{formatStatus(r.status)}</span>
                   </div>
                   <p className="text-sm mt-1">{r.reason}</p>
                   {r.admin_notes && <p className="text-xs text-muted-foreground mt-1">Admin: {r.admin_notes}</p>}
+                  <ReportTimeline report={r} />
                 </div>
               ))}
               {myReports.length === 0 && <p className="text-xs text-muted-foreground">No reports yet.</p>}
