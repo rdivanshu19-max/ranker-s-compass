@@ -21,6 +21,20 @@ const DEFAULT_TYPES = ['Lectures', 'Lecture PDF', 'Books', 'PYQs', 'JEE', 'NEET'
 const COURSE_TAGS = ['popular', 'hot', 'most used', 'boards'];
 const MAX_PINNED = 10;
 
+const reportSteps = ['pending', 'reviewed', 'action_taken'];
+const formatLabel = (value: string) => value.replace(/_/g, ' ');
+const reportStatusClass = (status: string) =>
+  status === 'action_taken' ? 'bg-primary/15 text-primary border-primary/30' :
+  status === 'reviewed' ? 'bg-secondary text-secondary-foreground border-border' :
+  status === 'rejected' ? 'bg-destructive/15 text-destructive border-destructive/30' :
+  'bg-muted text-muted-foreground border-border';
+const logIconClass = (action: string) =>
+  action.includes('course') ? 'bg-primary/15 text-primary' :
+  action.includes('material') ? 'bg-secondary text-secondary-foreground' :
+  action.includes('report') ? 'bg-destructive/10 text-destructive' :
+  action.includes('moderator') ? 'bg-primary/10 text-primary' :
+  'bg-muted text-muted-foreground';
+
 export default function AdminPage() {
   const { isAdmin, user } = useAuth();
   const [materials, setMaterials] = useState<any[]>([]);
@@ -111,10 +125,20 @@ export default function AdminPage() {
   };
 
   const updateReportStatus = async (id: string, status: string) => {
-    const notes = reportNotes[id] || '';
-    await supabase.from('user_reports').update({ status, admin_notes: notes || null, updated_at: new Date().toISOString() } as any).eq('id', id);
-    await supabase.from('activity_log').insert({ actor_id: user!.id, actor_role: 'admin', action: `report_${status}`, target_type: 'report', target_id: id });
-    toast.success(`Report marked ${status}`);
+    const notes = reportNotes[id]?.trim() || '';
+    const { data, error } = await supabase
+      .from('user_reports')
+      .update({ status, admin_notes: notes || null } as any)
+      .eq('id', id)
+      .select('id,status,status_timeline,admin_notes,updated_at')
+      .single();
+    if (error) { toast.error('Status update failed: ' + error.message); return; }
+    setReports(prev => prev.map(report => report.id === id ? { ...report, ...data } : report));
+    await supabase.from('activity_log').insert({
+      actor_id: user!.id, actor_role: 'admin', action: `report_${status}`,
+      target_type: 'report', target_id: id, details: { status, note: notes || null } as any,
+    });
+    toast.success(`Report marked ${formatLabel(status)}`);
     loadReports(); loadActivityLogs();
   };
 
