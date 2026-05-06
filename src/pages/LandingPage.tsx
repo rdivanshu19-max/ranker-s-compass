@@ -3,6 +3,7 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { Zap, BookOpen, Users, Download, Star, ArrowRight, Send, Sparkles, Target, Brain, GraduationCap, Shield, Heart, Quote, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/lib/supabase';
 
 const fadeUp = { hidden: { opacity: 0, y: 40 }, visible: { opacity: 1, y: 0 } };
 const stagger = { visible: { transition: { staggerChildren: 0.15 } } };
@@ -17,14 +18,16 @@ const stats = [
 
 const features = [
   { icon: BookOpen, title: 'Rankers Library', desc: 'Access 500+ curated lectures, books, PYQs, and notes for JEE, NEET & Boards.' },
-  { icon: Brain, title: 'AI-Powered Doubts', desc: 'Get instant answers to your study doubts with RankerPulse AI chatbot.' },
-  { icon: Target, title: 'AI Mock Tests', desc: 'Practice CBT-mode tests matching actual JEE/NEET patterns with detailed analysis.' },
+  { icon: Brain, title: 'RankerPulse AI Doubts', desc: 'Ask JEE, NEET, Boards and image-based doubts with clean explanations and readable math.' },
+  { icon: Sparkles, title: 'ASTRA AI Mentor', desc: 'Get daily plans, weak-topic attacks, voice guidance, task checklists and smart study nudges.' },
+  { icon: Target, title: 'AI Mock Tests', desc: 'Practice CBT-mode JEE/NEET tests with instant scoring, topic analysis and ranker-style review.' },
   { icon: Shield, title: 'Study Vault', desc: 'Save your personal study materials privately and access them anytime.' },
-  { icon: GraduationCap, title: 'Progress Tracking', desc: 'Track your study time, downloads, and test performance with beautiful charts.' },
+  { icon: GraduationCap, title: 'Free Course Section', desc: 'Follow curated courses with posters, resource links, tags and structured learning paths.' },
+  { icon: Target, title: 'Progress Tracking', desc: 'Track study time, downloads, streaks, test performance and weak areas with clear charts.' },
   { icon: Heart, title: '100% Free Forever', desc: 'All resources are completely free. No hidden charges, no premium locks.' },
 ];
 
-const testimonials = [
+const initialTestimonials = [
   { text: "The best thing about Ranker Resource is that everything you need is available in one place. You don't have to wander anywhere for materials. Everything is well organized and customized, which makes studying much easier ❤️", name: "Saurabh Singh" },
   { text: "Ranker Resource provides study materials that are hard to find anywhere else. The admin also keeps students updated with useful offers and genuinely tries to fulfill everyone's requests. ❤️", name: "Abhiyank" },
   { text: "The test series and the batches that you provided here really helped me in my preparation and helped in improving my performance ❤️", name: "Aditya Kumar" },
@@ -71,15 +74,37 @@ function Particles() {
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  const [testimonials, setTestimonials] = useState(initialTestimonials);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const { scrollYProgress } = useScroll();
   const heroOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
   const heroScale = useTransform(scrollYProgress, [0, 0.15], [1, 0.95]);
 
   useEffect(() => {
-    const interval = setInterval(() => setCurrentTestimonial(p => (p + 1) % testimonials.length), 5000);
-    return () => clearInterval(interval);
+    const loadFeedbackReviews = async () => {
+      const { data } = await supabase
+        .from('feedback')
+        .select('display_name, rating, review')
+        .not('review', 'is', null)
+        .gte('rating', 4)
+        .order('created_at', { ascending: false })
+        .limit(9);
+      const liveReviews = (data || [])
+        .filter((item: any) => item.review?.trim())
+        .map((item: any) => ({
+          text: item.review.replace(/[*_`#]/g, '').trim(),
+          name: item.display_name || 'Rankers Star Student',
+          rating: item.rating || 5,
+        }));
+      if (liveReviews.length > 0) setTestimonials([...liveReviews, ...initialTestimonials]);
+    };
+    loadFeedbackReviews();
   }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => setCurrentTestimonial(p => (p + 1) % Math.max(1, testimonials.length)), 5000);
+    return () => clearInterval(interval);
+  }, [testimonials.length]);
 
   return (
     <div className="min-h-screen dark">
