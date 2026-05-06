@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { Zap, BookOpen, Users, Download, Star, ArrowRight, Send, Sparkles, Target, Brain, GraduationCap, Shield, Heart, Quote, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Zap, BookOpen, Users, Download, Star, ArrowRight, Send, Sparkles, Target, Brain, GraduationCap, Shield, Heart, Quote, ChevronLeft, ChevronRight, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/lib/supabase';
 
 const fadeUp = { hidden: { opacity: 0, y: 40 }, visible: { opacity: 1, y: 0 } };
 const stagger = { visible: { transition: { staggerChildren: 0.15 } } };
@@ -17,14 +18,16 @@ const stats = [
 
 const features = [
   { icon: BookOpen, title: 'Rankers Library', desc: 'Access 500+ curated lectures, books, PYQs, and notes for JEE, NEET & Boards.' },
-  { icon: Brain, title: 'AI-Powered Doubts', desc: 'Get instant answers to your study doubts with RankerPulse AI chatbot.' },
-  { icon: Target, title: 'AI Mock Tests', desc: 'Practice CBT-mode tests matching actual JEE/NEET patterns with detailed analysis.' },
+  { icon: Brain, title: 'RankerPulse AI Doubts', desc: 'Ask JEE, NEET, Boards and image-based doubts with clean explanations and readable math.' },
+  { icon: Sparkles, title: 'ASTRA AI Mentor', desc: 'Get daily plans, weak-topic attacks, voice guidance, task checklists and smart study nudges.' },
+  { icon: Target, title: 'AI Mock Tests', desc: 'Practice CBT-mode JEE/NEET tests with instant scoring, topic analysis and ranker-style review.' },
   { icon: Shield, title: 'Study Vault', desc: 'Save your personal study materials privately and access them anytime.' },
-  { icon: GraduationCap, title: 'Progress Tracking', desc: 'Track your study time, downloads, and test performance with beautiful charts.' },
+  { icon: GraduationCap, title: 'Free Course Section', desc: 'Follow curated courses with posters, resource links, tags and structured learning paths.' },
+  { icon: Target, title: 'Progress Tracking', desc: 'Track study time, downloads, streaks, test performance and weak areas with clear charts.' },
   { icon: Heart, title: '100% Free Forever', desc: 'All resources are completely free. No hidden charges, no premium locks.' },
 ];
 
-const testimonials = [
+const initialTestimonials = [
   { text: "The best thing about Ranker Resource is that everything you need is available in one place. You don't have to wander anywhere for materials. Everything is well organized and customized, which makes studying much easier ❤️", name: "Saurabh Singh" },
   { text: "Ranker Resource provides study materials that are hard to find anywhere else. The admin also keeps students updated with useful offers and genuinely tries to fulfill everyone's requests. ❤️", name: "Abhiyank" },
   { text: "The test series and the batches that you provided here really helped me in my preparation and helped in improving my performance ❤️", name: "Aditya Kumar" },
@@ -71,15 +74,37 @@ function Particles() {
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  const [testimonials, setTestimonials] = useState(initialTestimonials);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const { scrollYProgress } = useScroll();
   const heroOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
   const heroScale = useTransform(scrollYProgress, [0, 0.15], [1, 0.95]);
 
   useEffect(() => {
-    const interval = setInterval(() => setCurrentTestimonial(p => (p + 1) % testimonials.length), 5000);
-    return () => clearInterval(interval);
+    const loadFeedbackReviews = async () => {
+      const { data } = await supabase
+        .from('feedback')
+        .select('display_name, rating, review')
+        .not('review', 'is', null)
+        .gte('rating', 4)
+        .order('created_at', { ascending: false })
+        .limit(9);
+      const liveReviews = (data || [])
+        .filter((item: any) => item.review?.trim())
+        .map((item: any) => ({
+          text: item.review.replace(/[*_`#]/g, '').trim(),
+          name: item.display_name || 'Rankers Star Student',
+          rating: item.rating || 5,
+        }));
+      if (liveReviews.length > 0) setTestimonials([...liveReviews, ...initialTestimonials]);
+    };
+    loadFeedbackReviews();
   }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => setCurrentTestimonial(p => (p + 1) % Math.max(1, testimonials.length)), 5000);
+    return () => clearInterval(interval);
+  }, [testimonials.length]);
 
   return (
     <div className="min-h-screen dark">
@@ -129,6 +154,24 @@ export default function LandingPage() {
                   <Send className="w-5 h-5" /> Join Telegram
                 </a>
               </Button>
+            </motion.div>
+
+            <motion.div variants={fadeUp} transition={{ duration: 0.8 }}
+              className="mt-6 sm:mt-8 grid gap-3 sm:grid-cols-3 text-left">
+              {[
+                { icon: Sparkles, title: 'ASTRA Mentor', text: 'Daily plans, voice guidance, weak-topic attack' },
+                { icon: Target, title: 'AI Tests', text: 'JEE/NEET CBT mock tests with analysis' },
+                { icon: GraduationCap, title: 'Courses', text: 'Curated resources, posters, tags and links' },
+              ].map((item) => (
+                <button key={item.title} onClick={() => navigate('/auth')}
+                  className="hero-card rounded-xl p-3 sm:p-4 hover:border-primary/50 transition-all group">
+                  <div className="flex items-center gap-2 mb-1">
+                    <item.icon className="w-4 h-4 text-primary" />
+                    <span className="font-bold text-white text-sm">{item.title}</span>
+                  </div>
+                  <p className="text-xs text-gray-400 group-hover:text-gray-300 transition-colors">{item.text}</p>
+                </button>
+              ))}
             </motion.div>
           </motion.div>
 
@@ -186,6 +229,59 @@ export default function LandingPage() {
                 </div>
               </motion.div>
             ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ASTRA Mentor spotlight */}
+      <section className="py-14 sm:py-20 bg-hero relative overflow-hidden">
+        <div className="absolute inset-0"><div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" /></div>
+        <div className="container mx-auto px-4 relative z-10">
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}
+            className="grid lg:grid-cols-[1.1fr_0.9fr] gap-6 sm:gap-8 items-center max-w-6xl mx-auto">
+            <motion.div variants={fadeUp}>
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/20 bg-primary/5 mb-4">
+                <Sparkles className="w-4 h-4 text-primary" />
+                <span className="text-xs font-medium text-primary">ASTRA AI MENTOR</span>
+              </div>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold font-display mb-4 text-white">
+                Your Personal <span className="text-gradient">Study Coach</span> is Always Visible
+              </h2>
+              <p className="text-base sm:text-lg text-gray-400 leading-relaxed mb-6">
+                ASTRA creates daily task lists, voice-guided answers, weak topic attack plans, smart nudges, and mistake-journal style improvement steps for JEE, NEET and Boards.
+              </p>
+              <div className="grid sm:grid-cols-2 gap-3">
+                {['Daily plan + countdown', 'Voice input mentor chat', 'Weak topic attack', 'Task completion celebration'].map((item) => (
+                  <div key={item} className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-gray-300">
+                    <CheckCircle className="w-4 h-4 text-primary inline mr-2" />{item}
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+            <motion.div variants={scaleIn} className="hero-card rounded-2xl p-5 sm:p-6 border-primary/30">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center text-primary-foreground">
+                  <Brain className="w-6 h-6" />
+                </div>
+                <div>
+                  <p className="font-bold text-white">Today&apos;s ASTRA flow</p>
+                  <p className="text-xs text-gray-400">Plan → Practice → Review → Celebrate</p>
+                </div>
+              </div>
+              <div className="space-y-3">
+                {[
+                  ['Physics formulas', '45 min revision sprint'],
+                  ['AI Mock Test', 'Chapter CBT + analysis'],
+                  ['Mistake Journal', 'Fix repeated errors'],
+                ].map(([title, text], i) => (
+                  <div key={title} className="rounded-xl bg-background/30 border border-white/5 p-3 flex items-center gap-3">
+                    <span className="w-7 h-7 rounded-full bg-primary/15 text-primary flex items-center justify-center text-xs font-bold">{i + 1}</span>
+                    <div><p className="text-sm font-semibold text-white">{title}</p><p className="text-xs text-gray-400">{text}</p></div>
+                  </div>
+                ))}
+              </div>
+              <Button variant="hero" className="w-full mt-5" onClick={() => navigate('/auth')}>Open ASTRA Mentor</Button>
+            </motion.div>
           </motion.div>
         </div>
       </section>

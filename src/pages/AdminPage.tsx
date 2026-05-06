@@ -21,6 +21,20 @@ const DEFAULT_TYPES = ['Lectures', 'Lecture PDF', 'Books', 'PYQs', 'JEE', 'NEET'
 const COURSE_TAGS = ['popular', 'hot', 'most used', 'boards'];
 const MAX_PINNED = 10;
 
+const reportSteps = ['pending', 'reviewed', 'action_taken'];
+const formatLabel = (value: string) => value.replace(/_/g, ' ');
+const reportStatusClass = (status: string) =>
+  status === 'action_taken' ? 'bg-primary/15 text-primary border-primary/30' :
+  status === 'reviewed' ? 'bg-secondary text-secondary-foreground border-border' :
+  status === 'rejected' ? 'bg-destructive/15 text-destructive border-destructive/30' :
+  'bg-muted text-muted-foreground border-border';
+const logIconClass = (action: string) =>
+  action.includes('course') ? 'bg-primary/15 text-primary' :
+  action.includes('material') ? 'bg-secondary text-secondary-foreground' :
+  action.includes('report') ? 'bg-destructive/10 text-destructive' :
+  action.includes('moderator') ? 'bg-primary/10 text-primary' :
+  'bg-muted text-muted-foreground';
+
 export default function AdminPage() {
   const { isAdmin, user } = useAuth();
   const [materials, setMaterials] = useState<any[]>([]);
@@ -111,10 +125,20 @@ export default function AdminPage() {
   };
 
   const updateReportStatus = async (id: string, status: string) => {
-    const notes = reportNotes[id] || '';
-    await supabase.from('user_reports').update({ status, admin_notes: notes || null, updated_at: new Date().toISOString() } as any).eq('id', id);
-    await supabase.from('activity_log').insert({ actor_id: user!.id, actor_role: 'admin', action: `report_${status}`, target_type: 'report', target_id: id });
-    toast.success(`Report marked ${status}`);
+    const notes = reportNotes[id]?.trim() || '';
+    const { data, error } = await supabase
+      .from('user_reports')
+      .update({ status, admin_notes: notes || null } as any)
+      .eq('id', id)
+      .select('id,status,status_timeline,admin_notes,updated_at')
+      .single();
+    if (error) { toast.error('Status update failed: ' + error.message); return; }
+    setReports(prev => prev.map(report => report.id === id ? { ...report, ...data } : report));
+    await supabase.from('activity_log').insert({
+      actor_id: user!.id, actor_role: 'admin', action: `report_${status}`,
+      target_type: 'report', target_id: id, details: { status, note: notes || null } as any,
+    });
+    toast.success(`Report marked ${formatLabel(status)}`);
     loadReports(); loadActivityLogs();
   };
 
@@ -896,7 +920,7 @@ export default function AdminPage() {
             const reported = allProfiles.find(p => p.user_id === r.reported_user_id);
             const reporter = allProfiles.find(p => p.user_id === r.reporter_id);
             return (
-              <div key={r.id} className="bg-card rounded-xl border border-border p-4 space-y-2">
+              <div key={r.id} className="bg-card rounded-xl border border-border p-4 space-y-4">
                 <div className="flex items-start justify-between gap-3 flex-wrap">
                   <div className="min-w-0">
                     <p className="text-sm">
@@ -904,30 +928,33 @@ export default function AdminPage() {
                       <span className="font-bold text-destructive">{reported?.display_name || r.reported_user_id.slice(0, 8)}</span>
                     </p>
                     <p className="text-xs text-muted-foreground mt-0.5">{new Date(r.created_at).toLocaleString()}</p>
+                    <p className="text-[10px] text-muted-foreground mt-1 truncate">Reporter: {reporter?.email || r.reporter_id} · User: {reported?.email || r.reported_user_id}</p>
                   </div>
-                  <span className={`text-[10px] px-2 py-1 rounded-full font-bold uppercase ${
-                    r.status === 'reviewed' ? 'bg-blue-500/15 text-blue-500' :
-                    r.status === 'action_taken' ? 'bg-emerald-500/15 text-emerald-500' :
-                    r.status === 'rejected' ? 'bg-destructive/15 text-destructive' :
-                    'bg-yellow-500/15 text-yellow-500'
-                  }`}>{r.status}</span>
+                  <span className={`text-[10px] px-2.5 py-1 rounded-full border font-bold uppercase ${reportStatusClass(r.status)}`}>{formatLabel(r.status)}</span>
                 </div>
                 <p className="text-sm bg-muted/40 rounded-lg p-3">{r.reason}</p>
                 {r.admin_notes && <p className="text-xs text-muted-foreground italic">Notes: {r.admin_notes}</p>}
-                <div className="rounded-lg border border-border bg-muted/20 p-3 space-y-2">
+                <div className="rounded-lg border border-border bg-muted/20 p-3 space-y-3">
                   <p className="text-xs font-semibold uppercase text-muted-foreground">Status timeline</p>
                   <div className="grid sm:grid-cols-3 gap-2">
-                    {['pending', 'reviewed', 'action_taken'].map((step) => {
-                      const done = r.status === step || (Array.isArray(r.status_timeline) && r.status_timeline.some((x: any) => x.status === step));
-                      return <div key={step} className={`rounded-lg border px-3 py-2 text-xs ${done ? 'border-primary/30 bg-primary/10 text-primary' : 'border-border text-muted-foreground'}`}>{done ? '✓' : '○'} {step.replace('_', ' ')}</div>;
+                    {reportSteps.map((step) => {
+                      const item = Array.isArray(r.status_timeline) ? r.status_timeline.find((x: any) => x.status === step) : null;
+                      const done = r.status === step || Boolean(item);
+                      return (
+                        <div key={step} className={`rounded-lg border px-3 py-2 text-xs ${done ? 'border-primary/30 bg-primary/10 text-primary' : 'border-border text-muted-foreground'}`}>
+                          <p className="font-semibold capitalize">{done ? '✓' : '○'} {formatLabel(step)}</p>
+                          {item?.at && <p className="mt-1 text-[10px] text-muted-foreground">{new Date(item.at).toLocaleString()}</p>}
+                          {item?.note && <p className="mt-1 line-clamp-2 text-[10px] text-muted-foreground">{item.note}</p>}
+                        </div>
+                      );
                     })}
                   </div>
                 </div>
                 <Textarea value={reportNotes[r.id] || ''} onChange={e => setReportNotes(prev => ({ ...prev, [r.id]: e.target.value }))} placeholder="Admin note / action summary" rows={2} />
                 <div className="flex gap-2 flex-wrap pt-1">
-                  <Button size="sm" variant="outline" onClick={() => updateReportStatus(r.id, 'reviewed')}>Mark Reviewed</Button>
-                  <Button size="sm" onClick={() => updateReportStatus(r.id, 'action_taken')} className="bg-emerald-600 hover:bg-emerald-700">Action Taken</Button>
-                  <Button size="sm" variant="outline" onClick={() => updateReportStatus(r.id, 'rejected')}>Reject</Button>
+                  <Button size="sm" variant="outline" onClick={() => updateReportStatus(r.id, 'reviewed')} disabled={r.status === 'reviewed'}>Mark Reviewed</Button>
+                  <Button size="sm" onClick={() => updateReportStatus(r.id, 'action_taken')} disabled={r.status === 'action_taken'}>Action Taken</Button>
+                  <Button size="sm" variant="outline" onClick={() => updateReportStatus(r.id, 'rejected')} disabled={r.status === 'rejected'}>Reject</Button>
                 </div>
               </div>
             );
@@ -936,21 +963,60 @@ export default function AdminPage() {
       )}
 
       {tab === 'logs' && (
-        <div className="space-y-3">
-          <p className="text-sm text-muted-foreground">Recent uploads, edits, role changes, and report actions</p>
+        <div className="space-y-4">
+          <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4">
+            <h3 className="font-bold font-display flex items-center gap-2"><History className="w-5 h-5 text-primary" /> Action Log</h3>
+            <p className="text-sm text-muted-foreground mt-1">Decorative audit trail for uploads, edits, role changes, and report decisions.</p>
+          </div>
           {activityLogs.map(log => {
             const actor = allProfiles.find(p => p.user_id === log.actor_id);
+            const details = log.details && typeof log.details === 'object' ? log.details : {};
             return (
-              <div key={log.id} className="bg-card rounded-xl border border-border p-4 flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold capitalize">{log.action.replaceAll('_', ' ')}</p>
-                  <p className="text-xs text-muted-foreground">By {actor?.display_name || log.actor_role} • {log.target_type}{log.target_id ? ` • ${String(log.target_id).slice(0, 32)}` : ''}</p>
-                  {log.details && Object.keys(log.details).length > 0 && <pre className="mt-2 max-h-24 overflow-auto rounded bg-muted/40 p-2 text-[10px] text-muted-foreground">{JSON.stringify(log.details, null, 2)}</pre>}
+              <div key={log.id} className="bg-card rounded-xl border border-border p-4">
+                <div className="flex items-start gap-3">
+                  <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${logIconClass(log.action)}`}>
+                    {log.action.includes('course') ? <GraduationCap className="w-5 h-5" /> :
+                     log.action.includes('report') ? <Flag className="w-5 h-5" /> :
+                     log.action.includes('moderator') ? <ShieldCheck className="w-5 h-5" /> :
+                     <History className="w-5 h-5" />}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-3 flex-wrap">
+                      <div>
+                        <p className="text-sm font-bold capitalize">{formatLabel(log.action)}</p>
+                        <p className="text-xs text-muted-foreground">By {actor?.display_name || log.actor_role} {actor?.email ? `• ${actor.email}` : ''}</p>
+                      </div>
+                      <span className="text-[10px] rounded-full border border-border bg-muted px-2 py-1 text-muted-foreground whitespace-nowrap">{new Date(log.created_at).toLocaleString()}</span>
+                    </div>
+                    <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                      <div className="rounded-lg bg-muted/40 px-3 py-2">
+                        <p className="text-[10px] uppercase text-muted-foreground">Target</p>
+                        <p className="text-xs font-medium truncate">{log.target_type}{log.target_id ? ` · ${String(log.target_id).slice(0, 36)}` : ''}</p>
+                      </div>
+                      <div className="rounded-lg bg-muted/40 px-3 py-2">
+                        <p className="text-[10px] uppercase text-muted-foreground">Role</p>
+                        <p className="text-xs font-medium capitalize">{log.actor_role}</p>
+                      </div>
+                      <div className="rounded-lg bg-muted/40 px-3 py-2">
+                        <p className="text-[10px] uppercase text-muted-foreground">Action</p>
+                        <p className="text-xs font-medium capitalize">{formatLabel(log.action)}</p>
+                      </div>
+                    </div>
+                    {Object.keys(details).length > 0 && (
+                      <div className="mt-3 flex flex-wrap gap-1.5">
+                        {Object.entries(details).slice(0, 6).map(([key, value]) => (
+                          <span key={key} className="rounded-full border border-border bg-background px-2 py-1 text-[10px] text-muted-foreground">
+                            <span className="font-semibold text-foreground">{formatLabel(key)}:</span> {typeof value === 'object' ? JSON.stringify(value).slice(0, 42) : String(value).slice(0, 42)}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <span className="text-[10px] text-muted-foreground whitespace-nowrap">{new Date(log.created_at).toLocaleString()}</span>
               </div>
             );
           })}
+          {activityLogs.length === 0 && <p className="text-center py-10 text-muted-foreground">No activity yet.</p>}
         </div>
       )}
     </div>
