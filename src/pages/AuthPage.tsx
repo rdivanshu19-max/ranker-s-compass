@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
-import { Zap, ArrowLeft } from 'lucide-react';
+import { Zap, ArrowLeft, UserRound } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function AuthPage() {
@@ -16,7 +16,7 @@ export default function AuthPage() {
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [loading, setLoading] = useState(false);
-  const { user, signUp, signIn, requestPasswordReset } = useAuth();
+  const { user, signUp, signIn, requestPasswordReset, enterGuestMode } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -111,6 +111,12 @@ export default function AuthPage() {
     }
   };
 
+  const continueAsGuest = () => {
+    enterGuestMode();
+    toast.success('Guest mode opened. You can study while login is being restored.');
+    navigate('/app', { replace: true });
+  };
+
   return (
     <div className="min-h-screen bg-hero flex items-center justify-center p-4">
       <div className="absolute inset-0 overflow-hidden">
@@ -157,6 +163,15 @@ export default function AuthPage() {
               {loading ? 'Please wait...' : isSignUp ? 'Create Account' : 'Sign In'}
             </Button>
           </form>
+
+          <div className="mt-4 space-y-3">
+            <Button type="button" variant="outline" size="lg" className="w-full" onClick={continueAsGuest} disabled={loading}>
+              <UserRound className="w-4 h-4" /> Continue as Guest
+            </Button>
+            <p className="text-[11px] text-muted-foreground text-center leading-relaxed">
+              Emergency access: Library, courses, dashboard and AI tools can open without an account. Saved progress, profile, notifications, vault, admin and moderator features still need login.
+            </p>
+          </div>
 
           <div className="mt-6 text-center">
             <button type="button" onClick={() => setIsSignUp(!isSignUp)} className="text-sm text-primary hover:underline">
