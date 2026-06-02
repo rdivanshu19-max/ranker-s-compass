@@ -87,12 +87,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
     });
 
-    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
+    withAuthTimeout(supabase.auth.getSession()).then(({ data: { session: initialSession } }) => {
       setSession(initialSession);
       setUser(initialSession?.user ?? null);
       if (initialSession?.user) fetchProfile(initialSession.user.id);
       setLoading(false);
-    });
+    }).catch(() => setLoading(false));
 
     return () => subscription.unsubscribe();
   }, []);
@@ -135,7 +135,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    if (!isGuest) await withAuthTimeout(supabase.auth.signOut()).catch(() => undefined);
     localStorage.removeItem(GUEST_MODE_KEY);
     setIsGuest(false);
     setUser(null);
