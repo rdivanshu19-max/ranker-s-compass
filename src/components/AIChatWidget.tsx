@@ -44,7 +44,7 @@ const toBase64 = (file: File): Promise<string> =>
   });
 
 export default function AIChatWidget() {
-  const { session } = useAuth();
+  const { session, isGuest } = useAuth();
   const { remaining, limit, refresh: refreshLimit, resetIn, unlimited } = useAILimit('ai_chat');
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([
@@ -97,6 +97,11 @@ export default function AIChatWidget() {
   const removeImage = () => { setImagePreview(null); setImageFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; };
 
   const send = async () => {
+    if (isGuest || !session) {
+      setOpen(true);
+      setMessages(prev => [...prev, { role: 'assistant', content: 'AI chat needs a signed-in account. Guest mode lets you browse the app while login service is being restored.' }]);
+      return;
+    }
     if ((!input.trim() && !imagePreview) || loading) return;
     const userContent = input.trim() || (imagePreview ? 'Please analyze this image and solve the question.' : '');
     const userMsg: Msg = { role: 'user', content: userContent, image: imagePreview || undefined };
@@ -251,8 +256,8 @@ export default function AIChatWidget() {
                   title={listening ? 'Stop listening' : 'Voice input (Hindi/English)'}>
                   {listening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
                 </Button>
-                <Input value={input} onChange={(e) => setInput(e.target.value)} placeholder={listening ? '🎤 Listening...' : 'Ask your doubt or send a photo...'} className="flex-1 text-sm" disabled={loading} />
-                <Button type="submit" size="icon" disabled={loading || (!input.trim() && !imagePreview)}><Send className="w-4 h-4" /></Button>
+                <Input value={input} onChange={(e) => setInput(e.target.value)} placeholder={isGuest ? 'Sign in to use AI chat' : listening ? '🎤 Listening...' : 'Ask your doubt or send a photo...'} className="flex-1 text-sm" disabled={loading || isGuest} />
+                <Button type="submit" size="icon" disabled={loading || isGuest || (!input.trim() && !imagePreview)}><Send className="w-4 h-4" /></Button>
               </form>
             </div>
           </motion.div>
