@@ -9,6 +9,8 @@ interface AuthContextType {
   profile: { display_name: string; bio: string } | null;
   isAdmin: boolean;
   isModerator: boolean;
+  isGuest: boolean;
+  enterGuestMode: () => void;
   signUp: (email: string, password: string, displayName: string) => Promise<any>;
   signIn: (email: string, password: string) => Promise<any>;
   requestPasswordReset: (email: string) => Promise<any>;
@@ -21,6 +23,8 @@ const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 export const useAuth = () => useContext(AuthContext);
 
 const PRODUCTION_SITE_URL = 'https://rankers-stars.vercel.app';
+const GUEST_MODE_KEY = 'rankers-star-guest-mode';
+const AUTH_TIMEOUT_MS = 15000;
 
 const normalizeUrl = (url: string) => url.replace(/\/+$/, '');
 
@@ -36,6 +40,18 @@ const resolveAuthRedirectBase = () => {
   return PRODUCTION_SITE_URL;
 };
 
+const withAuthTimeout = async <T,>(request: Promise<T>): Promise<T> => {
+  let timer: ReturnType<typeof setTimeout>;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error('Login service is taking too long. Please try Guest Mode for now, or retry in a few minutes.')), AUTH_TIMEOUT_MS);
+  });
+  try {
+    return await Promise.race([request, timeout]);
+  } finally {
+    clearTimeout(timer!);
+  }
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -43,6 +59,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [profile, setProfile] = useState<{ display_name: string; bio: string } | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isModerator, setIsModerator] = useState(false);
+  const [isGuest, setIsGuest] = useState(() => localStorage.getItem(GUEST_MODE_KEY) === 'true');
 
   const fetchProfile = async (userId: string) => {
     const { data } = await supabase.from('profiles').select('display_name, bio').eq('user_id', userId).single();
@@ -70,30 +87,44 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
     });
 
-    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
+    withAuthTimeout(supabase.auth.getSession()).then(({ data: { session: initialSession } }) => {
       setSession(initialSession);
       setUser(initialSession?.user ?? null);
       if (initialSession?.user) fetchProfile(initialSession.user.id);
       setLoading(false);
-    });
+    }).catch(() => setLoading(false));
 
     return () => subscription.unsubscribe();
   }, []);
 
   const signUp = async (email: string, password: string, displayName: string) => {
+    localStorage.removeItem(GUEST_MODE_KEY);
+    setIsGuest(false);
     const redirectBase = resolveAuthRedirectBase();
-    return supabase.auth.signUp({
+    return withAuthTimeout(supabase.auth.signUp({
       email,
       password,
       options: {
         data: { display_name: displayName },
         emailRedirectTo: `${redirectBase}/auth`,
       },
-    });
+    }));
   };
 
   const signIn = async (email: string, password: string) => {
-    return supabase.auth.signInWithPassword({ email, password });
+    localStorage.removeItem(GUEST_MODE_KEY);
+    setIsGuest(false);
+    return withAuthTimeout(supabase.auth.signInWithPassword({ email, password }));
+  };
+
+  const enterGuestMode = () => {
+    localStorage.setItem(GUEST_MODE_KEY, 'true');
+    setIsGuest(true);
+    setUser(null);
+    setSession(null);
+    setProfile({ display_name: 'Guest Student', bio: '' });
+    setIsAdmin(false);
+    setIsModerator(false);
   };
 
   const requestPasswordReset = async (email: string) => {
@@ -104,7 +135,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    if (!isGuest) await withAuthTimeout(supabase.auth.signOut()).catch(() => undefined);
+    localStorage.removeItem(GUEST_MODE_KEY);
+    setIsGuest(false);
     setUser(null);
     setSession(null);
     setProfile(null);
@@ -114,7 +147,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   return (
     <AuthContext.Provider
-      value={{ user, session, loading, profile, isAdmin, isModerator, signUp, signIn, requestPasswordReset, signOut, refreshProfile }}
+      value={{ user, session, loading, profile, isAdmin, isModerator, isGuest, enterGuestMode, signUp, signIn, requestPasswordReset, signOut, refreshProfile }}
     >
       {children}
     </AuthContext.Provider>

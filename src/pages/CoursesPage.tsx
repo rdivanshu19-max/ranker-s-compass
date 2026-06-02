@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { GraduationCap, ExternalLink, BookOpen, Pin, Flame, TrendingUp, Star, AlertTriangle, Search, Zap, Award, ChevronDown, ChevronUp } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
 
 type CourseResource = { title: string; url: string; type: string };
 type Course = {
@@ -19,6 +20,7 @@ const TAG_CONFIG: Record<string, { icon: typeof Flame; gradient: string; text: s
 };
 
 export default function CoursesPage() {
+  const { user } = useAuth();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -26,12 +28,13 @@ export default function CoursesPage() {
 
   useEffect(() => {
     const load = async () => {
+      if (!user) { setCourses([]); setLoading(false); return; }
       const { data } = await supabase.from('courses').select('*').order('pinned', { ascending: false }).order('created_at', { ascending: false });
       setCourses((data as any[]) || []);
       setLoading(false);
     };
     load();
-  }, []);
+  }, [user]);
 
   const filtered = courses.filter(c =>
     c.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -55,6 +58,12 @@ export default function CoursesPage() {
         </h1>
         <p className="text-muted-foreground mt-1">Premium courses curated for your preparation</p>
       </motion.div>
+
+      {!user && (
+        <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 text-sm text-muted-foreground">
+          Guest mode is active. Live course content needs the backend/login service, so sign in when it is available to browse full courses.
+        </div>
+      )}
 
       {/* Search */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}

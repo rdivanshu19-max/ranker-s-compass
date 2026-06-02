@@ -1,7 +1,7 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
-import { LayoutDashboard, Library, FolderLock, User, FlaskConical, Sun, Moon, LogOut, Shield, MessageSquare, GraduationCap, Info, ShieldCheck } from 'lucide-react';
+import { LayoutDashboard, Library, FolderLock, User, FlaskConical, Sun, Moon, LogOut, Shield, MessageSquare, GraduationCap, Info, ShieldCheck, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import NotificationBell from '@/components/NotificationBell';
 
@@ -17,7 +17,7 @@ const navItems = [
 ];
 
 export default function AppLayout() {
-  const { profile, isAdmin, isModerator, signOut } = useAuth();
+  const { profile, isAdmin, isModerator, isGuest, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
@@ -29,8 +29,8 @@ export default function AppLayout() {
             <span className="text-foreground">Rankers </span><span className="text-gradient">Star</span>
           </h1>
           <div className="flex items-center gap-1">
-            <span className="text-sm text-muted-foreground hidden sm:block mr-1">Hi, {profile?.display_name || 'Student'}</span>
-            <NotificationBell />
+            <span className="text-sm text-muted-foreground hidden sm:block mr-1">Hi, {isGuest ? 'Guest Student' : profile?.display_name || 'Student'}</span>
+            {!isGuest && <NotificationBell />}
             <Button variant="ghost" size="icon" onClick={toggleTheme}>
               {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </Button>
@@ -44,8 +44,8 @@ export default function AppLayout() {
                 <Shield className="w-4 h-4 text-primary" />
               </Button>
             )}
-            <Button variant="ghost" size="icon" onClick={() => { signOut(); navigate('/'); }}>
-              <LogOut className="w-4 h-4" />
+            <Button variant="ghost" size="icon" onClick={() => { signOut(); navigate(isGuest ? '/auth' : '/'); }} title={isGuest ? 'Sign in' : 'Sign out'}>
+              {isGuest ? <LogIn className="w-4 h-4" /> : <LogOut className="w-4 h-4" />}
             </Button>
           </div>
         </div>

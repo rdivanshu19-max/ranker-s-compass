@@ -23,6 +23,7 @@ export default function LibraryPage() {
   useEffect(() => { loadMaterials(); }, [user]);
 
   const loadMaterials = async () => {
+    if (!user) { setMaterials([]); return; }
     const { data } = await supabase.from('materials').select('*').order('pinned', { ascending: false }).order('created_at', { ascending: false });
     setMaterials(data || []);
     const { data: allRatings } = await supabase.from('ratings').select('material_id, rating');
@@ -76,6 +77,12 @@ export default function LibraryPage() {
         </h1>
         <p className="text-muted-foreground mt-1">Browse and access free study materials</p>
       </motion.div>
+
+      {!user && (
+        <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 text-sm text-muted-foreground">
+          Guest mode is active. Live library materials need the backend/login service, so sign in when it is available to browse and track downloads.
+        </div>
+      )}
 
       {/* Courses CTA */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.05 }}
