@@ -169,7 +169,7 @@ export default function AuthPage() {
               <UserRound className="w-4 h-4" /> Continue as Guest
             </Button>
             <p className="text-[11px] text-muted-foreground text-center leading-relaxed">
-              Emergency access: Library, courses, dashboard and AI tools can open without an account. Saved progress, profile, notifications, vault, admin and moderator features still need login.
+              Emergency access: the app shell opens without an account. Saved progress, live materials, AI, profile, notifications, vault, admin and moderator features still need the backend/login service.
             </p>
           </div>
 
