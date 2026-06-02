@@ -9,6 +9,8 @@ interface AuthContextType {
   profile: { display_name: string; bio: string } | null;
   isAdmin: boolean;
   isModerator: boolean;
+  isGuest: boolean;
+  enterGuestMode: () => void;
   signUp: (email: string, password: string, displayName: string) => Promise<any>;
   signIn: (email: string, password: string) => Promise<any>;
   requestPasswordReset: (email: string) => Promise<any>;
@@ -21,6 +23,7 @@ const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 export const useAuth = () => useContext(AuthContext);
 
 const PRODUCTION_SITE_URL = 'https://rankers-stars.vercel.app';
+const GUEST_MODE_KEY = 'rankers-star-guest-mode';
 
 const normalizeUrl = (url: string) => url.replace(/\/+$/, '');
 
@@ -43,6 +46,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [profile, setProfile] = useState<{ display_name: string; bio: string } | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isModerator, setIsModerator] = useState(false);
+  const [isGuest, setIsGuest] = useState(() => localStorage.getItem(GUEST_MODE_KEY) === 'true');
 
   const fetchProfile = async (userId: string) => {
     const { data } = await supabase.from('profiles').select('display_name, bio').eq('user_id', userId).single();
@@ -81,6 +85,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signUp = async (email: string, password: string, displayName: string) => {
+    localStorage.removeItem(GUEST_MODE_KEY);
+    setIsGuest(false);
     const redirectBase = resolveAuthRedirectBase();
     return supabase.auth.signUp({
       email,
@@ -93,7 +99,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signIn = async (email: string, password: string) => {
+    localStorage.removeItem(GUEST_MODE_KEY);
+    setIsGuest(false);
     return supabase.auth.signInWithPassword({ email, password });
+  };
+
+  const enterGuestMode = () => {
+    localStorage.setItem(GUEST_MODE_KEY, 'true');
+    setIsGuest(true);
+    setUser(null);
+    setSession(null);
+    setProfile({ display_name: 'Guest Student', bio: '' });
+    setIsAdmin(false);
+    setIsModerator(false);
   };
 
   const requestPasswordReset = async (email: string) => {
@@ -105,6 +123,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    localStorage.removeItem(GUEST_MODE_KEY);
+    setIsGuest(false);
     setUser(null);
     setSession(null);
     setProfile(null);
