@@ -24,6 +24,7 @@ export const useAuth = () => useContext(AuthContext);
 
 const PRODUCTION_SITE_URL = 'https://rankers-stars.vercel.app';
 const GUEST_MODE_KEY = 'rankers-star-guest-mode';
+const AUTH_TIMEOUT_MS = 15000;
 
 const normalizeUrl = (url: string) => url.replace(/\/+$/, '');
 
@@ -37,6 +38,18 @@ const resolveAuthRedirectBase = () => {
   }
 
   return PRODUCTION_SITE_URL;
+};
+
+const withAuthTimeout = async <T,>(request: Promise<T>): Promise<T> => {
+  let timer: ReturnType<typeof setTimeout>;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error('Login service is taking too long. Please try Guest Mode for now, or retry in a few minutes.')), AUTH_TIMEOUT_MS);
+  });
+  try {
+    return await Promise.race([request, timeout]);
+  } finally {
+    clearTimeout(timer!);
+  }
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -88,20 +101,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem(GUEST_MODE_KEY);
     setIsGuest(false);
     const redirectBase = resolveAuthRedirectBase();
-    return supabase.auth.signUp({
+    return withAuthTimeout(supabase.auth.signUp({
       email,
       password,
       options: {
         data: { display_name: displayName },
         emailRedirectTo: `${redirectBase}/auth`,
       },
-    });
+    }));
   };
 
   const signIn = async (email: string, password: string) => {
     localStorage.removeItem(GUEST_MODE_KEY);
     setIsGuest(false);
-    return supabase.auth.signInWithPassword({ email, password });
+    return withAuthTimeout(supabase.auth.signInWithPassword({ email, password }));
   };
 
   const enterGuestMode = () => {
