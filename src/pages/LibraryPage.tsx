@@ -26,6 +26,12 @@ export default function LibraryPage() {
 
   const loadMaterials = async () => {
     setUsingOfflineMaterials(false);
+    if (isGuest || !user) {
+      setMaterials(OFFLINE_LIBRARY_MATERIALS);
+      setUsingOfflineMaterials(true);
+      return;
+    }
+
     try {
       const { data, error } = await withDataTimeout(
         supabase.from('materials').select('*').order('pinned', { ascending: false }).order('created_at', { ascending: false })
