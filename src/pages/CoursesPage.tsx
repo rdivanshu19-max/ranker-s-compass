@@ -32,6 +32,13 @@ export default function CoursesPage() {
     const load = async () => {
       setLoading(true);
       setUsingOfflineCourses(false);
+      if (isGuest || !user) {
+        setCourses(OFFLINE_COURSES);
+        setUsingOfflineCourses(true);
+        setLoading(false);
+        return;
+      }
+
       try {
         const { data, error } = await withDataTimeout(
           supabase.from('courses').select('*').order('pinned', { ascending: false }).order('created_at', { ascending: false })
@@ -47,7 +54,7 @@ export default function CoursesPage() {
       setLoading(false);
     };
     load();
-  }, [user]);
+  }, [user, isGuest]);
 
   const filtered = courses.filter(c =>
     c.title.toLowerCase().includes(search.toLowerCase()) ||
