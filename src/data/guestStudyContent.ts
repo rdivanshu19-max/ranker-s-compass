@@ -25,14 +25,14 @@ export type GuestCourse = {
 
 export const DATA_TIMEOUT_MS = 8000;
 
-export const withDataTimeout = async <T,>(request: Promise<T>, timeoutMs = DATA_TIMEOUT_MS): Promise<T> => {
+export const withDataTimeout = async <T,>(request: PromiseLike<T>, timeoutMs = DATA_TIMEOUT_MS): Promise<T> => {
   let timer: ReturnType<typeof setTimeout>;
   const timeout = new Promise<never>((_, reject) => {
     timer = setTimeout(() => reject(new Error('Study data service timed out')), timeoutMs);
   });
 
   try {
-    return await Promise.race([request, timeout]);
+    return await Promise.race([Promise.resolve(request), timeout]);
   } finally {
     clearTimeout(timer!);
   }
