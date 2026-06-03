@@ -22,7 +22,7 @@ export default function LibraryPage() {
   const [ratingCounts, setRatingCounts] = useState<Record<string, number>>({});
   const [userRatings, setUserRatings] = useState<Record<string, number>>({});
 
-  useEffect(() => { loadMaterials(); }, [user]);
+  useEffect(() => { loadMaterials(); }, [user, isGuest]);
 
   const loadMaterials = async () => {
     setUsingOfflineMaterials(false);
