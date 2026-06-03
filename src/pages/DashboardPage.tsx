@@ -25,6 +25,7 @@ import { Progress } from '@/components/ui/progress';
 import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { toast } from 'sonner';
+import { OFFLINE_LIBRARY_MATERIALS } from '@/data/guestStudyContent';
 
 type TopicInsight = {
   topic: string;
@@ -96,7 +97,7 @@ const deriveTopicInsights = (
 };
 
 export default function DashboardPage() {
-  const { user, profile } = useAuth();
+  const { user, profile, isGuest } = useAuth();
   const navigate = useNavigate();
 
   const [materialCount, setMaterialCount] = useState(0);
@@ -179,7 +180,14 @@ export default function DashboardPage() {
   }, [user]);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      if (isGuest) {
+        setMaterialCount(OFFLINE_LIBRARY_MATERIALS.length);
+        setPinnedMaterials(OFFLINE_LIBRARY_MATERIALS.filter((material) => material.pinned));
+        setWeeklyStats(DAY_ORDER.map((day) => ({ day, minutes: 0 })));
+      }
+      return;
+    }
     const load = async () => {
       const [mats, downloads, explored, tests, pinned, vault, sessions, results] = await Promise.all([
         supabase.from('materials').select('id', { count: 'exact', head: true }),
@@ -205,7 +213,7 @@ export default function DashboardPage() {
     load();
     loadWeeklyStats();
     checkBadges();
-  }, [user, loadWeeklyStats, checkBadges]);
+  }, [user, isGuest, loadWeeklyStats, checkBadges]);
 
   const startTimer = () => {
     if (isTimerRunning) return;

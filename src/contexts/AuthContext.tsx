@@ -74,6 +74,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
+    if (isGuest) {
+      setProfile({ display_name: 'Guest Student', bio: '' });
+      setLoading(false);
+      return;
+    }
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, currentSession) => {
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
@@ -95,7 +101,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }).catch(() => setLoading(false));
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [isGuest]);
 
   const signUp = async (email: string, password: string, displayName: string) => {
     localStorage.removeItem(GUEST_MODE_KEY);
