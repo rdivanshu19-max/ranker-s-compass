@@ -5,6 +5,7 @@ import { GraduationCap, ExternalLink, BookOpen, Pin, Flame, TrendingUp, Star, Al
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
+import { OFFLINE_COURSES, withDataTimeout } from '@/data/guestStudyContent';
 
 type CourseResource = { title: string; url: string; type: string };
 type Course = {
@@ -20,17 +21,29 @@ const TAG_CONFIG: Record<string, { icon: typeof Flame; gradient: string; text: s
 };
 
 export default function CoursesPage() {
-  const { user } = useAuth();
+  const { user, isGuest } = useAuth();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
+  const [usingOfflineCourses, setUsingOfflineCourses] = useState(false);
   const [search, setSearch] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
-      if (!user) { setCourses([]); setLoading(false); return; }
-      const { data } = await supabase.from('courses').select('*').order('pinned', { ascending: false }).order('created_at', { ascending: false });
-      setCourses((data as any[]) || []);
+      setLoading(true);
+      setUsingOfflineCourses(false);
+      try {
+        const { data, error } = await withDataTimeout(
+          supabase.from('courses').select('*').order('pinned', { ascending: false }).order('created_at', { ascending: false })
+        );
+        if (error) throw error;
+        const liveCourses = (data as Course[]) || [];
+        setCourses(liveCourses.length > 0 ? liveCourses : OFFLINE_COURSES);
+        setUsingOfflineCourses(liveCourses.length === 0);
+      } catch {
+        setCourses(OFFLINE_COURSES);
+        setUsingOfflineCourses(true);
+      }
       setLoading(false);
     };
     load();
@@ -59,9 +72,9 @@ export default function CoursesPage() {
         <p className="text-muted-foreground mt-1">Premium courses curated for your preparation</p>
       </motion.div>
 
-      {!user && (
+      {(isGuest || usingOfflineCourses) && (
         <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 text-sm text-muted-foreground">
-          Guest mode is active. Live course content needs the backend/login service, so sign in when it is available to browse full courses.
+          Guest study mode is active. You can open these course resources now; saved progress and uploads will resume after login works.
         </div>
       )}
 
