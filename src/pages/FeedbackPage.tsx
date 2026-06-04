@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
+import { fetchPublicFeedback, submitPublicFeedback } from '@/lib/publicContent';
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } };
 
@@ -16,13 +17,14 @@ export default function FeedbackPage() {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [review, setReview] = useState('');
+  const [guestName, setGuestName] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState('');
   const [userFeedback, setUserFeedback] = useState<any>(null);
 
   const loadFeedbacks = async () => {
-    const { data } = await supabase.from('feedback').select('*').order('created_at', { ascending: false });
+    const data = await fetchPublicFeedback().catch(() => []);
     setFeedbacks(data || []);
     if (user) {
       const mine = (data || []).find(f => f.user_id === user.id);
@@ -33,14 +35,15 @@ export default function FeedbackPage() {
   useEffect(() => { loadFeedbacks(); }, [user]);
 
   const submitFeedback = async () => {
-    if (!user || !profile) return;
+    const displayName = (user ? profile?.display_name : guestName).trim();
+    if (!displayName) { toast.error('Please enter your name'); return; }
     if (rating === 0) { toast.error('Please select a star rating'); return; }
     setSubmitting(true);
-    const { error } = await supabase.from('feedback').insert({
-      user_id: user.id, display_name: profile.display_name, rating, review: review.trim() || null,
+    const { error } = await submitPublicFeedback({
+      user_id: user?.id || null, display_name: displayName, rating, review: review.trim() || null,
     });
     if (error) toast.error('Failed to submit');
-    else { toast.success('Thank you for your feedback! ⭐'); setRating(0); setReview(''); }
+    else { toast.success('Thank you for your feedback! ⭐'); setRating(0); setReview(''); if (!user) setGuestName(''); }
     setSubmitting(false);
     loadFeedbacks();
   };
@@ -86,10 +89,11 @@ export default function FeedbackPage() {
       </motion.div>
 
       {/* Submit form */}
-      {!userFeedback && user && (
+      {!userFeedback && (
         <motion.div initial="hidden" animate="visible" variants={fadeUp} transition={{ delay: 0.1 }}
           className="bg-card rounded-2xl border border-border p-6 space-y-4">
           <h3 className="font-bold font-display">Rate Rankers Star</h3>
+          {!user && <Input value={guestName} onChange={e => setGuestName(e.target.value)} placeholder="Your name" />}
           <div className="flex gap-2">
             {[1, 2, 3, 4, 5].map(s => (
               <button key={s} onMouseEnter={() => setHoverRating(s)} onMouseLeave={() => setHoverRating(0)}
