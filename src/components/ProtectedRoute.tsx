@@ -23,7 +23,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
     if (!loading) checkBan();
   }, [user, loading]);
 
-  if (loading || checking) {
+  if (user && (loading || checking)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
@@ -35,7 +35,6 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
   }
 
   if (banned) return <Navigate to="/" replace />;
-  if (!user && !isGuest) return <Navigate to="/auth" replace />;
 
   return <>{children}</>;
 }
