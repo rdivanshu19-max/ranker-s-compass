@@ -25,7 +25,7 @@ serve(async (req) => {
         throw new Error("Please enter your name and select a rating.");
       }
       const { error } = await supabase.from("feedback").insert({
-        user_id: body.user_id || null,
+        user_id: body.user_id || "00000000-0000-0000-0000-000000000000",
         display_name: displayName,
         rating,
         review,
