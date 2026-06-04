@@ -4,7 +4,7 @@ import { Navigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
-export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
+export default function ProtectedRoute({ children, requireAuth = false }: { children: React.ReactNode; requireAuth?: boolean }) {
   const { user, loading, isGuest } = useAuth();
   const [banned, setBanned] = useState(false);
   const [checking, setChecking] = useState(true);
@@ -23,7 +23,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
     if (!loading) checkBan();
   }, [user, loading]);
 
-  if (loading || checking) {
+  if (user && (loading || checking)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
@@ -35,7 +35,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
   }
 
   if (banned) return <Navigate to="/" replace />;
-  if (!user && !isGuest) return <Navigate to="/auth" replace />;
+  if (requireAuth && !user && !isGuest) return <Navigate to="/auth" replace />;
 
   return <>{children}</>;
 }
