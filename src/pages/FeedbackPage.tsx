@@ -35,7 +35,7 @@ export default function FeedbackPage() {
   useEffect(() => { loadFeedbacks(); }, [user]);
 
   const submitFeedback = async () => {
-    const displayName = (user ? profile?.display_name : guestName).trim();
+    const displayName = (user ? profile?.display_name || 'Student' : guestName).trim();
     if (!displayName) { toast.error('Please enter your name'); return; }
     if (rating === 0) { toast.error('Please select a star rating'); return; }
     setSubmitting(true);
