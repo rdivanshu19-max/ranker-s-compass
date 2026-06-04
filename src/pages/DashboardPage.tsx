@@ -26,6 +26,7 @@ import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { toast } from 'sonner';
 import { OFFLINE_LIBRARY_MATERIALS } from '@/data/guestStudyContent';
+import { fetchPublicMaterials } from '@/lib/publicContent';
 
 type TopicInsight = {
   topic: string;
@@ -181,11 +182,17 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!user) {
-      if (isGuest) {
-        setMaterialCount(OFFLINE_LIBRARY_MATERIALS.length);
-        setPinnedMaterials(OFFLINE_LIBRARY_MATERIALS.filter((material) => material.pinned));
-        setWeeklyStats(DAY_ORDER.map((day) => ({ day, minutes: 0 })));
-      }
+      fetchPublicMaterials()
+        .then(({ data }) => {
+          const publicMaterials = data.length > 0 ? data : OFFLINE_LIBRARY_MATERIALS;
+          setMaterialCount(publicMaterials.length);
+          setPinnedMaterials(publicMaterials.filter((material) => material.pinned));
+        })
+        .catch(() => {
+          setMaterialCount(OFFLINE_LIBRARY_MATERIALS.length);
+          setPinnedMaterials(OFFLINE_LIBRARY_MATERIALS.filter((material) => material.pinned));
+        });
+      setWeeklyStats(DAY_ORDER.map((day) => ({ day, minutes: 0 })));
       return;
     }
     const load = async () => {
