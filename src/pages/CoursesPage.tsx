@@ -5,7 +5,8 @@ import { GraduationCap, ExternalLink, BookOpen, Pin, Flame, TrendingUp, Star, Al
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { OFFLINE_COURSES, withDataTimeout } from '@/data/guestStudyContent';
+import { OFFLINE_COURSES } from '@/data/guestStudyContent';
+import { fetchPublicCourses } from '@/lib/publicContent';
 
 type CourseResource = { title: string; url: string; type: string };
 type Course = {
@@ -32,18 +33,9 @@ export default function CoursesPage() {
     const load = async () => {
       setLoading(true);
       setUsingOfflineCourses(false);
-      if (isGuest || !user) {
-        setCourses(OFFLINE_COURSES);
-        setUsingOfflineCourses(true);
-        setLoading(false);
-        return;
-      }
 
       try {
-        const { data, error } = await withDataTimeout(
-          supabase.from('courses').select('*').order('pinned', { ascending: false }).order('created_at', { ascending: false })
-        );
-        if (error) throw error;
+        const { data } = await fetchPublicCourses();
         const liveCourses = (data as Course[]) || [];
         setCourses(liveCourses.length > 0 ? liveCourses : OFFLINE_COURSES);
         setUsingOfflineCourses(liveCourses.length === 0);
