@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { OFFLINE_LIBRARY_MATERIALS, withDataTimeout } from '@/data/guestStudyContent';
+import { fetchPublicMaterials } from '@/lib/publicContent';
 
 const TYPES = ['Lectures', 'Lecture PDF', 'Books', 'PYQs', 'JEE', 'NEET', 'JEE Advanced', 'JEE Test', 'NEET Test', 'Physics', 'Chemistry', 'Maths', 'Biology', 'Boards', 'Other Material', 'Tests'];
 
@@ -26,18 +27,8 @@ export default function LibraryPage() {
 
   const loadMaterials = async () => {
     setUsingOfflineMaterials(false);
-    if (isGuest || !user) {
-      setMaterials(OFFLINE_LIBRARY_MATERIALS);
-      setUsingOfflineMaterials(true);
-      return;
-    }
-
     try {
-      const { data, error } = await withDataTimeout(
-        supabase.from('materials').select('*').order('pinned', { ascending: false }).order('created_at', { ascending: false })
-      );
-      if (error) throw error;
-      const liveMaterials = data || [];
+      const { data: liveMaterials } = await fetchPublicMaterials();
       setMaterials(liveMaterials.length > 0 ? liveMaterials : OFFLINE_LIBRARY_MATERIALS);
       setUsingOfflineMaterials(liveMaterials.length === 0);
     } catch {
