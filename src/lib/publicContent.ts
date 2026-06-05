@@ -32,27 +32,19 @@ const callPublicContentFunction = async (type: 'materials' | 'courses' | 'feedba
 
 export const fetchPublicMaterials = async (): Promise<{ data: any[]; source: PublicContentSource }> => {
   try {
-    const { data, error } = await withRequestTimeout(
-      supabase.from('materials').select('*').order('pinned', { ascending: false }).order('created_at', { ascending: false })
-    );
-    if (error) throw error;
-    return { data: data || [], source: 'live' };
-  } catch {
     const payload = await callPublicContentFunction('materials');
     return { data: payload.materials || [], source: 'live' };
+  } catch {
+    return { data: [], source: 'backup' };
   }
 };
 
 export const fetchPublicCourses = async (): Promise<{ data: any[]; source: PublicContentSource }> => {
   try {
-    const { data, error } = await withRequestTimeout(
-      supabase.from('courses').select('*').order('pinned', { ascending: false }).order('created_at', { ascending: false })
-    );
-    if (error) throw error;
-    return { data: data || [], source: 'live' };
-  } catch {
     const payload = await callPublicContentFunction('courses');
     return { data: payload.courses || [], source: 'live' };
+  } catch {
+    return { data: [], source: 'backup' };
   }
 };
 
@@ -70,11 +62,6 @@ export const fetchPublicFeedback = async (): Promise<any[]> => {
 };
 
 export const submitPublicFeedback = async (payload: { user_id: string | null; display_name: string; rating: number; review: string | null }) => {
-  try {
-    const { error } = await withRequestTimeout(supabase.from('feedback').insert(payload));
-    if (!error) return { error: null };
-  } catch {}
-
   const response = await withRequestTimeout(fetch(PUBLIC_CONTENT_URL, {
     method: 'POST',
     headers: {
