@@ -1,5 +1,3 @@
-import { supabase } from '@/lib/supabase';
-
 const PUBLIC_CONTENT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/public-content`;
 const ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 

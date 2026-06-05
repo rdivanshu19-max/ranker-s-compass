@@ -3,7 +3,7 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { Zap, BookOpen, Users, Download, Star, ArrowRight, Send, Sparkles, Target, Brain, GraduationCap, Shield, Heart, Quote, ChevronLeft, ChevronRight, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/lib/supabase';
+import { fetchPublicFeedback } from '@/lib/publicContent';
 
 const fadeUp = { hidden: { opacity: 0, y: 40 }, visible: { opacity: 1, y: 0 } };
 const stagger = { visible: { transition: { staggerChildren: 0.15 } } };
@@ -82,14 +82,10 @@ export default function LandingPage() {
 
   useEffect(() => {
     const loadFeedbackReviews = async () => {
-      const { data } = await supabase
-        .from('feedback')
-        .select('display_name, rating, review')
-        .not('review', 'is', null)
-        .gte('rating', 4)
-        .order('created_at', { ascending: false })
-        .limit(9);
+      const data = await fetchPublicFeedback();
       const liveReviews = (data || [])
+        .filter((item: any) => Number(item.rating) >= 4)
+        .slice(0, 9)
         .filter((item: any) => item.review?.trim())
         .map((item: any) => ({
           text: item.review.replace(/[*_`#]/g, '').trim(),
