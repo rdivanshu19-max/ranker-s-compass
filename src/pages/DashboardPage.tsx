@@ -182,17 +182,20 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!user) {
+      setMaterialCount(OFFLINE_LIBRARY_MATERIALS.length);
+      setPinnedMaterials(OFFLINE_LIBRARY_MATERIALS.filter((material) => material.pinned));
+      setWeeklyStats(DAY_ORDER.map((day) => ({ day, minutes: 0 })));
       fetchPublicMaterials()
         .then(({ data }) => {
-          const publicMaterials = data.length > 0 ? data : OFFLINE_LIBRARY_MATERIALS;
-          setMaterialCount(publicMaterials.length);
-          setPinnedMaterials(publicMaterials.filter((material) => material.pinned));
+          if (data.length > 0) {
+            setMaterialCount(data.length);
+            setPinnedMaterials(data.filter((material) => material.pinned));
+          }
         })
         .catch(() => {
           setMaterialCount(OFFLINE_LIBRARY_MATERIALS.length);
           setPinnedMaterials(OFFLINE_LIBRARY_MATERIALS.filter((material) => material.pinned));
         });
-      setWeeklyStats(DAY_ORDER.map((day) => ({ day, minutes: 0 })));
       return;
     }
     const load = async () => {

@@ -4,6 +4,18 @@ import { Navigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
+const withCheckTimeout = async <T,>(request: PromiseLike<T>, timeoutMs = 4000): Promise<T> => {
+  let timer: ReturnType<typeof setTimeout>;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error('Ban check timed out')), timeoutMs);
+  });
+  try {
+    return await Promise.race([Promise.resolve(request), timeout]);
+  } finally {
+    clearTimeout(timer!);
+  }
+};
+
 export default function ProtectedRoute({ children, requireAuth = false }: { children: React.ReactNode; requireAuth?: boolean }) {
   const { user, loading, isGuest } = useAuth();
   const [banned, setBanned] = useState(false);
@@ -12,11 +24,15 @@ export default function ProtectedRoute({ children, requireAuth = false }: { chil
   useEffect(() => {
     const checkBan = async () => {
       if (!user) { setChecking(false); return; }
-      const { data } = await supabase.from('banned_users').select('id').eq('user_id', user.id).maybeSingle();
-      if (data) {
-        setBanned(true);
-        toast.error('Your account has been banned. Contact support if you think this is a mistake.');
-        await supabase.auth.signOut();
+      try {
+        const { data } = await withCheckTimeout(supabase.from('banned_users').select('id').eq('user_id', user.id).maybeSingle());
+        if (data) {
+          setBanned(true);
+          toast.error('Your account has been banned. Contact support if you think this is a mistake.');
+          await supabase.auth.signOut();
+        }
+      } catch {
+        // Do not block the whole app if the backend is slow after login.
       }
       setChecking(false);
     };
