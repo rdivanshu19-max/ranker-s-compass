@@ -26,11 +26,14 @@ export default function LibraryPage() {
   useEffect(() => { loadMaterials(); }, [user, isGuest]);
 
   const loadMaterials = async () => {
-    setUsingOfflineMaterials(false);
+    setMaterials(OFFLINE_LIBRARY_MATERIALS);
+    setUsingOfflineMaterials(true);
     try {
       const { data: liveMaterials } = await fetchPublicMaterials();
-      setMaterials(liveMaterials.length > 0 ? liveMaterials : OFFLINE_LIBRARY_MATERIALS);
-      setUsingOfflineMaterials(liveMaterials.length === 0);
+      if (liveMaterials.length > 0) {
+        setMaterials(liveMaterials);
+        setUsingOfflineMaterials(false);
+      }
     } catch {
       setMaterials(OFFLINE_LIBRARY_MATERIALS);
       setUsingOfflineMaterials(true);

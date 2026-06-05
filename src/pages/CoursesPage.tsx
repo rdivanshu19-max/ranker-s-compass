@@ -31,19 +31,21 @@ export default function CoursesPage() {
 
   useEffect(() => {
     const load = async () => {
-      setLoading(true);
-      setUsingOfflineCourses(false);
+      setCourses(OFFLINE_COURSES);
+      setUsingOfflineCourses(true);
+      setLoading(false);
 
       try {
         const { data } = await fetchPublicCourses();
         const liveCourses = (data as Course[]) || [];
-        setCourses(liveCourses.length > 0 ? liveCourses : OFFLINE_COURSES);
-        setUsingOfflineCourses(liveCourses.length === 0);
+        if (liveCourses.length > 0) {
+          setCourses(liveCourses);
+          setUsingOfflineCourses(false);
+        }
       } catch {
         setCourses(OFFLINE_COURSES);
         setUsingOfflineCourses(true);
       }
-      setLoading(false);
     };
     load();
   }, [user, isGuest]);

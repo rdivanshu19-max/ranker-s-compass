@@ -52,6 +52,18 @@ const withAuthTimeout = async <T,>(request: Promise<T>): Promise<T> => {
   }
 };
 
+const withBackendTimeout = async <T,>(request: PromiseLike<T>, timeoutMs = 5000): Promise<T> => {
+  let timer: ReturnType<typeof setTimeout>;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error('Backend request timed out')), timeoutMs);
+  });
+  try {
+    return await Promise.race([Promise.resolve(request), timeout]);
+  } finally {
+    clearTimeout(timer!);
+  }
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -61,12 +73,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isModerator, setIsModerator] = useState(false);
   const [isGuest, setIsGuest] = useState(() => localStorage.getItem(GUEST_MODE_KEY) === 'true');
 
-  const fetchProfile = async (userId: string) => {
-    const { data } = await supabase.from('profiles').select('display_name, bio').eq('user_id', userId).single();
-    if (data) setProfile(data);
-    const { data: roles } = await supabase.from('user_roles').select('role').eq('user_id', userId);
-    setIsAdmin(roles?.some(r => r.role === 'admin') || false);
-    setIsModerator(roles?.some(r => r.role === 'moderator') || false);
+  const fetchProfile = async (userId: string, fallbackName?: string) => {
+    try {
+      const { data } = await withBackendTimeout(supabase.from('profiles').select('display_name, bio').eq('user_id', userId).single());
+      setProfile(data || { display_name: fallbackName || 'Student', bio: '' });
+    } catch {
+      setProfile({ display_name: fallbackName || 'Student', bio: '' });
+    }
+
+    try {
+      const { data: roles } = await withBackendTimeout(supabase.from('user_roles').select('role').eq('user_id', userId));
+      setIsAdmin(roles?.some(r => r.role === 'admin') || false);
+      setIsModerator(roles?.some(r => r.role === 'moderator') || false);
+    } catch {
+      setIsAdmin(false);
+      setIsModerator(false);
+    }
   };
 
   const refreshProfile = async () => {
@@ -84,7 +106,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
       if (currentSession?.user) {
-        setTimeout(() => fetchProfile(currentSession.user.id), 0);
+        const name = currentSession.user.user_metadata?.display_name || currentSession.user.email?.split('@')[0] || 'Student';
+        setProfile({ display_name: name, bio: '' });
+        setTimeout(() => fetchProfile(currentSession.user.id, name), 0);
       } else {
         setProfile(null);
         setIsAdmin(false);
@@ -96,7 +120,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     withAuthTimeout(supabase.auth.getSession()).then(({ data: { session: initialSession } }) => {
       setSession(initialSession);
       setUser(initialSession?.user ?? null);
-      if (initialSession?.user) fetchProfile(initialSession.user.id);
+      if (initialSession?.user) {
+        const name = initialSession.user.user_metadata?.display_name || initialSession.user.email?.split('@')[0] || 'Student';
+        setProfile({ display_name: name, bio: '' });
+        fetchProfile(initialSession.user.id, name);
+      }
       setLoading(false);
     }).catch(() => setLoading(false));
 

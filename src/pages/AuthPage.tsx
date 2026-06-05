@@ -47,17 +47,8 @@ export default function AuthPage() {
         }
         const { error: signUpError } = await signUp(email, password, displayName);
         if (signUpError) throw signUpError;
-
-        // Check if banned
-        const { data: banCheck } = await supabase.from('banned_users').select('id').eq('user_id', email);
-        if (banCheck && banCheck.length > 0) {
-          toast.error('This account has been banned.');
-          await supabase.auth.signOut();
-          setLoading(false);
-          return;
-        }
-
         toast.success('Account created! You are now signed in.');
+        navigate('/app', { replace: true });
         if (refCode) {
           try {
             const { data: referrer } = await supabase.from('profiles').select('user_id').eq('referral_code', refCode).single();
@@ -71,22 +62,8 @@ export default function AuthPage() {
           } catch {}
         }
       } else {
-        // Check ban before login
         const { error: signInError } = await signIn(email, password);
         if (signInError) throw signInError;
-
-        // Check ban after login
-        const { data: { user: loggedUser } } = await supabase.auth.getUser();
-        if (loggedUser) {
-          const { data: banData } = await supabase.from('banned_users').select('id, reason').eq('user_id', loggedUser.id).maybeSingle();
-          if (banData) {
-            toast.error(`Your account has been banned. Reason: ${banData.reason || 'No reason provided'}`);
-            await supabase.auth.signOut();
-            setLoading(false);
-            return;
-          }
-        }
-
         toast.success('Welcome back!');
         navigate('/app', { replace: true });
       }
