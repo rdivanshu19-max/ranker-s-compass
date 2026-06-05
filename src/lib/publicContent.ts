@@ -5,7 +5,7 @@ const ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 export type PublicContentSource = 'live' | 'backup';
 
-export const withRequestTimeout = async <T,>(request: PromiseLike<T>, timeoutMs = 8000): Promise<T> => {
+export const withRequestTimeout = async <T,>(request: PromiseLike<T>, timeoutMs = 3000): Promise<T> => {
   let timer: ReturnType<typeof setTimeout>;
   const timeout = new Promise<never>((_, reject) => {
     timer = setTimeout(() => reject(new Error('Request timed out')), timeoutMs);
