@@ -11,6 +11,11 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
 );
 
+const json = (payload: unknown, status = 200) => new Response(JSON.stringify(payload), {
+  status,
+  headers: { ...corsHeaders, "Content-Type": "application/json" },
+});
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -31,29 +36,26 @@ serve(async (req) => {
         review,
       });
       if (error) throw error;
-      return new Response(JSON.stringify({ ok: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return json({ ok: true });
     }
 
     const url = new URL(req.url);
     const type = url.searchParams.get("type");
     if (type === "materials") {
       const { data, error } = await supabase.from("materials").select("*").order("pinned", { ascending: false }).order("created_at", { ascending: false });
-      if (error) throw error;
-      return new Response(JSON.stringify({ materials: data || [] }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return json({ materials: error ? [] : data || [] });
     }
     if (type === "courses") {
       const { data, error } = await supabase.from("courses").select("*").order("pinned", { ascending: false }).order("created_at", { ascending: false });
-      if (error) throw error;
-      return new Response(JSON.stringify({ courses: data || [] }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return json({ courses: error ? [] : data || [] });
     }
     if (type === "feedback") {
       const { data, error } = await supabase.from("feedback").select("*").order("created_at", { ascending: false }).limit(100);
-      if (error) throw error;
-      return new Response(JSON.stringify({ feedback: data || [] }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return json({ feedback: error ? [] : data || [] });
     }
 
-    return new Response(JSON.stringify({ error: "Unknown content type" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return json({ error: "Unknown content type" }, 400);
   } catch (error) {
-    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : "Request failed" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return json({ error: error instanceof Error ? error.message : "Request failed" }, 400);
   }
 });
