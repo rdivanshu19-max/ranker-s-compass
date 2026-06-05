@@ -50,14 +50,10 @@ export const fetchPublicCourses = async (): Promise<{ data: any[]; source: Publi
 
 export const fetchPublicFeedback = async (): Promise<any[]> => {
   try {
-    const { data, error } = await withRequestTimeout(
-      supabase.from('feedback').select('*').order('created_at', { ascending: false })
-    );
-    if (error) throw error;
-    return data || [];
-  } catch {
     const payload = await callPublicContentFunction('feedback');
     return payload.feedback || [];
+  } catch {
+    return [];
   }
 };
 
