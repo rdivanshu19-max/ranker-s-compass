@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,6 +10,8 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
 );
+
+const querySignal = () => AbortSignal.timeout(7000);
 
 const json = (payload: unknown, status = 200) => new Response(JSON.stringify(payload), {
   status,
@@ -42,16 +44,19 @@ serve(async (req) => {
     const url = new URL(req.url);
     const type = url.searchParams.get("type");
     if (type === "materials") {
-      const { data, error } = await supabase.from("materials").select("*").order("pinned", { ascending: false }).order("created_at", { ascending: false });
-      return json({ materials: error ? [] : data || [] });
+      const { data, error } = await supabase.from("materials").select("*").order("pinned", { ascending: false }).order("created_at", { ascending: false }).abortSignal(querySignal());
+      if (error) throw error;
+      return json({ materials: data || [] });
     }
     if (type === "courses") {
-      const { data, error } = await supabase.from("courses").select("*").order("pinned", { ascending: false }).order("created_at", { ascending: false });
-      return json({ courses: error ? [] : data || [] });
+      const { data, error } = await supabase.from("courses").select("*").order("pinned", { ascending: false }).order("created_at", { ascending: false }).abortSignal(querySignal());
+      if (error) throw error;
+      return json({ courses: data || [] });
     }
     if (type === "feedback") {
-      const { data, error } = await supabase.from("feedback").select("*").order("created_at", { ascending: false }).limit(100);
-      return json({ feedback: error ? [] : data || [] });
+      const { data, error } = await supabase.from("feedback").select("*").order("created_at", { ascending: false }).limit(100).abortSignal(querySignal());
+      if (error) throw error;
+      return json({ feedback: data || [] });
     }
 
     return json({ error: "Unknown content type" }, 400);
