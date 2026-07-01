@@ -7,45 +7,26 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
-import { OFFLINE_LIBRARY_MATERIALS, withDataTimeout } from '@/data/guestStudyContent';
-import { fetchPublicMaterials } from '@/lib/publicContent';
 
 const TYPES = ['Lectures', 'Lecture PDF', 'Books', 'PYQs', 'JEE', 'NEET', 'JEE Advanced', 'JEE Test', 'NEET Test', 'Physics', 'Chemistry', 'Maths', 'Biology', 'Boards', 'Other Material', 'Tests'];
 
 export default function LibraryPage() {
-  const { user, isGuest } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [materials, setMaterials] = useState<any[]>([]);
-  const [usingOfflineMaterials, setUsingOfflineMaterials] = useState(false);
   const [search, setSearch] = useState('');
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [ratings, setRatings] = useState<Record<string, number>>({});
   const [ratingCounts, setRatingCounts] = useState<Record<string, number>>({});
   const [userRatings, setUserRatings] = useState<Record<string, number>>({});
 
-  useEffect(() => { loadMaterials(); }, [user, isGuest]);
+  useEffect(() => { loadMaterials(); }, [user]);
 
   const loadMaterials = async () => {
-    setMaterials(OFFLINE_LIBRARY_MATERIALS);
-    setUsingOfflineMaterials(true);
-    try {
-      const { data: liveMaterials } = await fetchPublicMaterials();
-      if (liveMaterials.length > 0) {
-        setMaterials(liveMaterials);
-        setUsingOfflineMaterials(false);
-      }
-    } catch {
-      setMaterials(OFFLINE_LIBRARY_MATERIALS);
-      setUsingOfflineMaterials(true);
-    }
+    const { data: liveMaterials } = await supabase.from('materials').select('*').order('pinned', { ascending: false }).order('updated_at', { ascending: false });
+    setMaterials(liveMaterials || []);
 
-    let allRatings: Array<{ material_id: string; rating: number }> | null = null;
-    try {
-      const ratingsResult = await withDataTimeout(supabase.from('ratings').select('material_id, rating'), 4000);
-      allRatings = ratingsResult.data || null;
-    } catch {
-      allRatings = null;
-    }
+    const { data: allRatings } = await supabase.from('ratings').select('material_id, rating');
     const avgMap: Record<string, { sum: number; count: number }> = {};
     allRatings?.forEach(r => {
       if (!avgMap[r.material_id]) avgMap[r.material_id] = { sum: 0, count: 0 };
@@ -61,7 +42,7 @@ export default function LibraryPage() {
     setRatings(avgRatings);
     setRatingCounts(counts);
     if (user) {
-      const { data: rData } = await withDataTimeout(supabase.from('ratings').select('material_id, rating').eq('user_id', user.id), 4000).catch(() => ({ data: null }));
+      const { data: rData } = await supabase.from('ratings').select('material_id, rating').eq('user_id', user.id);
       const ur: Record<string, number> = {};
       rData?.forEach(r => { ur[r.material_id] = r.rating; });
       setUserRatings(ur);
@@ -97,11 +78,6 @@ export default function LibraryPage() {
         <p className="text-muted-foreground mt-1">Browse and access free study materials</p>
       </motion.div>
 
-      {(isGuest || usingOfflineMaterials) && (
-        <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 text-sm text-muted-foreground">
-          Guest study mode is active. You can open these materials now; ratings, saved downloads and personal tracking will resume after login works.
-        </div>
-      )}
 
       {/* Courses CTA */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.05 }}

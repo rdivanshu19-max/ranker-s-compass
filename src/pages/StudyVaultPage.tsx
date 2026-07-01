@@ -6,7 +6,7 @@ import { FolderLock, Plus, ExternalLink, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import AccountRequired from '@/components/AccountRequired';
+
 
 export default function StudyVaultPage() {
   const { user } = useAuth();
@@ -35,9 +35,7 @@ export default function StudyVaultPage() {
     loadItems();
   };
 
-  if (!user) {
-    return <AccountRequired title="Sign in to use Study Vault" description="Your vault is private and saved to your account, so guest mode cannot create or delete personal links here." />;
-  }
+  if (!user) return null;
 
   return (
     <div className="space-y-6">
