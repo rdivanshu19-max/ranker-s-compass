@@ -168,7 +168,7 @@ export default function AITestPage() {
 
   const startTest = async () => {
     if (!user) {
-      toast.error('AI tests need a signed-in account. Guest mode is temporary access while login is restored.');
+      toast.error('Please sign in to take AI tests.');
       return;
     }
     if (!unlimited && remaining <= 0) {
