@@ -25,8 +25,6 @@ import { Progress } from '@/components/ui/progress';
 import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { toast } from 'sonner';
-import { OFFLINE_LIBRARY_MATERIALS } from '@/data/guestStudyContent';
-import { fetchPublicMaterials } from '@/lib/publicContent';
 
 type TopicInsight = {
   topic: string;
@@ -98,7 +96,7 @@ const deriveTopicInsights = (
 };
 
 export default function DashboardPage() {
-  const { user, profile, isGuest } = useAuth();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
 
   const [materialCount, setMaterialCount] = useState(0);
@@ -181,23 +179,7 @@ export default function DashboardPage() {
   }, [user]);
 
   useEffect(() => {
-    if (!user) {
-      setMaterialCount(OFFLINE_LIBRARY_MATERIALS.length);
-      setPinnedMaterials(OFFLINE_LIBRARY_MATERIALS.filter((material) => material.pinned));
-      setWeeklyStats(DAY_ORDER.map((day) => ({ day, minutes: 0 })));
-      fetchPublicMaterials()
-        .then(({ data }) => {
-          if (data.length > 0) {
-            setMaterialCount(data.length);
-            setPinnedMaterials(data.filter((material) => material.pinned));
-          }
-        })
-        .catch(() => {
-          setMaterialCount(OFFLINE_LIBRARY_MATERIALS.length);
-          setPinnedMaterials(OFFLINE_LIBRARY_MATERIALS.filter((material) => material.pinned));
-        });
-      return;
-    }
+    if (!user) return;
     const load = async () => {
       const [mats, downloads, explored, tests, pinned, vault, sessions, results] = await Promise.all([
         supabase.from('materials').select('id', { count: 'exact', head: true }),
@@ -223,7 +205,7 @@ export default function DashboardPage() {
     load();
     loadWeeklyStats();
     checkBadges();
-  }, [user, isGuest, loadWeeklyStats, checkBadges]);
+  }, [user, loadWeeklyStats, checkBadges]);
 
   const startTimer = () => {
     if (isTimerRunning) return;

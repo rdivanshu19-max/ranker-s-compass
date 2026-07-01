@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
-import { Zap, ArrowLeft, UserRound } from 'lucide-react';
+import { Zap, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function AuthPage() {
@@ -16,7 +16,7 @@ export default function AuthPage() {
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [loading, setLoading] = useState(false);
-  const { user, signUp, signIn, requestPasswordReset, enterGuestMode } = useAuth();
+  const { user, signUp, signIn, requestPasswordReset } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -88,11 +88,6 @@ export default function AuthPage() {
     }
   };
 
-  const continueAsGuest = () => {
-    enterGuestMode();
-    toast.success('Guest mode opened. You can study while login is being restored.');
-    navigate('/app', { replace: true });
-  };
 
   return (
     <div className="min-h-screen bg-hero flex items-center justify-center p-4">
@@ -141,14 +136,6 @@ export default function AuthPage() {
             </Button>
           </form>
 
-          <div className="mt-4 space-y-3">
-            <Button type="button" variant="outline" size="lg" className="w-full" onClick={continueAsGuest} disabled={loading}>
-              <UserRound className="w-4 h-4" /> Continue as Guest
-            </Button>
-            <p className="text-[11px] text-muted-foreground text-center leading-relaxed">
-              Emergency access: open Dashboard, Library and Courses without an account. Saved progress, AI, profile, notifications, vault, admin and moderator features still need the backend/login service.
-            </p>
-          </div>
 
           <div className="mt-6 text-center">
             <button type="button" onClick={() => setIsSignUp(!isSignUp)} className="text-sm text-primary hover:underline">

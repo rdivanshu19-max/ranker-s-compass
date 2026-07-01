@@ -18,7 +18,7 @@ import { toast } from 'sonner';
 import { useAILimit } from '@/hooks/useAILimit';
 import AILoadingScreen from '@/components/AILoadingScreen';
 import confetti from 'canvas-confetti';
-import AccountRequired from '@/components/AccountRequired';
+
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
@@ -311,9 +311,7 @@ export default function AstraDashboard() {
     `Daily check-in: I completed ${completedTasks}/${dailyTasks.length} tasks today (${taskProgress}%). ${dailyTasks.filter(t => !t.done).map(t => `Incomplete: ${t.text}`).join('. ')}. Give me feedback on my discipline and adjust tomorrow's plan.`
   );
 
-  if (!user) {
-    return <AccountRequired title="Sign in to use ASTRA Mentor" description="ASTRA needs your account, test history and saved study data to keep context. Guest mode is only temporary access while login is being restored." />;
-  }
+  if (!user) return null;
 
   return (
     <motion.div id="astra-mentor" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}

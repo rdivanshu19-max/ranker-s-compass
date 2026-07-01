@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import BadgeChart from '@/components/BadgeChart';
-import AccountRequired from '@/components/AccountRequired';
+
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
@@ -127,9 +127,7 @@ export default function ProfilePage() {
     setConfirmStep(0);
   };
 
-  if (!user) {
-    return <AccountRequired title="Sign in to view your profile" description="Profile, badges, referrals and account deletion are account-only features and cannot run in guest mode." />;
-  }
+  if (!user) return null;
 
   const referralLink = `${window.location.origin}/auth?ref=${referralCode}`;
   const copyReferralLink = () => {
