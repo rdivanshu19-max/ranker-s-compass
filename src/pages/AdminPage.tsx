@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { motion } from 'framer-motion';
 import {
   Shield, Plus, Trash2, Pin, ToggleLeft, ToggleRight, Edit3, AlertTriangle,
-  Users, Ban, Search, MessageSquare, CheckCircle, GraduationCap, Bell, Upload, Tag, Image,
+  Users, Ban, Search, MessageSquare, CheckCircle, LayoutGrid, Bell, Upload, Tag, Image,
   ShieldCheck, Flag, UserPlus, UserMinus, History,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/alert-dialog';
 
 const DEFAULT_TYPES = ['Lectures', 'Lecture PDF', 'Books', 'PYQs', 'JEE', 'NEET', 'JEE Advanced', 'JEE Test', 'NEET Test', 'Other Material', 'Tests', 'Physics', 'Chemistry', 'Maths', 'Biology', 'Boards'];
-const COURSE_TAGS = ['popular', 'hot', 'most used', 'boards'];
+import StudyAppsAdmin from '@/components/admin/StudyAppsAdmin';
 const MAX_PINNED = 10;
 
 const reportSteps = ['pending', 'reviewed', 'action_taken'];
@@ -49,7 +49,7 @@ export default function AdminPage() {
   const [editDescription, setEditDescription] = useState('');
   const [editMode, setEditMode] = useState<'categories' | 'title'>('categories');
   const [pinnedCount, setPinnedCount] = useState(0);
-  const [tab, setTab] = useState<'materials' | 'users' | 'feedback' | 'courses' | 'notifications' | 'moderators' | 'reports' | 'logs'>('materials');
+  const [tab, setTab] = useState<'materials' | 'users' | 'feedback' | 'apps' | 'notifications' | 'moderators' | 'reports' | 'logs'>('materials');
   const [moderators, setModerators] = useState<Set<string>>(new Set());
   const [reports, setReports] = useState<any[]>([]);
   const [activityLogs, setActivityLogs] = useState<any[]>([]);
@@ -62,21 +62,8 @@ export default function AdminPage() {
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState('');
 
-  // Courses state
-  const [courses, setCourses] = useState<any[]>([]);
-  const [courseTitle, setCourseTitle] = useState('');
-  const [courseDesc, setCourseDesc] = useState('');
-  const [coursePosterFile, setCoursePosterFile] = useState<File | null>(null);
-  const [courseResources, setCourseResources] = useState<{ title: string; url: string; type: string }[]>([]);
-  const [addingCourse, setAddingCourse] = useState(false);
-  const [courseTags, setCourseTags] = useState<string[]>([]);
-  const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
-  const [editCourseTitle, setEditCourseTitle] = useState('');
-  const [editCourseDesc, setEditCourseDesc] = useState('');
-  const [editCourseTags, setEditCourseTags] = useState<string[]>([]);
-  const posterInputRef = useRef<HTMLInputElement>(null);
-  const editPosterInputRef = useRef<HTMLInputElement>(null);
-  const [editCoursePosterFile, setEditCoursePosterFile] = useState<File | null>(null);
+
+
 
   // Notification state
   const [notifTitle, setNotifTitle] = useState('');
@@ -90,7 +77,7 @@ export default function AdminPage() {
   const [editNotifMessage, setEditNotifMessage] = useState('');
   const notifImageRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { loadMaterials(); loadUsers(); loadFeedbacks(); loadCourses(); loadNotifications(); loadModerators(); loadReports(); loadActivityLogs(); }, []);
+  useEffect(() => { loadMaterials(); loadUsers(); loadFeedbacks(); loadNotifications(); loadModerators(); loadReports(); loadActivityLogs(); }, []);
 
   const loadModerators = async () => {
     const { data } = await supabase.from('user_roles').select('user_id').eq('role', 'moderator');
@@ -167,10 +154,8 @@ export default function AdminPage() {
     setFeedbacks(data || []);
   };
 
-  const loadCourses = async () => {
-    const { data } = await supabase.from('courses').select('*').order('created_at', { ascending: false });
-    setCourses(data || []);
-  };
+
+
 
   const addMaterial = async () => {
     if (!title.trim() || !link.trim()) { toast.error('Fill all fields'); return; }
@@ -286,74 +271,11 @@ export default function AdminPage() {
     loadFeedbacks();
   };
 
-  // Upload poster to storage
-  const uploadPoster = async (file: File): Promise<string | null> => {
-    const ext = file.name.split('.').pop();
-    const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-    const { error } = await supabase.storage.from('course-posters').upload(path, file);
-    if (error) { toast.error('Failed to upload poster'); return null; }
-    const { data: { publicUrl } } = supabase.storage.from('course-posters').getPublicUrl(path);
-    return publicUrl;
-  };
 
-  const addCourse = async () => {
-    if (!courseTitle.trim()) { toast.error('Course title required'); return; }
-    let posterUrl = '';
-    if (coursePosterFile) {
-      const url = await uploadPoster(coursePosterFile);
-      if (!url) return;
-      posterUrl = url;
-    }
-    const { error } = await supabase.from('courses').insert({
-      title: courseTitle.trim(),
-      description: courseDesc.trim(),
-      poster_url: posterUrl,
-      resources: courseResources.filter(r => r.url.trim()),
-      tags: courseTags,
-      created_by: user!.id,
-    } as any);
-    if (error) { toast.error('Failed: ' + error.message); return; }
-    await supabase.from('activity_log').insert({ actor_id: user!.id, actor_role: 'admin', action: 'upload_course', target_type: 'course', target_id: courseTitle.trim(), details: { title: courseTitle.trim(), resources: courseResources.filter(r => r.url.trim()).length, tags: courseTags } as any });
-    toast.success('Course added!');
-    setCourseTitle(''); setCourseDesc(''); setCoursePosterFile(null); setCourseResources([]); setCourseTags([]); setAddingCourse(false);
-    loadCourses();
-  };
 
-  const deleteCourse = async (id: string) => {
-    await supabase.from('courses').delete().eq('id', id);
-    toast.success('Course deleted');
-    loadCourses();
-  };
 
-  const toggleCoursePin = async (id: string, pinned: boolean) => {
-    await supabase.from('courses').update({ pinned: !pinned } as any).eq('id', id);
-    loadCourses();
-  };
 
-  const startEditCourse = (c: any) => {
-    setEditingCourseId(c.id);
-    setEditCourseTitle(c.title);
-    setEditCourseDesc(c.description || '');
-    setEditCourseTags(c.tags || []);
-    setEditCoursePosterFile(null);
-  };
 
-  const saveEditCourse = async (id: string) => {
-    const updates: any = { title: editCourseTitle.trim(), description: editCourseDesc.trim(), tags: editCourseTags };
-    if (editCoursePosterFile) {
-      const url = await uploadPoster(editCoursePosterFile);
-      if (url) updates.poster_url = url;
-    }
-    await supabase.from('courses').update(updates).eq('id', id);
-    await supabase.from('activity_log').insert({ actor_id: user!.id, actor_role: 'admin', action: 'edit_course', target_type: 'course', target_id: id, details: updates });
-    toast.success('Course updated!');
-    setEditingCourseId(null);
-    loadCourses();
-  };
-
-  const addResourceField = () => setCourseResources(prev => [...prev, { title: '', url: '', type: 'link' }]);
-  const updateResource = (index: number, field: string, value: string) => setCourseResources(prev => prev.map((r, i) => i === index ? { ...r, [field]: value } : r));
-  const removeResource = (index: number) => setCourseResources(prev => prev.filter((_, i) => i !== index));
 
   const uploadNotifImage = async (file: File): Promise<string | null> => {
     const ext = file.name.split('.').pop();
@@ -445,11 +367,11 @@ export default function AdminPage() {
           <h1 className="text-3xl font-bold font-display flex items-center gap-2">
             <Shield className="w-8 h-8 text-primary" /> Admin <span className="text-gradient">Panel</span>
           </h1>
-          <p className="text-muted-foreground mt-1">Manage materials, users, feedback, courses & notifications</p>
+          <p className="text-muted-foreground mt-1">Manage materials, users, feedback, study apps & notifications</p>
         </div>
         <div className="flex gap-2 flex-wrap">
-          {(['materials', 'users', 'feedback', 'courses', 'notifications', 'moderators', 'reports', 'logs'] as const).map(t => {
-            const icons: any = { materials: null, users: Users, feedback: MessageSquare, courses: GraduationCap, notifications: Bell, moderators: ShieldCheck, reports: Flag, logs: History };
+          {(['materials', 'users', 'feedback', 'apps', 'notifications', 'moderators', 'reports', 'logs'] as const).map(t => {
+            const icons: any = { materials: null, users: Users, feedback: MessageSquare, apps: LayoutGrid, notifications: Bell, moderators: ShieldCheck, reports: Flag, logs: History };
             const Icon = icons[t];
             return (
               <Button key={t} variant={tab === t ? 'default' : 'outline'} size="sm" onClick={() => setTab(t)} className="gap-1 capitalize">
@@ -665,128 +587,9 @@ export default function AdminPage() {
       )}
 
       {/* ========== COURSES TAB ========== */}
-      {tab === 'courses' && (
-        <div className="space-y-4">
-          <div className="flex justify-end">
-            <Button onClick={() => setAddingCourse(!addingCourse)}><Plus className="w-4 h-4 mr-1" /> Add Course</Button>
-          </div>
+      {/* ========== STUDY APPS TAB ========== */}
+      {tab === 'apps' && <StudyAppsAdmin actorId={user!.id} />}
 
-          {addingCourse && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-card rounded-2xl border border-border p-5 space-y-4">
-              <Input value={courseTitle} onChange={e => setCourseTitle(e.target.value)} placeholder="Course title" />
-              <Textarea value={courseDesc} onChange={e => setCourseDesc(e.target.value)} placeholder="Description" rows={2} />
-              
-              {/* Poster upload */}
-              <div>
-                <label className="text-sm font-medium mb-2 block">Poster Image</label>
-                <input ref={posterInputRef} type="file" accept="image/*" className="hidden"
-                  onChange={e => setCoursePosterFile(e.target.files?.[0] || null)} />
-                <Button variant="outline" size="sm" onClick={() => posterInputRef.current?.click()} className="gap-1">
-                  <Upload className="w-3 h-3" /> {coursePosterFile ? coursePosterFile.name : 'Upload Poster'}
-                </Button>
-              </div>
-
-              {/* Tags */}
-              <div>
-                <label className="text-sm font-medium mb-2 block">Tags</label>
-                <div className="flex flex-wrap gap-2">
-                  {COURSE_TAGS.map(t => (
-                    <Button key={t} variant={courseTags.includes(t) ? 'default' : 'outline'} size="sm"
-                      onClick={() => setCourseTags(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t])}>
-                      <Tag className="w-3 h-3 mr-1" /> {t}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Resources */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm font-medium">Resources</label>
-                  <Button variant="outline" size="sm" onClick={addResourceField}><Plus className="w-3 h-3 mr-1" /> Add</Button>
-                </div>
-                {courseResources.map((r, i) => (
-                  <div key={i} className="flex gap-2 mb-2">
-                    <Input value={r.title} onChange={e => updateResource(i, 'title', e.target.value)} placeholder="Title" className="flex-1" />
-                    <Input value={r.url} onChange={e => updateResource(i, 'url', e.target.value)} placeholder="URL" className="flex-1" />
-                    <Button variant="ghost" size="icon" onClick={() => removeResource(i)}><Trash2 className="w-3 h-3 text-destructive" /></Button>
-                  </div>
-                ))}
-              </div>
-
-              <div className="flex gap-2">
-                <Button onClick={addCourse}>Add Course</Button>
-                <Button variant="outline" onClick={() => setAddingCourse(false)}>Cancel</Button>
-              </div>
-            </motion.div>
-          )}
-
-          <div className="space-y-3">
-            {courses.length === 0 ? (
-              <p className="text-center py-10 text-muted-foreground">No courses yet</p>
-            ) : courses.map(c => (
-              <div key={c.id} className="bg-card rounded-xl border border-border p-4">
-                {editingCourseId === c.id ? (
-                  <div className="space-y-3">
-                    <Input value={editCourseTitle} onChange={e => setEditCourseTitle(e.target.value)} placeholder="Title" />
-                    <Textarea value={editCourseDesc} onChange={e => setEditCourseDesc(e.target.value)} placeholder="Description" rows={2} />
-                    <div>
-                      <label className="text-xs font-medium mb-1 block">Change Poster</label>
-                      <input ref={editPosterInputRef} type="file" accept="image/*" className="hidden"
-                        onChange={e => setEditCoursePosterFile(e.target.files?.[0] || null)} />
-                      <Button variant="outline" size="sm" onClick={() => editPosterInputRef.current?.click()} className="gap-1">
-                        <Image className="w-3 h-3" /> {editCoursePosterFile ? editCoursePosterFile.name : 'Upload New Poster'}
-                      </Button>
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium mb-1 block">Tags</label>
-                      <div className="flex flex-wrap gap-1.5">
-                        {COURSE_TAGS.map(t => (
-                          <Button key={t} variant={editCourseTags.includes(t) ? 'default' : 'outline'} size="sm" className="text-xs"
-                            onClick={() => setEditCourseTags(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t])}>
-                            {t}
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button size="sm" onClick={() => saveEditCourse(c.id)}>Save</Button>
-                      <Button size="sm" variant="outline" onClick={() => setEditingCourseId(null)}>Cancel</Button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-bold">{c.title}</h3>
-                        {c.pinned && <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/20 text-primary font-semibold">📌</span>}
-                      </div>
-                      {c.description && <p className="text-xs text-muted-foreground mt-0.5">{c.description}</p>}
-                      {c.tags?.length > 0 && (
-                        <div className="flex gap-1 mt-1">
-                          {c.tags.map((t: string) => (
-                            <span key={t} className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">{t}</span>
-                          ))}
-                        </div>
-                      )}
-                      {c.resources?.length > 0 && <p className="text-xs text-primary mt-1">{c.resources.length} resource(s)</p>}
-                    </div>
-                    <div className="flex gap-1 shrink-0">
-                      <Button variant="ghost" size="icon" onClick={() => startEditCourse(c)} title="Edit"><Edit3 className="w-4 h-4" /></Button>
-                      <Button variant="ghost" size="icon" onClick={() => toggleCoursePin(c.id, c.pinned)} title={c.pinned ? 'Unpin' : 'Pin'}>
-                        <Pin className={`w-4 h-4 ${c.pinned ? 'text-primary fill-primary' : ''}`} />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => deleteCourse(c.id)}>
-                        <Trash2 className="w-4 h-4 text-destructive" />
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* ========== NOTIFICATIONS TAB ========== */}
       {tab === 'notifications' && (
@@ -975,7 +778,7 @@ export default function AdminPage() {
               <div key={log.id} className="bg-card rounded-xl border border-border p-4">
                 <div className="flex items-start gap-3">
                   <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${logIconClass(log.action)}`}>
-                    {log.action.includes('course') ? <GraduationCap className="w-5 h-5" /> :
+                    {(log.action.includes('app') || log.action.includes('portal') || log.action.includes('course')) ? <LayoutGrid className="w-5 h-5" /> :
                      log.action.includes('report') ? <Flag className="w-5 h-5" /> :
                      log.action.includes('moderator') ? <ShieldCheck className="w-5 h-5" /> :
                      <History className="w-5 h-5" />}

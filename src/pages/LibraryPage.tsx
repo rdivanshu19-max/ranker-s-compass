@@ -79,14 +79,14 @@ export default function LibraryPage() {
       </motion.div>
 
 
-      {/* Courses CTA */}
+      {/* Study Apps CTA */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.05 }}
-        onClick={() => navigate('/app/courses')}
+        onClick={() => navigate('/app/apps')}
         className="flex items-center gap-3 bg-primary/5 border border-primary/20 rounded-xl p-4 cursor-pointer hover:bg-primary/10 transition-colors">
         <GraduationCap className="w-6 h-6 text-primary drop-shadow-[0_0_4px_hsl(var(--primary))]" />
         <div className="flex-1">
-          <p className="font-bold text-sm text-primary">📚 Explore Courses</p>
-          <p className="text-xs text-muted-foreground">Browse curated video courses & lectures</p>
+          <p className="font-bold text-sm text-primary">🚀 Explore Study Apps</p>
+          <p className="text-xs text-muted-foreground">Open PW, Allen, Unacademy & more portals inside Rankers Star</p>
         </div>
         <span className="text-primary text-lg">→</span>
       </motion.div>

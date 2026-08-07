@@ -1,7 +1,7 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
-import { LayoutDashboard, Library, FolderLock, User, FlaskConical, Sun, Moon, LogOut, Shield, MessageSquare, GraduationCap, Info, ShieldCheck } from 'lucide-react';
+import { LayoutDashboard, Library, FolderLock, User, FlaskConical, Sun, Moon, LogOut, Shield, MessageSquare, LayoutGrid, Info, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import NotificationBell from '@/components/NotificationBell';
 
@@ -9,7 +9,7 @@ const navItems = [
   { to: '/app', icon: LayoutDashboard, label: 'Dashboard', end: true },
   { to: '/app/library', icon: Library, label: 'Library' },
   { to: '/app/tests', icon: FlaskConical, label: 'AI Tests', highlight: true },
-  { to: '/app/courses', icon: GraduationCap, label: 'Courses', highlight: true },
+  { to: '/app/apps', icon: LayoutGrid, label: 'Study Apps', highlight: true },
   { to: '/app/vault', icon: FolderLock, label: 'Vault' },
   { to: '/app/feedback', icon: MessageSquare, label: 'Feedback' },
   { to: '/app/profile', icon: User, label: 'Profile' },
