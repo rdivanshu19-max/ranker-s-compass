@@ -272,6 +272,27 @@ export type Database = {
         }
         Relationships: []
       }
+      portal_categories: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           bio: string | null
@@ -378,6 +399,89 @@ export type Database = {
           referrer_id?: string
         }
         Relationships: []
+      }
+      study_apps: {
+        Row: {
+          banner_url: string
+          courses_included: string
+          created_at: string
+          created_by: string | null
+          description: string
+          id: string
+          logo_url: string
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          banner_url?: string
+          courses_included?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          id?: string
+          logo_url?: string
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          banner_url?: string
+          courses_included?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          id?: string
+          logo_url?: string
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      study_portals: {
+        Row: {
+          app_id: string
+          badge: string
+          category: string
+          created_at: string
+          id: string
+          name: string
+          sort_order: number
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          app_id: string
+          badge?: string
+          category?: string
+          created_at?: string
+          id?: string
+          name: string
+          sort_order?: number
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          app_id?: string
+          badge?: string
+          category?: string
+          created_at?: string
+          id?: string
+          name?: string
+          sort_order?: number
+          updated_at?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "study_portals_app_id_fkey"
+            columns: ["app_id"]
+            isOneToOne: false
+            referencedRelation: "study_apps"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       study_sessions: {
         Row: {
