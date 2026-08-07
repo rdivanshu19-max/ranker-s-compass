@@ -475,8 +475,8 @@ export default function DashboardPage() {
         <Button variant="default" size="lg" onClick={() => navigate('/app/tests')} className="rounded-xl gap-2">
           <Star className="w-4 h-4" /> AI Tests
         </Button>
-        <Button variant="outline" size="lg" onClick={() => navigate('/app/courses')} className="rounded-xl gap-2">
-          <Brain className="w-4 h-4" /> Courses
+        <Button variant="outline" size="lg" onClick={() => navigate('/app/apps')} className="rounded-xl gap-2">
+          <Brain className="w-4 h-4" /> Study Apps
         </Button>
         <Button variant="outline" size="lg" onClick={() => navigate('/app/vault')} className="rounded-xl gap-2">
           <FolderOpen className="w-4 h-4" /> Vault
