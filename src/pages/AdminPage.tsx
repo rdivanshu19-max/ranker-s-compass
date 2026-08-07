@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { motion } from 'framer-motion';
 import {
   Shield, Plus, Trash2, Pin, ToggleLeft, ToggleRight, Edit3, AlertTriangle,
-  Users, Ban, Search, MessageSquare, CheckCircle, GraduationCap, Bell, Upload, Tag, Image,
+  Users, Ban, Search, MessageSquare, CheckCircle, LayoutGrid, Bell, Upload, Tag, Image,
   ShieldCheck, Flag, UserPlus, UserMinus, History,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
