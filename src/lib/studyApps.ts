@@ -1,5 +1,7 @@
 export type PortalBadge = 'best' | 'recommended' | 'good' | 'standard';
 
+export const ALL_CATEGORIES = 'All Categories';
+
 export type StudyApp = {
   id: string;
   name: string;
@@ -19,6 +21,8 @@ export type StudyPortal = {
   category: string;
   badge: PortalBadge | string;
   sort_order: number;
+  description?: string | null;
+  logo_url?: string | null;
 };
 
 export const BADGES: Record<PortalBadge, { label: string; emoji: string; className: string; rank: number }> = {
@@ -37,6 +41,10 @@ export const sortPortals = (portals: StudyPortal[]) =>
     const diff = badgeInfo(a.badge).rank - badgeInfo(b.badge).rank;
     return diff !== 0 ? diff : a.sort_order - b.sort_order;
   });
+
+/** A portal marked "All Categories" belongs to every category, present and future. */
+export const portalMatchesCategory = (portal: StudyPortal, category: string) =>
+  category === 'all' || portal.category === ALL_CATEGORIES || portal.category === category;
 
 export const normalizeUrl = (url: string) =>
   /^https?:\/\//i.test(url.trim()) ? url.trim() : `https://${url.trim()}`;
