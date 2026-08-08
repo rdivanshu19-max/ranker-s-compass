@@ -77,6 +77,35 @@ export type Database = {
         }
         Relationships: []
       }
+      app_favorites: {
+        Row: {
+          app_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          app_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          app_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "app_favorites_app_id_fkey"
+            columns: ["app_id"]
+            isOneToOne: false
+            referencedRelation: "study_apps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       astra_chat_history: {
         Row: {
           content: string
@@ -445,7 +474,9 @@ export type Database = {
           badge: string
           category: string
           created_at: string
+          description: string | null
           id: string
+          logo_url: string | null
           name: string
           sort_order: number
           updated_at: string
@@ -456,7 +487,9 @@ export type Database = {
           badge?: string
           category?: string
           created_at?: string
+          description?: string | null
           id?: string
+          logo_url?: string | null
           name: string
           sort_order?: number
           updated_at?: string
@@ -467,7 +500,9 @@ export type Database = {
           badge?: string
           category?: string
           created_at?: string
+          description?: string | null
           id?: string
+          logo_url?: string | null
           name?: string
           sort_order?: number
           updated_at?: string
@@ -590,6 +625,89 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      test_series: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string
+          id: string
+          logo_url: string
+          name: string
+          poster_url: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          id?: string
+          logo_url?: string
+          name: string
+          poster_url?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          id?: string
+          logo_url?: string
+          name?: string
+          poster_url?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      test_series_tests: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          link: string
+          name: string
+          scheduled_at: string | null
+          series_id: string
+          sort_order: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          link?: string
+          name: string
+          scheduled_at?: string | null
+          series_id: string
+          sort_order?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          link?: string
+          name?: string
+          scheduled_at?: string | null
+          series_id?: string
+          sort_order?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "test_series_tests_series_id_fkey"
+            columns: ["series_id"]
+            isOneToOne: false
+            referencedRelation: "test_series"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_badges: {
         Row: {
