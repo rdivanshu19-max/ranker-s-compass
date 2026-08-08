@@ -4,6 +4,7 @@ import { Zap, BookOpen, Users, Download, Star, ArrowRight, Send, Sparkles, Targe
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
+import FeaturedInstitutions from '@/components/FeaturedInstitutions';
 
 const fadeUp = { hidden: { opacity: 0, y: 40 }, visible: { opacity: 1, y: 0 } };
 const stagger = { visible: { transition: { staggerChildren: 0.15 } } };
@@ -280,6 +281,8 @@ export default function LandingPage() {
       </section>
 
       {/* Testimonials */}
+      <FeaturedInstitutions />
+
       <section className="py-16 sm:py-24 bg-hero relative overflow-hidden">
         <div className="absolute inset-0"><div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" /></div>
         <div className="container mx-auto px-4 relative z-10">

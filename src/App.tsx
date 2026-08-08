@@ -25,6 +25,9 @@ import FeedbackPage from "./pages/FeedbackPage";
 import StudyAppsPage from "./pages/StudyAppsPage";
 import AppDetailsPage from "./pages/AppDetailsPage";
 import PortalViewPage from "./pages/PortalViewPage";
+import TestSeriesPage from "./pages/TestSeriesPage";
+import TestSeriesDetailsPage from "./pages/TestSeriesDetailsPage";
+import TestViewPage from "./pages/TestViewPage";
 import TermsPage from "./pages/TermsPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import AdSensePage from "./pages/AdSensePage";
@@ -54,6 +57,9 @@ const App = () => (
                 <Route path="tests" element={<><AITestPage /><AIChatWidget /></>} />
                 <Route path="apps" element={<><StudyAppsPage /><AIChatWidget /></>} />
                 <Route path="apps/:appId" element={<><AppDetailsPage /><AIChatWidget /></>} />
+                <Route path="test-series" element={<><TestSeriesPage /><AIChatWidget /></>} />
+                <Route path="test-series/:seriesId" element={<><TestSeriesDetailsPage /><AIChatWidget /></>} />
+                <Route path="test/:testId" element={<TestViewPage />} />
                 <Route path="portal/:portalId" element={<PortalViewPage />} />
                 <Route path="profile" element={<ProfilePage />} />
                 <Route path="feedback" element={<><FeedbackPage /><AIChatWidget /></>} />

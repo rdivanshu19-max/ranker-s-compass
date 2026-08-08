@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import {
   Plus, Trash2, Edit3, Upload, GripVertical, ChevronUp, ChevronDown, Tag, Layers, Link as LinkIcon, Save, X,
 } from 'lucide-react';
-import { BADGE_KEYS, badgeInfo, sortPortals, type StudyApp, type StudyPortal } from '@/lib/studyApps';
+import { ALL_CATEGORIES, BADGE_KEYS, badgeInfo, sortPortals, type StudyApp, type StudyPortal } from '@/lib/studyApps';
 
 const uploadImage = async (file: File): Promise<string | null> => {
   const ext = file.name.split('.').pop();
@@ -37,7 +37,7 @@ export default function StudyAppsAdmin({ actorId }: { actorId: string }) {
   const [editCatId, setEditCatId] = useState<string | null>(null);
   const [editCatName, setEditCatName] = useState('');
 
-  const [portalDraft, setPortalDraft] = useState<Record<string, { name: string; url: string; category: string; badge: string }>>({});
+  const [portalDraft, setPortalDraft] = useState<Record<string, { name: string; url: string; category: string; badge: string; description?: string }>>({});
   const [editPortal, setEditPortal] = useState<StudyPortal | null>(null);
   const dragId = useRef<string | null>(null);
 
@@ -127,7 +127,7 @@ export default function StudyAppsAdmin({ actorId }: { actorId: string }) {
     if (!d?.name?.trim() || !d?.url?.trim()) { toast.error('Portal name and URL required'); return; }
     const count = portals.filter(p => p.app_id === appId).length;
     const { error } = await supabase.from('study_portals').insert({
-      app_id: appId, name: d.name.trim(), url: d.url.trim(), category: d.category || 'Other', badge: d.badge || 'standard', sort_order: count,
+      app_id: appId, name: d.name.trim(), url: d.url.trim(), category: d.category || 'Other', badge: d.badge || 'standard', description: (d as any).description?.trim() || null, sort_order: count,
     } as any);
     if (error) { toast.error(error.message); return; }
     await log('add_portal', appId, { portal: d.name });
@@ -138,7 +138,7 @@ export default function StudyAppsAdmin({ actorId }: { actorId: string }) {
   const savePortal = async () => {
     if (!editPortal) return;
     const { error } = await supabase.from('study_portals').update({
-      name: editPortal.name, url: editPortal.url, category: editPortal.category, badge: editPortal.badge,
+      name: editPortal.name, url: editPortal.url, category: editPortal.category, badge: editPortal.badge, description: editPortal.description || null,
     } as any).eq('id', editPortal.id);
     if (error) { toast.error(error.message); return; }
     await log('edit_portal', editPortal.id, { portal: editPortal.name });
@@ -267,9 +267,11 @@ export default function StudyAppsAdmin({ actorId }: { actorId: string }) {
                       <div className="space-y-2">
                         <Input value={editPortal.name} onChange={e => setEditPortal({ ...editPortal, name: e.target.value })} placeholder="Portal name" />
                         <Input value={editPortal.url} onChange={e => setEditPortal({ ...editPortal, url: e.target.value })} placeholder="Portal URL" />
+                        <Input value={editPortal.description || ''} onChange={e => setEditPortal({ ...editPortal, description: e.target.value })} placeholder="Short info (optional)" />
                         <div className="flex gap-2 flex-wrap">
                           <select value={editPortal.category} onChange={e => setEditPortal({ ...editPortal, category: e.target.value })}
                             className="h-9 rounded-md border border-input bg-background px-2 text-sm">
+                            <option value={ALL_CATEGORIES}>{ALL_CATEGORIES}</option>
                             {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
                           </select>
                           <select value={editPortal.badge} onChange={e => setEditPortal({ ...editPortal, badge: e.target.value })}
@@ -304,10 +306,12 @@ export default function StudyAppsAdmin({ actorId }: { actorId: string }) {
                   <p className="text-xs font-semibold text-muted-foreground">Add Portal</p>
                   <Input value={d.name} onChange={e => setPortalDraft(prev => ({ ...prev, [a.id]: { ...d, name: e.target.value } }))} placeholder="Portal name (e.g. Portal 1)" />
                   <Input value={d.url} onChange={e => setPortalDraft(prev => ({ ...prev, [a.id]: { ...d, url: e.target.value } }))} placeholder="https://portal-url.com" />
+                  <Input value={(d as any).description || ''} onChange={e => setPortalDraft(prev => ({ ...prev, [a.id]: { ...d, description: e.target.value } }))} placeholder="Short info (optional)" />
                   <div className="flex gap-2 flex-wrap">
                     <select value={d.category} onChange={e => setPortalDraft(prev => ({ ...prev, [a.id]: { ...d, category: e.target.value } }))}
                       className="h-9 rounded-md border border-input bg-background px-2 text-sm">
-                      {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                      <option value={ALL_CATEGORIES}>{ALL_CATEGORIES}</option>
+                            {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
                     </select>
                     <select value={d.badge} onChange={e => setPortalDraft(prev => ({ ...prev, [a.id]: { ...d, badge: e.target.value } }))}
                       className="h-9 rounded-md border border-input bg-background px-2 text-sm">
