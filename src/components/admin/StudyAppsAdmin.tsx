@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import {
   Plus, Trash2, Edit3, Upload, GripVertical, ChevronUp, ChevronDown, Tag, Layers, Link as LinkIcon, Save, X,
 } from 'lucide-react';
-import { BADGE_KEYS, badgeInfo, sortPortals, type StudyApp, type StudyPortal } from '@/lib/studyApps';
+import { ALL_CATEGORIES, BADGE_KEYS, badgeInfo, sortPortals, type StudyApp, type StudyPortal } from '@/lib/studyApps';
 
 const uploadImage = async (file: File): Promise<string | null> => {
   const ext = file.name.split('.').pop();
@@ -270,6 +270,7 @@ export default function StudyAppsAdmin({ actorId }: { actorId: string }) {
                         <div className="flex gap-2 flex-wrap">
                           <select value={editPortal.category} onChange={e => setEditPortal({ ...editPortal, category: e.target.value })}
                             className="h-9 rounded-md border border-input bg-background px-2 text-sm">
+                            <option value={ALL_CATEGORIES}>{ALL_CATEGORIES}</option>
                             {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
                           </select>
                           <select value={editPortal.badge} onChange={e => setEditPortal({ ...editPortal, badge: e.target.value })}
@@ -307,7 +308,8 @@ export default function StudyAppsAdmin({ actorId }: { actorId: string }) {
                   <div className="flex gap-2 flex-wrap">
                     <select value={d.category} onChange={e => setPortalDraft(prev => ({ ...prev, [a.id]: { ...d, category: e.target.value } }))}
                       className="h-9 rounded-md border border-input bg-background px-2 text-sm">
-                      {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                      <option value={ALL_CATEGORIES}>{ALL_CATEGORIES}</option>
+                            {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
                     </select>
                     <select value={d.badge} onChange={e => setPortalDraft(prev => ({ ...prev, [a.id]: { ...d, badge: e.target.value } }))}
                       className="h-9 rounded-md border border-input bg-background px-2 text-sm">
