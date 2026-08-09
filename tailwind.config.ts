@@ -56,7 +56,7 @@ export default {
         "fade-in-up": { "0%": { opacity: "0", transform: "translateY(40px)" }, "100%": { opacity: "1", transform: "translateY(0)" } },
         "scale-in": { "0%": { transform: "scale(0.9)", opacity: "0" }, "100%": { transform: "scale(1)", opacity: "1" } },
         "float": { "0%, 100%": { transform: "translateY(0)" }, "50%": { transform: "translateY(-10px)" } },
-        "pulse-glow": { "0%, 100%": { boxShadow: "0 0 20px hsl(24 95% 53% / 0.2)" }, "50%": { boxShadow: "0 0 40px hsl(24 95% 53% / 0.5)" } },
+        "pulse-glow": { "0%, 100%": { boxShadow: "0 0 20px hsl(var(--primary) / 0.2)" }, "50%": { boxShadow: "0 0 40px hsl(var(--primary) / 0.5)" } },
         "count-up": { "0%": { opacity: "0", transform: "translateY(10px)" }, "100%": { opacity: "1", transform: "translateY(0)" } },
         "shine": { "0%": { transform: "translateX(-100%) skewX(-12deg)" }, "100%": { transform: "translateX(200%) skewX(-12deg)" } },
       },
