@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input';
 import RankersLoader from '@/components/RankersLoader';
 import { AppLogo } from '@/components/AppMedia';
 import { autoPoster, type TestSeries } from '@/lib/testSeries';
+import { PRACTICE_PACKS } from '@/lib/practicePacks';
+import PracticePackCard from '@/components/PracticePackCard';
 
 export default function TestSeriesPage() {
   const navigate = useNavigate();
@@ -54,10 +56,26 @@ export default function TestSeriesPage() {
         </div>
       </motion.section>
 
+      <section className="space-y-5">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-primary">Featured Practice</span>
+            <h2 className="mt-1.5 font-display text-2xl font-bold sm:text-3xl">Infinite practice, real exam tests & guided study</h2>
+          </div>
+          <p className="max-w-sm text-sm text-muted-foreground">
+            Curated modules that open right here inside Rankers Star — no signup jumps, no lost tabs.
+          </p>
+        </div>
+        <div className="grid gap-5 lg:grid-cols-2">
+          {PRACTICE_PACKS.map((p, i) => <PracticePackCard key={p.slug} pack={p} index={i} />)}
+        </div>
+      </section>
+
       <div className="relative">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search test series..." className="h-12 rounded-xl pl-9" />
       </div>
+
 
       {filtered.length === 0 ? (
         <div className="py-20 text-center text-muted-foreground">

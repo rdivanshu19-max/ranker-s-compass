@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion';
-import logoAsset from '@/assets/rankers-logo.png.asset.json';
 
 interface Props {
   label?: string;
@@ -10,52 +9,62 @@ interface Props {
 export default function RankersLoader({ label = 'Loading', fullScreen = false }: Props) {
   return (
     <div
-      className={`relative flex flex-col items-center justify-center gap-5 overflow-hidden ${
-        fullScreen ? 'fixed inset-0 z-[80] bg-background/97 backdrop-blur-md' : 'py-24 w-full'
+      className={`relative flex flex-col items-center justify-center gap-6 overflow-hidden ${
+        fullScreen
+          ? 'fixed inset-0 z-[80] bg-background/95 backdrop-blur-xl'
+          : 'min-h-[70vh] w-full py-16'
       }`}
     >
-      {/* subtle animated background */}
-      <div className="pointer-events-none absolute inset-0">
-        <motion.div
-          className="absolute left-1/2 top-1/2 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-[90px]"
-          animate={{ opacity: [0.35, 0.7, 0.35], scale: [0.9, 1.05, 0.9] }}
-          transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
-        />
-        <div
-          className="absolute inset-0 opacity-[0.05]"
-          style={{ backgroundImage: 'radial-gradient(circle, hsl(var(--foreground)) 1px, transparent 1px)', backgroundSize: '38px 38px' }}
-        />
-      </div>
+      {/* soft ambient glow */}
+      <motion.div
+        aria-hidden
+        className="pointer-events-none absolute left-1/2 top-1/2 h-[360px] w-[360px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/15 blur-[100px]"
+        animate={{ opacity: [0.4, 0.75, 0.4], scale: [0.95, 1.06, 0.95] }}
+        transition={{ duration: 3.4, repeat: Infinity, ease: [0.45, 0, 0.55, 1] }}
+      />
 
-      <div className="relative grid place-items-center">
+      <div className="relative grid h-32 w-32 place-items-center">
+        {/* outer soft ring */}
+        <span className="absolute h-32 w-32 rounded-full border border-primary/15" />
+        {/* rotating arc */}
         <motion.span
-          className="absolute h-28 w-28 rounded-[30%] border border-primary/25"
+          className="absolute h-32 w-32 rounded-full border-2 border-transparent border-t-primary border-r-primary/40"
           animate={{ rotate: 360 }}
-          transition={{ duration: 7, repeat: Infinity, ease: 'linear' }}
+          transition={{ duration: 1.6, repeat: Infinity, ease: 'linear' }}
         />
+        {/* counter-rotating thin arc */}
         <motion.span
-          className="absolute h-24 w-24 rounded-full border-2 border-primary/60 border-t-transparent"
+          className="absolute h-24 w-24 rounded-full border border-transparent border-b-primary/50"
           animate={{ rotate: -360 }}
-          transition={{ duration: 1.8, repeat: Infinity, ease: 'linear' }}
+          transition={{ duration: 2.6, repeat: Infinity, ease: 'linear' }}
         />
+        {/* breathing halo */}
+        <motion.span
+          className="absolute h-20 w-20 rounded-full bg-primary/20 blur-xl"
+          animate={{ opacity: [0.35, 0.8, 0.35], scale: [0.9, 1.12, 0.9] }}
+          transition={{ duration: 2.2, repeat: Infinity, ease: [0.45, 0, 0.55, 1] }}
+        />
+        {/* logo — perfectly circular */}
         <motion.img
-          src={logoAsset.url}
+          src="/logo.png"
           alt="Rankers Star"
-          className="relative h-16 w-16 rounded-2xl object-cover shadow-[0_0_40px_-8px_hsl(var(--primary)/0.8)]"
-          animate={{ scale: [1, 1.07, 1] }}
-          transition={{ duration: 1.9, repeat: Infinity, ease: 'easeInOut' }}
+          width={72}
+          height={72}
+          className="relative h-[72px] w-[72px] rounded-full object-cover ring-1 ring-primary/30"
+          animate={{ scale: [1, 1.06, 1] }}
+          transition={{ duration: 2.2, repeat: Infinity, ease: [0.45, 0, 0.55, 1] }}
         />
       </div>
 
       <div className="relative text-center">
         <motion.p
           className="text-sm font-semibold tracking-wide text-foreground"
-          animate={{ opacity: [0.6, 1, 0.6] }}
-          transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+          animate={{ opacity: [0.55, 1, 0.55] }}
+          transition={{ duration: 2, repeat: Infinity, ease: [0.45, 0, 0.55, 1] }}
         >
           {label}
         </motion.p>
-        <p className="mt-1 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Rankers Star</p>
+        <p className="mt-1.5 text-[10px] uppercase tracking-[0.32em] text-muted-foreground">Rankers Star</p>
       </div>
     </div>
   );
