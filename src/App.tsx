@@ -28,6 +28,7 @@ import PortalViewPage from "./pages/PortalViewPage";
 import TestSeriesPage from "./pages/TestSeriesPage";
 import TestSeriesDetailsPage from "./pages/TestSeriesDetailsPage";
 import TestViewPage from "./pages/TestViewPage";
+import PracticeViewPage from "./pages/PracticeViewPage";
 import TermsPage from "./pages/TermsPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import AdSensePage from "./pages/AdSensePage";
@@ -60,6 +61,7 @@ const App = () => (
                 <Route path="test-series" element={<><TestSeriesPage /><AIChatWidget /></>} />
                 <Route path="test-series/:seriesId" element={<><TestSeriesDetailsPage /><AIChatWidget /></>} />
                 <Route path="test/:testId" element={<TestViewPage />} />
+                <Route path="practice/:slug" element={<PracticeViewPage />} />
                 <Route path="portal/:portalId" element={<PortalViewPage />} />
                 <Route path="profile" element={<ProfilePage />} />
                 <Route path="feedback" element={<><FeedbackPage /><AIChatWidget /></>} />
