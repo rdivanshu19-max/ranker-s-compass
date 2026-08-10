@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { motion } from 'framer-motion';
-import { Shield, Plus, BookOpen, Flag, CheckCircle, Clock3, CircleDot } from 'lucide-react';
+import { Shield, Plus, BookOpen, Flag, CheckCircle, Clock3, CircleDot, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { Navigate } from 'react-router-dom';
+import CommunityModeration from '@/components/admin/CommunityModeration';
 
 const TYPES = ['Lectures', 'Lecture PDF', 'Books', 'PYQs', 'JEE', 'NEET', 'Physics', 'Chemistry', 'Maths', 'Biology', 'Boards'];
 
@@ -48,7 +49,7 @@ function ReportTimeline({ report }: { report: any }) {
 
 export default function ModeratorPage() {
   const { isModerator, isAdmin, user } = useAuth();
-  const [tab, setTab] = useState<'materials' | 'reports'>('materials');
+  const [tab, setTab] = useState<'materials' | 'reports' | 'community'>('materials');
   const [materials, setMaterials] = useState<any[]>([]);
   const [title, setTitle] = useState('');
   const [link, setLink] = useState('');
@@ -144,6 +145,7 @@ export default function ModeratorPage() {
         {[
           { k: 'materials' as const, l: 'Materials', i: BookOpen },
           { k: 'reports' as const, l: 'Report User', i: Flag },
+          { k: 'community' as const, l: 'Community', i: Users },
         ].map(t => (
           <button key={t.k} onClick={() => setTab(t.k)}
             className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-1.5 whitespace-nowrap ${
@@ -153,6 +155,8 @@ export default function ModeratorPage() {
           </button>
         ))}
       </div>
+
+      {tab === 'community' && <CommunityModeration actorId={user!.id} actorRole="moderator" />}
 
       {tab === 'materials' && (
         <div className="space-y-4">
