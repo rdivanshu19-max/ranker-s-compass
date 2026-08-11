@@ -47,6 +47,60 @@ export type Database = {
         }
         Relationships: []
       }
+      affiliate_products: {
+        Row: {
+          active: boolean
+          affiliate_url: string
+          badge: string | null
+          category: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          featured: boolean
+          id: string
+          image_url: string | null
+          price: string | null
+          sort_order: number
+          store: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          affiliate_url: string
+          badge?: string | null
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          featured?: boolean
+          id?: string
+          image_url?: string | null
+          price?: string | null
+          sort_order?: number
+          store?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          affiliate_url?: string
+          badge?: string | null
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          featured?: boolean
+          id?: string
+          image_url?: string | null
+          price?: string | null
+          sort_order?: number
+          store?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ai_usage: {
         Row: {
           count: number
@@ -163,6 +217,7 @@ export type Database = {
           created_at: string
           id: string
           image_url: string | null
+          pinned: boolean
           space_id: string | null
           title: string | null
           user_id: string
@@ -172,6 +227,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_url?: string | null
+          pinned?: boolean
           space_id?: string | null
           title?: string | null
           user_id: string
@@ -181,6 +237,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_url?: string | null
+          pinned?: boolean
           space_id?: string | null
           title?: string | null
           user_id?: string
@@ -480,6 +537,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
           bio: string | null
           created_at: string
           display_name: string
@@ -488,8 +546,10 @@ export type Database = {
           referred_by: string | null
           updated_at: string
           user_id: string
+          username: string | null
         }
         Insert: {
+          avatar_url?: string | null
           bio?: string | null
           created_at?: string
           display_name?: string
@@ -498,8 +558,10 @@ export type Database = {
           referred_by?: string | null
           updated_at?: string
           user_id: string
+          username?: string | null
         }
         Update: {
+          avatar_url?: string | null
           bio?: string | null
           created_at?: string
           display_name?: string
@@ -508,6 +570,58 @@ export type Database = {
           referred_by?: string | null
           updated_at?: string
           user_id?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
+      promotions: {
+        Row: {
+          active: boolean
+          created_at: string
+          created_by: string | null
+          cta_text: string
+          description: string | null
+          ends_at: string | null
+          id: string
+          link_url: string | null
+          poster_url: string | null
+          sort_order: number
+          starts_at: string | null
+          subtitle: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          cta_text?: string
+          description?: string | null
+          ends_at?: string | null
+          id?: string
+          link_url?: string | null
+          poster_url?: string | null
+          sort_order?: number
+          starts_at?: string | null
+          subtitle?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          cta_text?: string
+          description?: string | null
+          ends_at?: string | null
+          id?: string
+          link_url?: string | null
+          poster_url?: string | null
+          sort_order?: number
+          starts_at?: string | null
+          subtitle?: string | null
+          title?: string
+          updated_at?: string
         }
         Relationships: []
       }

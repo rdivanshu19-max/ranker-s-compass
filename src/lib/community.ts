@@ -92,9 +92,7 @@ export const timeAgo = (iso: string) => {
 
 /** Uploads a community image and returns its public URL. */
 export async function uploadCommunityImage(file: File, userId: string) {
-  const ext = file.name.split('.').pop() || 'jpg';
-  const path = `community/${userId}/${crypto.randomUUID()}.${ext}`;
-  const { error } = await supabase.storage.from('course-posters').upload(path, file, { upsert: false });
-  if (error) throw error;
-  return supabase.storage.from('course-posters').getPublicUrl(path).data.publicUrl;
+  const { uploadUserFile } = await import('@/lib/uploads');
+  return uploadUserFile(file, userId, 'community');
 }
+

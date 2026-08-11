@@ -21,6 +21,7 @@ import ContributePage from "./pages/ContributePage";
 import AITestPage from "./pages/AITestPage";
 import AIChatWidget from "./components/AIChatWidget";
 import CommunityPage from "./pages/CommunityPage";
+import StorePage from "./pages/StorePage";
 
 import FeedbackPage from "./pages/FeedbackPage";
 import StudyAppsPage from "./pages/StudyAppsPage";
@@ -59,6 +60,7 @@ const App = () => (
                 <Route path="tests" element={<><AITestPage /><AIChatWidget /></>} />
                 <Route path="apps" element={<><StudyAppsPage /><AIChatWidget /></>} />
                 <Route path="apps/:appId" element={<><AppDetailsPage /><AIChatWidget /></>} />
+                <Route path="store" element={<><StorePage /><AIChatWidget /></>} />
                 <Route path="community" element={<><CommunityPage /><AIChatWidget /></>} />
                 <Route path="test-series" element={<><TestSeriesPage /><AIChatWidget /></>} />
                 <Route path="test-series/:seriesId" element={<><TestSeriesDetailsPage /><AIChatWidget /></>} />

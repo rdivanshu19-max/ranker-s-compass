@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowBigUp, ArrowBigDown, MessageCircle, Share2, Trash2, Send } from 'lucide-react';
+import { ArrowBigUp, ArrowBigDown, MessageCircle, Share2, Trash2, Send, Pin, PinOff } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -12,15 +12,16 @@ import { timeAgo, tagsFor, type Comment, type Post, type Space, type UserStats }
 type Props = {
   post: Post;
   space?: Space;
-  author: { name: string; stats: UserStats };
+  author: { name: string; username?: string; avatarUrl?: string; stats: UserStats };
   score: number;
   myVote: number;
   commentCount: number;
   onVote: (postId: string, value: number) => void;
   onDeleted: (postId: string) => void;
+  onPinned?: (postId: string, pinned: boolean) => void;
 };
 
-export default function CommunityPost({ post, space, author, score, myVote, commentCount, onVote, onDeleted }: Props) {
+export default function CommunityPost({ post, space, author, score, myVote, commentCount, onVote, onDeleted, onPinned }: Props) {
   const { user, isAdmin, isModerator } = useAuth();
   const [open, setOpen] = useState(false);
   const [comments, setComments] = useState<Comment[]>([]);
@@ -29,6 +30,8 @@ export default function CommunityPost({ post, space, author, score, myVote, comm
   const [busy, setBusy] = useState(false);
 
   const canDelete = user?.id === post.user_id || isAdmin || isModerator;
+  const canPin = isAdmin || isModerator;
+  const pinned = Boolean((post as any).pinned);
 
   useEffect(() => {
     if (!open) return;
@@ -65,6 +68,13 @@ export default function CommunityPost({ post, space, author, score, myVote, comm
     onDeleted(post.id);
   };
 
+  const togglePin = async () => {
+    const { error } = await supabase.from('community_posts').update({ pinned: !pinned }).eq('id', post.id);
+    if (error) return toast.error(error.message);
+    toast.success(pinned ? 'Post unpinned' : 'Post pinned to the top');
+    onPinned?.(post.id, !pinned);
+  };
+
   const share = async () => {
     const url = `${window.location.origin}/app/community?post=${post.id}`;
     try {
@@ -77,15 +87,24 @@ export default function CommunityPost({ post, space, author, score, myVote, comm
     <motion.article
       initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-3xl border border-border/70 bg-card/60 p-5 backdrop-blur-xl transition-colors hover:border-primary/30 sm:p-6"
+      className={`rounded-3xl border bg-card/60 p-5 backdrop-blur-xl transition-colors sm:p-6 ${
+        pinned ? 'border-primary/50 shadow-[0_0_45px_-25px_hsl(var(--primary))]' : 'border-border/70 hover:border-primary/30'}`}
     >
+      {pinned && (
+        <p className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-primary">
+          <Pin className="h-3 w-3" /> Pinned by team
+        </p>
+      )}
       <header className="flex items-start gap-3">
-        <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-gradient-to-br from-primary to-accent font-display text-sm font-bold text-primary-foreground">
-          {author.name.slice(0, 2).toUpperCase()}
+        <div className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full bg-gradient-to-br from-primary to-accent font-display text-sm font-bold text-primary-foreground">
+          {author.avatarUrl
+            ? <img src={author.avatarUrl} alt={`${author.name} avatar`} loading="lazy" className="h-full w-full object-cover" />
+            : author.name.slice(0, 2).toUpperCase()}
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <p className="font-display text-sm font-bold text-foreground">{author.name}</p>
+            {author.username && <span className="text-xs font-medium text-primary">@{author.username}</span>}
             {tagsFor(author.stats).map(t => (
               <span key={t.label} className={`rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${t.tone}`}>
                 {t.label}
@@ -102,6 +121,12 @@ export default function CommunityPost({ post, space, author, score, myVote, comm
             )}
           </p>
         </div>
+        {canPin && (
+          <button onClick={togglePin} title={pinned ? 'Unpin post' : 'Pin post'}
+            className={`rounded-lg p-2 transition-colors hover:bg-primary/10 hover:text-primary ${pinned ? 'text-primary' : 'text-muted-foreground'}`}>
+            {pinned ? <PinOff className="h-4 w-4" /> : <Pin className="h-4 w-4" />}
+          </button>
+        )}
         {canDelete && (
           <button onClick={removePost} title="Delete post"
             className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive">

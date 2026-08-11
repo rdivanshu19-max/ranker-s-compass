@@ -29,13 +29,13 @@ export default function FeaturedInstitutions() {
   const duration = Math.max(18, items.length * 5);
 
   return (
-    <section className="relative overflow-hidden border-y border-border/60 bg-card/30 py-14">
+    <section className="relative overflow-hidden border-y border-border/60 bg-hero py-14">
       <div className="container mx-auto px-4">
         <div className="mb-8 text-center">
           <h2 className="font-display text-2xl font-bold sm:text-3xl">
             Featured <span className="text-gradient">Institutions</span>
           </h2>
-          <p className="mt-2 text-sm text-muted-foreground">Coaching platforms and test series available inside Rankers Star.</p>
+          <p className="mt-2 text-sm font-medium text-foreground/80">Coaching platforms and test series available inside Rankers Star.</p>
         </div>
       </div>
 
@@ -45,15 +45,15 @@ export default function FeaturedInstitutions() {
         <div className="flex w-max gap-4 marquee-track" style={{ animationDuration: `${duration}s` }}>
           {track.map((item, i) => (
             <div key={`${item.id}-${i}`}
-              className="flex w-56 shrink-0 items-center gap-3 rounded-2xl border border-border/70 bg-card/60 p-4 backdrop-blur">
+              className="flex w-56 shrink-0 items-center gap-3 rounded-2xl border border-primary/25 bg-card p-4 shadow-[0_0_35px_-25px_hsl(var(--primary))] backdrop-blur">
               <div className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-xl border border-border/70 bg-background/70">
                 {item.logo_url
                   ? <img src={item.logo_url} alt={`${item.name} logo`} loading="lazy" className="h-full w-full object-cover" />
                   : <span className="font-display text-sm font-bold text-primary">{item.name.slice(0, 2).toUpperCase()}</span>}
               </div>
               <div className="min-w-0">
-                <p className="truncate font-display text-sm font-bold">{item.name}</p>
-                <p className="text-[11px] text-muted-foreground">{item.kind}</p>
+                <p className="truncate font-display text-sm font-bold text-foreground">{item.name}</p>
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-primary">{item.kind}</p>
               </div>
             </div>
           ))}

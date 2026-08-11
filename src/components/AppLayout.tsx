@@ -1,7 +1,7 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
-import { LayoutDashboard, Library, FolderLock, User, FlaskConical, Sun, Moon, LogOut, Shield, MessageSquare, LayoutGrid, ClipboardList, Info, ShieldCheck, Users } from 'lucide-react';
+import { LayoutDashboard, Library, FolderLock, User, FlaskConical, Sun, Moon, LogOut, Shield, MessageSquare, LayoutGrid, ClipboardList, Info, ShieldCheck, Users, ShoppingBag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import NotificationBell from '@/components/NotificationBell';
 
@@ -11,6 +11,7 @@ const navItems = [
   { to: '/app/tests', icon: FlaskConical, label: 'AI Tests', highlight: true },
   { to: '/app/apps', icon: LayoutGrid, label: 'Study Apps', highlight: true },
   { to: '/app/community', icon: Users, label: 'Community', highlight: true },
+  { to: '/app/store', icon: ShoppingBag, label: 'Store' },
   { to: '/app/test-series', icon: ClipboardList, label: 'Test Series' },
   { to: '/app/vault', icon: FolderLock, label: 'Vault' },
   { to: '/app/feedback', icon: MessageSquare, label: 'Feedback' },
