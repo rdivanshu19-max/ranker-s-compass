@@ -25,6 +25,8 @@ const features = [
   { icon: Shield, title: 'Study Vault', desc: 'Save your personal study materials privately and access them anytime.' },
   { icon: GraduationCap, title: 'Free Course Section', desc: 'Follow curated courses with posters, resource links, tags and structured learning paths.' },
   { icon: Target, title: 'Progress Tracking', desc: 'Track study time, downloads, streaks, test performance and weak areas with clear charts.' },
+  { icon: Users, title: 'Rankers Community', desc: 'Post doubts with images and math, upvote answers, join spaces, share stories and climb the XP leaderboard.' },
+  { icon: Zap, title: 'Infinite Practice + AI Tutor', desc: 'Adaptive Maths, Physics and Chemistry practice, full-syllabus mocks and a chapter-wise AI tutor built in.' },
   { icon: Heart, title: '100% Free Forever', desc: 'All resources are completely free. No hidden charges, no premium locks.' },
 ];
 
@@ -56,13 +58,13 @@ function Particles() {
         if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
         if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
         ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(24, 95%, 53%, ${p.a})`; ctx.fill();
+        ctx.fillStyle = `hsla(248, 84%, 64%, ${p.a})`; ctx.fill();
       });
       for (let i = 0; i < particles.length; i++) {
         for (let j = i + 1; j < particles.length; j++) {
           const dx = particles[i].x - particles[j].x, dy = particles[i].y - particles[j].y;
           const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 120) { ctx.beginPath(); ctx.moveTo(particles[i].x, particles[i].y); ctx.lineTo(particles[j].x, particles[j].y); ctx.strokeStyle = `hsla(24, 95%, 53%, ${0.08 * (1 - dist / 120)})`; ctx.stroke(); }
+          if (dist < 120) { ctx.beginPath(); ctx.moveTo(particles[i].x, particles[i].y); ctx.lineTo(particles[j].x, particles[j].y); ctx.strokeStyle = `hsla(248, 84%, 64%, ${0.08 * (1 - dist / 120)})`; ctx.stroke(); }
         }
       }
       animId = requestAnimationFrame(animate);
@@ -122,26 +124,26 @@ export default function LandingPage() {
 
             <motion.h1 variants={fadeUp} transition={{ duration: 0.8 }}
               className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold font-display mb-4 sm:mb-6 tracking-tight">
-              <span className="text-white">Rankers </span>
+              <span className="text-white drop-shadow-[0_2px_20px_rgba(0,0,0,0.6)]">Rankers </span>
               <span className="text-gradient">Star</span>
               <motion.span animate={{ rotate: [0, 15, -15, 0] }} transition={{ repeat: Infinity, duration: 2, repeatDelay: 3 }}
                 className="inline-block ml-2 sm:ml-3">⭐</motion.span>
             </motion.h1>
 
             <motion.p variants={fadeUp} transition={{ duration: 0.8 }}
-              className="text-lg sm:text-xl md:text-2xl font-medium mb-3 sm:mb-4 text-gray-300">
-              Your Ultimate Free Study Companion for JEE, NEET & Board Exams
+              className="text-2xl sm:text-3xl md:text-4xl font-extrabold font-display leading-tight tracking-tight mb-4 text-white">
+              Fix Weak Chapters. Clear Doubts.<br className="hidden sm:block" /> <span className="text-gradient">Score Higher in JEE &amp; NEET.</span>
             </motion.p>
 
             <motion.p variants={fadeUp} transition={{ duration: 0.8 }}
-              className="text-sm sm:text-base md:text-lg max-w-2xl mx-auto mb-8 sm:mb-10 text-gray-400">
-              Access premium quality lectures, books, PYQs, notes, and AI-powered study tools — all completely free.
+              className="text-base sm:text-lg md:text-xl font-medium max-w-2xl mx-auto mb-8 sm:mb-10 text-slate-200">
+              Premium lectures, books, PYQs, notes, adaptive practice, AI mock tests and a live student community — all completely free.
             </motion.p>
 
             <motion.div variants={fadeUp} transition={{ duration: 0.8 }}
               className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center px-4 sm:px-0">
               <Button variant="hero" size="xl" onClick={() => navigate('/auth')} className="group w-full sm:w-auto min-w-[200px] animate-pulse-glow">
-                <Zap className="w-5 h-5" /> Start Studying Free <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                <Zap className="w-5 h-5" /> <span className="font-extrabold tracking-tight">Prep Now — It&apos;s Free</span> <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
               <Button variant="heroOutline" size="xl" asChild className="w-full sm:w-auto min-w-[200px]">
                 <a href="https://t.me/freematerialjeeneet" target="_blank" rel="noopener noreferrer">
@@ -155,7 +157,7 @@ export default function LandingPage() {
               {[
                 { icon: Sparkles, title: 'ASTRA Mentor', text: 'Daily plans, voice guidance, weak-topic attack' },
                 { icon: Target, title: 'AI Tests', text: 'JEE/NEET CBT mock tests with analysis' },
-                { icon: GraduationCap, title: 'Courses', text: 'Curated resources, posters, tags and links' },
+                { icon: Users, title: 'Community', text: 'Doubts, spaces, stories and XP leaderboard' },
               ].map((item) => (
                 <button key={item.title} onClick={() => navigate('/auth')}
                   className="hero-card rounded-xl p-3 sm:p-4 hover:border-primary/50 transition-all group">
@@ -163,7 +165,7 @@ export default function LandingPage() {
                     <item.icon className="w-4 h-4 text-primary" />
                     <span className="font-bold text-white text-sm">{item.title}</span>
                   </div>
-                  <p className="text-xs text-gray-400 group-hover:text-gray-300 transition-colors">{item.text}</p>
+                  <p className="text-xs text-slate-300 group-hover:text-white transition-colors">{item.text}</p>
                 </button>
               ))}
             </motion.div>
@@ -177,7 +179,7 @@ export default function LandingPage() {
                 className="hero-card rounded-xl p-4 sm:p-6 text-center hover:border-primary/40 transition-all duration-300 hover:-translate-y-2">
                 <stat.icon className={`w-5 sm:w-7 h-5 sm:h-7 mx-auto mb-2 sm:mb-3 ${stat.color}`} />
                 <div className="text-2xl sm:text-3xl font-bold font-display text-white">{stat.value}</div>
-                <div className="text-xs sm:text-sm mt-1 text-gray-400">{stat.label}</div>
+                <div className="text-xs sm:text-sm mt-1 font-medium text-slate-300">{stat.label}</div>
               </motion.div>
             ))}
           </motion.div>
@@ -203,7 +205,7 @@ export default function LandingPage() {
             <motion.h2 variants={fadeUp} className="text-3xl sm:text-4xl md:text-5xl font-bold font-display mb-3 sm:mb-4 text-white">
               Everything You Need to <span className="text-gradient">Crack It</span>
             </motion.h2>
-            <motion.p variants={fadeUp} className="text-base sm:text-lg max-w-2xl mx-auto text-gray-400">
+            <motion.p variants={fadeUp} className="text-base sm:text-lg max-w-2xl mx-auto text-slate-300">
               From study materials to AI-powered test practice, Rankers Star has everything to boost your preparation.
             </motion.p>
           </motion.div>
@@ -219,7 +221,7 @@ export default function LandingPage() {
                     <feature.icon className="w-6 sm:w-7 h-6 sm:h-7 text-primary" />
                   </div>
                   <h3 className="text-lg sm:text-xl font-bold font-display mb-2 sm:mb-3 text-white">{feature.title}</h3>
-                  <p className="text-sm sm:text-base leading-relaxed text-gray-400">{feature.desc}</p>
+                  <p className="text-sm sm:text-base leading-relaxed text-slate-300">{feature.desc}</p>
                 </div>
               </motion.div>
             ))}
@@ -241,12 +243,12 @@ export default function LandingPage() {
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold font-display mb-4 text-white">
                 Your Personal <span className="text-gradient">Study Coach</span> is Always Visible
               </h2>
-              <p className="text-base sm:text-lg text-gray-400 leading-relaxed mb-6">
+              <p className="text-base sm:text-lg text-slate-300 leading-relaxed mb-6">
                 ASTRA creates daily task lists, voice-guided answers, weak topic attack plans, smart nudges, and mistake-journal style improvement steps for JEE, NEET and Boards.
               </p>
               <div className="grid sm:grid-cols-2 gap-3">
                 {['Daily plan + countdown', 'Voice input mentor chat', 'Weak topic attack', 'Task completion celebration'].map((item) => (
-                  <div key={item} className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-gray-300">
+                  <div key={item} className="rounded-xl border border-primary/25 bg-primary/10 px-4 py-3 text-sm font-medium text-white">
                     <CheckCircle className="w-4 h-4 text-primary inline mr-2" />{item}
                   </div>
                 ))}
