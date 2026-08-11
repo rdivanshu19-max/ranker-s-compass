@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { motion } from 'framer-motion';
-import { User, Save, Trash2, AlertTriangle, Copy, Check, Share2 } from 'lucide-react';
+import { User, Save, Trash2, AlertTriangle, Copy, Check, Share2, Camera, AtSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import BadgeChart from '@/components/BadgeChart';
+import { uploadUserFile } from '@/lib/uploads';
 
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -27,10 +28,15 @@ export default function ProfilePage() {
   const [badges, setBadges] = useState<any[]>([]);
   const [badgeProgress, setBadgeProgress] = useState<Record<string, number>>({});
   const [copied, setCopied] = useState(false);
+  const [username, setUsername] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('');
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   useEffect(() => {
     if (!user) return;
-    supabase.from('profiles').select('referral_code').eq('user_id', user.id).single().then(async ({ data }) => {
+    supabase.from('profiles').select('referral_code, username, avatar_url').eq('user_id', user.id).single().then(async ({ data }) => {
+      setUsername((data as any)?.username || '');
+      setAvatarUrl((data as any)?.avatar_url || '');
       if (data?.referral_code) {
         setReferralCode(data.referral_code);
       } else {
@@ -97,10 +103,33 @@ export default function ProfilePage() {
   const save = async () => {
     if (!user) return;
     setSaving(true);
-    const { error } = await supabase.from('profiles').update({ display_name: name, bio }).eq('user_id', user.id);
-    if (error) toast.error('Failed to save');
+    const handle = username.trim().replace(/^@/, '').toLowerCase();
+    if (handle && !/^[a-z0-9_.]{3,20}$/.test(handle)) {
+      setSaving(false);
+      return toast.error('Username must be 3-20 characters (letters, numbers, _ or .)');
+    }
+    const { error } = await supabase.from('profiles')
+      .update({ display_name: name, bio, username: handle || null, avatar_url: avatarUrl || null })
+      .eq('user_id', user.id);
+    if (error) toast.error(error.code === '23505' ? 'That username is already taken' : 'Failed to save');
     else { toast.success('Profile updated!'); await refreshProfile(); }
     setSaving(false);
+  };
+
+  const pickAvatar = async (file: File) => {
+    if (!user) return;
+    if (file.size > 5 * 1024 * 1024) return toast.error('Image must be under 5MB');
+    setUploadingAvatar(true);
+    try {
+      const url = await uploadUserFile(file, user.id, 'avatars');
+      setAvatarUrl(url);
+      await supabase.from('profiles').update({ avatar_url: url }).eq('user_id', user.id);
+      await refreshProfile();
+      toast.success('Profile photo updated');
+    } catch (e: any) {
+      toast.error(e.message || 'Upload failed');
+    }
+    setUploadingAvatar(false);
   };
 
   const deleteAccount = async () => {
@@ -147,9 +176,18 @@ export default function ProfilePage() {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
         className="bg-card rounded-2xl border border-border p-6 space-y-5">
         <div className="flex items-center gap-4 mb-4">
-          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-            <User className="w-8 h-8 text-primary" />
-          </div>
+          <label className="relative w-16 h-16 shrink-0 cursor-pointer group">
+            <span className="block w-16 h-16 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center border border-border">
+              {avatarUrl
+                ? <img src={avatarUrl} alt="Your profile photo" className="w-full h-full object-cover" />
+                : <User className="w-8 h-8 text-primary" />}
+            </span>
+            <span className="absolute -bottom-1 -right-1 grid h-7 w-7 place-items-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform group-hover:scale-110">
+              <Camera className="w-3.5 h-3.5" />
+            </span>
+            <input type="file" accept="image/*" className="hidden" disabled={uploadingAvatar}
+              onChange={e => e.target.files?.[0] && pickAvatar(e.target.files[0])} />
+          </label>
           <div>
             <h2 className="text-xl font-bold font-display">{profile?.display_name}</h2>
             <p className="text-sm text-muted-foreground">{user?.email}</p>
@@ -159,6 +197,11 @@ export default function ProfilePage() {
         <div>
           <label className="text-sm font-medium mb-1 block">Display Name</label>
           <Input value={name} onChange={e => setName(e.target.value)} />
+        </div>
+        <div>
+          <label className="text-sm font-medium mb-1 block flex items-center gap-1.5"><AtSign className="w-3.5 h-3.5 text-primary" /> Community Username</label>
+          <Input value={username} onChange={e => setUsername(e.target.value)} placeholder="e.g. physics_ninja" />
+          <p className="text-xs text-muted-foreground mt-1">Shown on your community posts, replies and the leaderboard.</p>
         </div>
         <div>
           <label className="text-sm font-medium mb-1 block">Bio</label>
