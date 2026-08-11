@@ -20,6 +20,7 @@ import {
 const DEFAULT_TYPES = ['Lectures', 'Lecture PDF', 'Books', 'PYQs', 'JEE', 'NEET', 'JEE Advanced', 'JEE Test', 'NEET Test', 'Other Material', 'Tests', 'Physics', 'Chemistry', 'Maths', 'Biology', 'Boards'];
 import CommunityModeration from '@/components/admin/CommunityModeration';
 import StudyAppsAdmin from '@/components/admin/StudyAppsAdmin';
+import StoreAdmin from '@/components/admin/StoreAdmin';
 import TestSeriesAdmin from '@/components/admin/TestSeriesAdmin';
 const MAX_PINNED = 10;
 
@@ -51,7 +52,7 @@ export default function AdminPage() {
   const [editDescription, setEditDescription] = useState('');
   const [editMode, setEditMode] = useState<'categories' | 'title'>('categories');
   const [pinnedCount, setPinnedCount] = useState(0);
-  const [tab, setTab] = useState<'materials' | 'users' | 'feedback' | 'apps' | 'testseries' | 'notifications' | 'moderators' | 'reports' | 'logs' | 'community'>('materials');
+  const [tab, setTab] = useState<'materials' | 'users' | 'feedback' | 'apps' | 'testseries' | 'notifications' | 'moderators' | 'reports' | 'logs' | 'community' | 'store'>('materials');
   const [moderators, setModerators] = useState<Set<string>>(new Set());
   const [reports, setReports] = useState<any[]>([]);
   const [activityLogs, setActivityLogs] = useState<any[]>([]);
@@ -372,8 +373,8 @@ export default function AdminPage() {
           <p className="text-muted-foreground mt-1">Manage materials, users, feedback, study apps & notifications</p>
         </div>
         <div className="flex gap-2 flex-wrap">
-          {(['materials', 'users', 'feedback', 'apps', 'testseries', 'notifications', 'moderators', 'reports', 'logs', 'community'] as const).map(t => {
-            const icons: any = { materials: null, users: Users, feedback: MessageSquare, apps: LayoutGrid, notifications: Bell, moderators: ShieldCheck, reports: Flag, logs: History, community: Users };
+          {(['materials', 'users', 'feedback', 'apps', 'testseries', 'notifications', 'moderators', 'reports', 'logs', 'community', 'store'] as const).map(t => {
+            const icons: any = { materials: null, users: Users, feedback: MessageSquare, apps: LayoutGrid, notifications: Bell, moderators: ShieldCheck, reports: Flag, logs: History, community: Users, store: ShoppingBag };
             const Icon = icons[t];
             return (
               <Button key={t} variant={tab === t ? 'default' : 'outline'} size="sm" onClick={() => setTab(t)} className="gap-1 capitalize">
@@ -767,6 +768,8 @@ export default function AdminPage() {
           })}
         </div>
       )}
+
+      {tab === 'store' && <StoreAdmin actorId={user!.id} />}
 
       {tab === 'community' && <CommunityModeration actorId={user!.id} actorRole="admin" />}
 
