@@ -22,6 +22,8 @@ export default function CommunityPage() {
   const [spaces, setSpaces] = useState<Space[]>([]);
   const [stories, setStories] = useState<Story[]>([]);
   const [names, setNames] = useState<Record<string, string>>({});
+  const [handles, setHandles] = useState<Record<string, string>>({});
+  const [avatars, setAvatars] = useState<Record<string, string>>({});
   const [votes, setVotes] = useState<Record<string, number>>({});     // postId -> score
   const [myVotes, setMyVotes] = useState<Record<string, number>>({}); // postId -> my value
   const [commentCounts, setCommentCounts] = useState<Record<string, number>>({});
@@ -94,8 +96,11 @@ export default function CommunityPage() {
 
     const ids = [...new Set([...allIds, ...(user ? [user.id] : [])])];
     if (ids.length) {
-      const { data: profs } = await supabase.from('profiles').select('user_id, display_name').in('user_id', ids);
-      setNames(Object.fromEntries(((profs as any[]) || []).map(x => [x.user_id, x.display_name])));
+      const { data: profs } = await supabase.from('profiles').select('user_id, display_name, username, avatar_url').in('user_id', ids);
+      const rows = (profs as any[]) || [];
+      setNames(Object.fromEntries(rows.map(x => [x.user_id, x.display_name])));
+      setHandles(Object.fromEntries(rows.filter(x => x.username).map(x => [x.user_id, x.username])));
+      setAvatars(Object.fromEntries(rows.filter(x => x.avatar_url).map(x => [x.user_id, x.avatar_url])));
     }
     setLoading(false);
   };
@@ -140,9 +145,12 @@ export default function CommunityPage() {
   const myStats = (user && statsByUser[user.id]) || { posts: 0, solved: 0, upvotes: 0, xp: 0 };
   const myLevel = levelOf(myStats.xp);
 
-  const feed = useMemo(
-    () => (spaceFilter ? posts.filter(p => p.space_id === spaceFilter) : posts),
-    [posts, spaceFilter]);
+  const feed = useMemo(() => {
+    const list = spaceFilter ? posts.filter(p => p.space_id === spaceFilter) : posts;
+    return [...list].sort((a, b) =>
+      Number(Boolean((b as any).pinned)) - Number(Boolean((a as any).pinned)) ||
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  }, [posts, spaceFilter]);
 
   if (loading) return <RankersLoader label="Loading Community" />;
 
@@ -172,11 +180,16 @@ export default function CommunityPage() {
       {user && (
         <div className="rounded-3xl border border-border/70 bg-card/50 p-5 backdrop-blur-xl">
           <div className="flex flex-wrap items-center gap-4">
-            <div className="grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-primary to-accent font-display text-lg font-bold text-primary-foreground">
-              {(names[user.id] || 'ST').slice(0, 2).toUpperCase()}
+            <div className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-accent font-display text-lg font-bold text-primary-foreground">
+              {avatars[user.id]
+                ? <img src={avatars[user.id]} alt="Your avatar" className="h-full w-full object-cover" />
+                : (names[user.id] || 'ST').slice(0, 2).toUpperCase()}
             </div>
             <div className="min-w-[180px] flex-1">
-              <p className="font-display text-base font-bold">{names[user.id] || 'Student'}</p>
+              <p className="font-display text-base font-bold">
+                {names[user.id] || 'Student'}
+                {handles[user.id] && <span className="ml-2 text-xs font-medium text-primary">@{handles[user.id]}</span>}
+              </p>
               <p className="text-xs text-muted-foreground">Level {myLevel.level} · {myLevel.name} · {myStats.xp} XP</p>
               <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted/50">
                 <motion.div className="h-full rounded-full bg-gradient-to-r from-primary to-accent"
@@ -238,12 +251,18 @@ export default function CommunityPage() {
               key={p.id}
               post={p}
               space={spaces.find(s => s.id === p.space_id)}
-              author={{ name: names[p.user_id] || 'Student', stats: statsByUser[p.user_id] || { posts: 0, solved: 0, upvotes: 0, xp: 0 } }}
+              author={{
+                name: names[p.user_id] || 'Student',
+                username: handles[p.user_id],
+                avatarUrl: avatars[p.user_id],
+                stats: statsByUser[p.user_id] || { posts: 0, solved: 0, upvotes: 0, xp: 0 },
+              }}
               score={votes[p.id] || 0}
               myVote={myVotes[p.id] || 0}
               commentCount={commentCounts[p.id] || 0}
               onVote={vote}
               onDeleted={id => setPosts(list => list.filter(x => x.id !== id))}
+              onPinned={(id, pinned) => setPosts(list => list.map(x => (x.id === id ? ({ ...x, pinned } as Post) : x)))}
             />
           ))}
         </div>
@@ -297,7 +316,10 @@ export default function CommunityPage() {
                   {i + 1}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold">{names[row.id] || 'Student'}</p>
+                  <p className="truncate text-sm font-semibold">
+                    {names[row.id] || 'Student'}
+                    {handles[row.id] && <span className="ml-1.5 text-xs font-normal text-muted-foreground">@{handles[row.id]}</span>}
+                  </p>
                   <p className="text-xs text-muted-foreground">{row.posts} posts · {row.solved} replies · {row.upvotes} upvotes</p>
                 </div>
                 <span className="font-display text-sm font-bold text-primary">{row.xp} XP</span>
