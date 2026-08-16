@@ -26,7 +26,7 @@ export default function AuthPage() {
       window.location.href = nextPath;
       return;
     }
-    navigate('/app', { replace: true });
+    goAfterAuth();
   };
 
   useEffect(() => {
@@ -60,7 +60,7 @@ export default function AuthPage() {
         const { error: signUpError } = await signUp(email, password, displayName);
         if (signUpError) throw signUpError;
         toast.success('Account created! You are now signed in.');
-        navigate('/app', { replace: true });
+        goAfterAuth();
         if (refCode) {
           try {
             const { data: referrer } = await supabase.from('profiles').select('user_id').eq('referral_code', refCode).single();
@@ -77,7 +77,7 @@ export default function AuthPage() {
         const { error: signInError } = await signIn(email, password);
         if (signInError) throw signInError;
         toast.success('Welcome back!');
-        navigate('/app', { replace: true });
+        goAfterAuth();
       }
     } catch (err: any) {
       toast.error(err.message || 'Something went wrong');
