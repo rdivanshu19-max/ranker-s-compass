@@ -26,7 +26,7 @@ export default function AuthPage() {
       window.location.href = nextPath;
       return;
     }
-    goAfterAuth();
+    navigate('/app', { replace: true });
   };
 
   useEffect(() => {
