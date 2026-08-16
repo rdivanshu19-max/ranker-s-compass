@@ -34,7 +34,9 @@ import PracticeViewPage from "./pages/PracticeViewPage";
 import TermsPage from "./pages/TermsPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import AdSensePage from "./pages/AdSensePage";
+import OAuthConsent from "./pages/OAuthConsent";
 import NotFound from "./pages/NotFound";
+
 
 const queryClient = new QueryClient();
 
@@ -49,6 +51,8 @@ const App = () => (
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/auth" element={<AuthPage />} />
+              <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
+
               <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/terms" element={<TermsPage />} />
               <Route path="/privacy" element={<PrivacyPage />} />
