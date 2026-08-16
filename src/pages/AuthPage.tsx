@@ -11,6 +11,8 @@ import { toast } from 'sonner';
 export default function AuthPage() {
   const [searchParams] = useSearchParams();
   const refCode = searchParams.get('ref');
+  const rawNext = searchParams.get('next');
+  const nextPath = rawNext && /^\/(?!\/)/.test(rawNext) ? rawNext : null;
   const [isSignUp, setIsSignUp] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -19,9 +21,19 @@ export default function AuthPage() {
   const { user, signUp, signIn, requestPasswordReset } = useAuth();
   const navigate = useNavigate();
 
+  const goAfterAuth = () => {
+    if (nextPath) {
+      window.location.href = nextPath;
+      return;
+    }
+    navigate('/app', { replace: true });
+  };
+
   useEffect(() => {
-    if (user) navigate('/app', { replace: true });
-  }, [user, navigate]);
+    if (user) goAfterAuth();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, navigate, nextPath]);
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
