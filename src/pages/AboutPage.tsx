@@ -54,7 +54,7 @@ export default function AboutPage() {
             <a href="mailto:studyspacerankers@gmail.com"><Mail className="w-4 h-4 mr-2" /> studyspacerankers@gmail.com</a>
           </Button>
           <Button variant="outline" asChild>
-            <a href="https://t.me/freematerialjeeneet" target="_blank" rel="noopener noreferrer"><Send className="w-4 h-4 mr-2" /> Telegram Channel</a>
+            <a href="https://t.me/pwrtsjee" target="_blank" rel="noopener noreferrer"><Send className="w-4 h-4 mr-2" /> Telegram Channel</a>
           </Button>
         </div>
       </motion.div>

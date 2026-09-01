@@ -23,7 +23,7 @@ export default function ContributePage() {
             <a href="mailto:studyspacerankers@gmail.com"><Mail className="w-4 h-4 mr-1" /> Email Us</a>
           </Button>
           <Button variant="outline" asChild>
-            <a href="https://t.me/freematerialjeeneet" target="_blank" rel="noopener noreferrer"><Send className="w-4 h-4 mr-1" /> Telegram</a>
+            <a href="https://t.me/pwrtsjee" target="_blank" rel="noopener noreferrer"><Send className="w-4 h-4 mr-1" /> Telegram</a>
           </Button>
         </div>
       </motion.div>
@@ -56,7 +56,7 @@ export default function ContributePage() {
             <a href="mailto:studyspacerankers@gmail.com"><Mail className="w-4 h-4 mr-1" /> Contact for Donation</a>
           </Button>
           <Button variant="outline" asChild>
-            <a href="https://t.me/freematerialjeeneet" target="_blank" rel="noopener noreferrer"><Send className="w-4 h-4 mr-1" /> Reach via Telegram</a>
+            <a href="https://t.me/pwrtsjee" target="_blank" rel="noopener noreferrer"><Send className="w-4 h-4 mr-1" /> Reach via Telegram</a>
           </Button>
         </div>
       </motion.div>

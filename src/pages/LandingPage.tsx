@@ -146,7 +146,7 @@ export default function LandingPage() {
                 <Zap className="w-5 h-5" /> <span className="font-extrabold tracking-tight">Prep Now — It&apos;s Free</span> <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
               <Button variant="heroOutline" size="xl" asChild className="w-full sm:w-auto min-w-[200px]">
-                <a href="https://t.me/freematerialjeeneet" target="_blank" rel="noopener noreferrer">
+                <a href="https://t.me/pwrtsjee" target="_blank" rel="noopener noreferrer">
                   <Send className="w-5 h-5" /> Join Telegram
                 </a>
               </Button>
@@ -435,7 +435,7 @@ export default function LandingPage() {
               <h4 className="font-bold mb-3 text-white">Connect With Us</h4>
               <ul className="space-y-2 text-sm text-gray-400">
                 <li><a href="mailto:studyspacerankers@gmail.com" className="hover:text-primary transition-colors">📧 studyspacerankers@gmail.com</a></li>
-                <li><a href="https://t.me/freematerialjeeneet" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">✈️ Telegram Channel</a></li>
+                <li><a href="https://t.me/pwrtsjee" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">✈️ Telegram Channel</a></li>
               </ul>
             </div>
           </div>
