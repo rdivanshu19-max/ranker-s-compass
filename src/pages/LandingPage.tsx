@@ -103,18 +103,19 @@ export default function LandingPage() {
   }, [testimonials.length]);
 
   return (
-    <div className="min-h-screen dark">
+    <div className="min-h-screen overflow-x-hidden dark">
       {/* Hero */}
-      <section className="relative bg-hero min-h-screen flex items-center justify-center overflow-hidden">
+      <section className="relative bg-hero flex min-h-[100svh] items-center justify-center overflow-hidden py-24 sm:py-28">
         <Particles />
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute top-20 left-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl animate-float" />
           <div className="absolute bottom-20 right-10 w-96 h-96 bg-primary/8 rounded-full blur-3xl animate-float" style={{ animationDelay: '1.5s' }} />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/3 rounded-full blur-[100px]" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] max-w-[140vw] bg-primary/3 rounded-full blur-[100px]" />
           <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle, hsl(0 0% 100%) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
         </div>
 
-        <motion.div style={{ opacity: heroOpacity, scale: heroScale }} className="relative z-10 container mx-auto px-4 text-center">
+        <motion.div style={{ opacity: heroOpacity, scale: heroScale }} className="relative z-10 container mx-auto w-full max-w-full px-4 text-center">
+
           <motion.div initial="hidden" animate="visible" variants={stagger} className="max-w-4xl mx-auto">
             <motion.div variants={scaleIn} transition={{ duration: 0.6 }}
               className="inline-flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full border border-primary/30 bg-primary/10 mb-6 sm:mb-8 backdrop-blur-sm">
