@@ -195,6 +195,11 @@ export default function LandingPage() {
         </motion.div>
       </section>
 
+      {/* Promotions & partner network */}
+      <PromoBanners />
+
+
+
       {/* Features */}
       <section className="py-16 sm:py-24 bg-hero relative overflow-hidden">
         <div className="absolute inset-0"><div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" /></div>
