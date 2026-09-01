@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import FeaturedInstitutions from '@/components/FeaturedInstitutions';
+import PromoBanners from '@/components/PromoBanners';
+
 
 const fadeUp = { hidden: { opacity: 0, y: 40 }, visible: { opacity: 1, y: 0 } };
 const stagger = { visible: { transition: { staggerChildren: 0.15 } } };
