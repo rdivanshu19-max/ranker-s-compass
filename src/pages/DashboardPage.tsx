@@ -311,7 +311,7 @@ export default function DashboardPage() {
         className="bg-card rounded-2xl border border-border p-6">
         <div className="flex items-center gap-2 mb-4">
           <BookOpen className="w-5 h-5 text-primary" />
-          <h3 className="text-lg font-bold font-display">Library Coverage Progress</h3>
+          <h2 className="text-lg font-bold font-display">Library Coverage Progress</h2>
         </div>
         <Progress value={libraryCoverage} className="h-3" />
         <p className="text-sm text-muted-foreground mt-3">
@@ -324,7 +324,7 @@ export default function DashboardPage() {
         className="bg-card rounded-2xl border border-border p-6">
         <div className="flex items-center gap-2 mb-4">
           <Clock className="w-5 h-5 text-primary" />
-          <h3 className="text-lg font-bold font-display">Study Timer</h3>
+          <h2 className="text-lg font-bold font-display">Study Timer</h2>
         </div>
         <div className="flex flex-col lg:flex-row lg:items-center gap-6">
           <div className="text-5xl font-mono font-bold text-primary tracking-wider">{formatTimer(timerSeconds)}</div>
@@ -346,7 +346,7 @@ export default function DashboardPage() {
           className="bg-card rounded-2xl border border-border p-6">
           <div className="flex items-center gap-2 mb-4">
             <Clock className="w-5 h-5 text-primary" />
-            <h3 className="text-lg font-bold font-display">Weekly Study Stats</h3>
+            <h2 className="text-lg font-bold font-display">Weekly Study Stats</h2>
           </div>
           <div className="h-52">
             <ResponsiveContainer width="100%" height="100%">
@@ -364,7 +364,7 @@ export default function DashboardPage() {
           className="bg-card rounded-2xl border border-border p-6">
           <div className="flex items-center gap-2 mb-4">
             <Brain className="w-5 h-5 text-primary" />
-            <h3 className="text-lg font-bold font-display">Chapter-wise Performance</h3>
+            <h2 className="text-lg font-bold font-display">Chapter-wise Performance</h2>
           </div>
 
           {strongTopics.length === 0 && weakTopics.length === 0 ? (
@@ -442,7 +442,7 @@ export default function DashboardPage() {
           className="bg-card rounded-2xl border border-border p-6">
           <div className="flex items-center gap-2 mb-4">
             <Pin className="w-5 h-5 text-primary" />
-            <h3 className="text-lg font-bold font-display">📌 Pinned Materials ({pinnedMaterials.length})</h3>
+            <h2 className="text-lg font-bold font-display">📌 Pinned Materials ({pinnedMaterials.length})</h2>
           </div>
           <div className="grid sm:grid-cols-2 gap-3">
             {pinnedMaterials.map((material) => (
