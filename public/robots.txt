@@ -3,4 +3,4 @@ Allow: /
 Disallow: /app/admin
 Disallow: /app/moderator
 
-Sitemap: https://rankers-stars.vercel.app/sitemap.xml
+Sitemap: https://rankerstars.lovable.app/sitemap.xml
