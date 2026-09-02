@@ -131,6 +131,9 @@ export default function LandingPage() {
               <span className="text-gradient">Star</span>
               <motion.span animate={{ rotate: [0, 15, -15, 0] }} transition={{ repeat: Infinity, duration: 2, repeatDelay: 3 }}
                 className="inline-block ml-2 sm:ml-3">⭐</motion.span>
+              <span className="block mt-3 text-lg sm:text-2xl md:text-3xl font-semibold text-slate-200">
+                Free JEE &amp; NEET Study Materials, AI Mock Tests &amp; Mentor
+              </span>
             </motion.h1>
 
             <motion.p variants={fadeUp} transition={{ duration: 0.8 }}

@@ -34,20 +34,20 @@ export default function AppLayout() {
           <div className="flex items-center gap-1">
             <span className="text-sm text-muted-foreground hidden sm:block mr-1">Hi, {profile?.display_name || 'Student'}</span>
             <NotificationBell />
-            <Button variant="ghost" size="icon" onClick={toggleTheme}>
+            <Button variant="ghost" size="icon" aria-label="Toggle dark mode" onClick={toggleTheme}>
               {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </Button>
             {isModerator && !isAdmin && (
-              <Button variant="ghost" size="icon" onClick={() => navigate('/app/moderator')} title="Moderator Panel">
+              <Button variant="ghost" size="icon" onClick={() => navigate('/app/moderator')} title="Moderator Panel" aria-label="Open moderator panel">
                 <ShieldCheck className="w-4 h-4 text-primary" />
               </Button>
             )}
             {isAdmin && (
-              <Button variant="ghost" size="icon" onClick={() => navigate('/app/admin')} title="Admin Panel">
+              <Button variant="ghost" size="icon" onClick={() => navigate('/app/admin')} title="Admin Panel" aria-label="Open admin panel">
                 <Shield className="w-4 h-4 text-primary" />
               </Button>
             )}
-            <Button variant="ghost" size="icon" onClick={() => { signOut(); navigate('/'); }} title="Sign out">
+            <Button variant="ghost" size="icon" onClick={() => { signOut(); navigate('/'); }} title="Sign out" aria-label="Sign out">
               <LogOut className="w-4 h-4" />
             </Button>
           </div>
