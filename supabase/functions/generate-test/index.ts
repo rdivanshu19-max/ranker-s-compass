@@ -138,8 +138,8 @@ serve(async (req) => {
 
   try {
     const { examType, subject, chapter, numQuestions, subjectDistribution } = await req.json();
-    const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
-    if (!GROQ_API_KEY) throw new Error("GROQ_API_KEY is not configured");
+    const GROQ_API_KEY = Deno.env.get("GROQ_TEST_API_KEY") || Deno.env.get("GROQ_API_KEY");
+    if (!GROQ_API_KEY) throw new Error("GROQ_TEST_API_KEY is not configured");
 
     // Enforce daily limit
     const authHeader = req.headers.get("Authorization");

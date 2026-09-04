@@ -136,8 +136,8 @@ MISTAKE PATTERNS: ${topics.filter(t => t.errors > 2).map(t => `${t.topic}: ${t.e
       taskContext = `\nTODAY'S TASKS: ${done}/${dailyTasks.length} completed (${Math.round((done / dailyTasks.length) * 100)}%). Consistency score: ${consistencyScore || 0}%`;
     }
 
-    const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
-    if (!GROQ_API_KEY) throw new Error("GROQ_API_KEY not configured");
+    const GROQ_API_KEY = Deno.env.get("GROQ_CHAT_API_KEY") || Deno.env.get("GROQ_API_KEY");
+    if (!GROQ_API_KEY) throw new Error("GROQ_CHAT_API_KEY is not configured");
 
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
