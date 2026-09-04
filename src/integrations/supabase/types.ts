@@ -584,9 +584,12 @@ export type Database = {
           ends_at: string | null
           id: string
           link_url: string | null
+          max_impressions: number
+          placements: string[]
           poster_url: string | null
           sort_order: number
           starts_at: string | null
+          style: string
           subtitle: string | null
           title: string
           updated_at: string
@@ -600,9 +603,12 @@ export type Database = {
           ends_at?: string | null
           id?: string
           link_url?: string | null
+          max_impressions?: number
+          placements?: string[]
           poster_url?: string | null
           sort_order?: number
           starts_at?: string | null
+          style?: string
           subtitle?: string | null
           title: string
           updated_at?: string
@@ -616,9 +622,12 @@ export type Database = {
           ends_at?: string | null
           id?: string
           link_url?: string | null
+          max_impressions?: number
+          placements?: string[]
           poster_url?: string | null
           sort_order?: number
           starts_at?: string | null
+          style?: string
           subtitle?: string | null
           title?: string
           updated_at?: string

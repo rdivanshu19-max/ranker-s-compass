@@ -58,8 +58,8 @@ serve(async (req) => {
       }
     }
 
-    const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
-    if (!GROQ_API_KEY) throw new Error("GROQ_API_KEY is not configured");
+    const GROQ_API_KEY = Deno.env.get("GROQ_CHAT_API_KEY") || Deno.env.get("GROQ_API_KEY");
+    if (!GROQ_API_KEY) throw new Error("GROQ_CHAT_API_KEY is not configured");
 
     // Detect images in messages
     const hasAnyImage = !!hasImage || messages.some((m: any) =>
@@ -67,9 +67,7 @@ serve(async (req) => {
     );
 
     // Vision-capable Groq model when image present
-    const model = hasAnyImage
-      ? "meta-llama/llama-4-scout-17b-16e-instruct"
-      : "llama-3.3-70b-versatile";
+    const model = "qwen/qwen3.8-27b";
 
     // For text-only model, strip images. For vision model, keep multimodal content.
     const cleanedMessages = hasAnyImage
