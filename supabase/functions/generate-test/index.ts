@@ -37,7 +37,7 @@ Each question must have exactly 4 options. correctAnswer is the index 0-3 of the
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
+        model: "openai/gpt-oss-120b",
         messages: [
           { role: "system", content: "You are an expert MCQ question generator for Indian competitive exams (JEE/NEET). Always return valid JSON only — no markdown, no commentary." },
           { role: "user", content: prompt },
