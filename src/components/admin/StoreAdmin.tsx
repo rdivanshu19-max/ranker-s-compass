@@ -201,7 +201,7 @@ export default function StoreAdmin({ actorId }: { actorId: string }) {
         <>
           <div className="rounded-2xl border border-border bg-card p-5 space-y-3">
             <h3 className="font-display font-bold">{editingPr ? 'Edit promotion' : 'Create promotion / sponsorship'}</h3>
-            <p className="text-xs text-muted-foreground">Promotions only appear on the Store page while they are marked visible — students never see an empty promo slot.</p>
+            <p className="text-xs text-muted-foreground">Choose where the promotion appears and how many times each student sees it per session. Slots stay hidden when nothing is live.</p>
             <div className="grid gap-3 sm:grid-cols-2">
               <Input placeholder="Title" value={prForm.title} onChange={e => setPrForm({ ...prForm, title: e.target.value })} />
               <Input placeholder="Subtitle / sponsor name" value={prForm.subtitle} onChange={e => setPrForm({ ...prForm, subtitle: e.target.value })} />
