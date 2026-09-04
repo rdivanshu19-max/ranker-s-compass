@@ -83,7 +83,14 @@ export default function StoreAdmin({ actorId }: { actorId: string }) {
   const savePromo = async () => {
     if (!prForm.title.trim()) return toast.error('Promotion title is required');
     setBusy(true);
-    const payload = { ...prForm, sort_order: Number(prForm.sort_order) || 0, created_by: actorId };
+    const payload = {
+      ...prForm,
+      sort_order: Number(prForm.sort_order) || 0,
+      max_impressions: Math.max(0, Number(prForm.max_impressions) || 0),
+      placements: prForm.placements?.length ? prForm.placements : ['store'],
+      created_by: actorId,
+    };
+
     const { error } = editingPr
       ? await supabase.from('promotions').update(payload).eq('id', editingPr)
       : await supabase.from('promotions').insert(payload);
