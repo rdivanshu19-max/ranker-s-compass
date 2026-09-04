@@ -224,6 +224,52 @@ export default function StoreAdmin({ actorId }: { actorId: string }) {
               <Input type="number" className="w-24" placeholder="Order" value={prForm.sort_order}
                 onChange={e => setPrForm({ ...prForm, sort_order: e.target.value })} />
             </div>
+
+            <div className="space-y-2 rounded-xl border border-border/70 bg-muted/20 p-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Show on pages</p>
+              <div className="flex flex-wrap gap-2">
+                {PLACEMENTS.map(pl => {
+                  const on = (prForm.placements || []).includes(pl.id);
+                  return (
+                    <button
+                      key={pl.id}
+                      type="button"
+                      onClick={() => setPrForm((f: any) => ({
+                        ...f,
+                        placements: on
+                          ? (f.placements || []).filter((x: string) => x !== pl.id)
+                          : [...(f.placements || []), pl.id],
+                      }))}
+                      className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${on
+                        ? 'border-primary bg-primary/15 text-primary'
+                        : 'border-border text-muted-foreground hover:text-foreground'}`}
+                    >
+                      {pl.label}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="flex flex-wrap items-center gap-3 pt-1">
+                <label className="flex items-center gap-2 text-sm">
+                  Times shown per session
+                  <Input type="number" min={0} className="w-20" value={prForm.max_impressions}
+                    onChange={e => setPrForm({ ...prForm, max_impressions: e.target.value })} />
+                </label>
+                <label className="flex items-center gap-2 text-sm">
+                  Style
+                  <select
+                    className="rounded-lg border border-border bg-background px-2 py-2 text-sm"
+                    value={prForm.style}
+                    onChange={e => setPrForm({ ...prForm, style: e.target.value })}
+                  >
+                    <option value="banner">Inline banner</option>
+                    <option value="popup">Corner popup</option>
+                  </select>
+                </label>
+                <span className="text-xs text-muted-foreground">0 = unlimited</span>
+              </div>
+            </div>
+
             <div className="flex gap-2">
               <Button onClick={savePromo} disabled={busy} className="gap-1.5"><Plus className="h-4 w-4" /> {editingPr ? 'Save changes' : 'Create promotion'}</Button>
               {editingPr && <Button variant="outline" onClick={() => { setEditingPr(null); setPrForm({ ...emptyPromo }); }}>Cancel</Button>}
