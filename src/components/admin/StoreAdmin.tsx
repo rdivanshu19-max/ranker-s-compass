@@ -18,7 +18,9 @@ const emptyProduct = {
 const emptyPromo = {
   title: '', subtitle: '', description: '', poster_url: '', link_url: '',
   cta_text: 'Learn more', active: true, sort_order: 0,
+  placements: ['store'] as string[], max_impressions: 3, style: 'banner',
 };
+
 
 export default function StoreAdmin({ actorId }: { actorId: string }) {
   const [view, setView] = useState<'products' | 'promotions'>('products');
