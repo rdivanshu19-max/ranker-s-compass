@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, ChevronLeft, ChevronRight, Sparkles, Send, MessageCircle } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight, Sparkles, Send, MessageCircle, MonitorCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LINKS } from '@/lib/links';
-import edgeLogo from '@/assets/rankers-edge-logo.png.asset.json';
+
+/** Logos live in /public so they resolve on every host (Lovable preview and Vercel). */
+const EDGE_LOGO = '/rankers-edge-logo.png';
+const NEXUS_LOGO = '/nexus-cbt-logo.png';
 
 type Slide = {
   id: string;
@@ -16,6 +19,7 @@ type Slide = {
   /** tailwind gradient classes for the banner artwork */
   art: string;
   logo?: string;
+  logoAlt?: string;
 };
 
 const slides: Slide[] = [
@@ -28,7 +32,20 @@ const slides: Slide[] = [
     href: LINKS.rankersEdge,
     icon: Sparkles,
     art: 'from-indigo-600/40 via-violet-600/25 to-transparent',
-    logo: edgeLogo.url,
+    logo: EDGE_LOGO,
+    logoAlt: 'Rankers Edge logo',
+  },
+  {
+    id: 'nexus',
+    tag: 'OUR DEDICATED TEST PLATFORM',
+    title: 'Nexus CBT — real exam-like testing, built by us',
+    desc: 'Chapter, topic and full-syllabus tests at easy to advanced levels, a real CBT interface with timers, deep performance analytics, downloadable question papers and report cards, custom tests from your own PDFs, AI-made notes, flashcards, AI doubt support and a dedicated revision section.',
+    cta: 'Practice on Nexus CBT',
+    href: LINKS.nexusCbt,
+    icon: MonitorCheck,
+    art: 'from-violet-700/45 via-purple-600/25 to-transparent',
+    logo: NEXUS_LOGO,
+    logoAlt: 'Nexus CBT logo',
   },
   {
     id: 'whatsapp',
