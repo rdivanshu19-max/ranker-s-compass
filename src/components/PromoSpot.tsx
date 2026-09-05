@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowUpRight, Megaphone, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { fetchPromotions, recordImpression, type Promotion, type PromoPlacement } from '@/lib/promotions';
+import { fetchPromotions, recordImpression, sanitizeStyle, type Promotion, type PromoPlacement } from '@/lib/promotions';
 
 type Props = {
   placement: PromoPlacement;
