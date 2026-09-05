@@ -74,7 +74,20 @@ export function impressionsOf(id: string): number {
   return readCounts()[id] ?? 0;
 }
 
-export function recordImpression(id: string) {
+/** Impressions left this session; Infinity when the promo is uncapped. */
+export function remainingImpressions(id: string, max?: number | null): number {
+  const cap = max ?? 0;
+  if (cap <= 0) return Infinity;
+  return Math.max(0, cap - impressionsOf(id));
+}
+
+/** Guards against double counting from repeated mounts of the same slot. */
+const counted = new Set<string>();
+
+export function recordImpression(id: string, placement?: PromoPlacement) {
+  const guard = `${id}:${placement ?? '_'}`;
+  if (counted.has(guard)) return;
+  counted.add(guard);
   const c = readCounts();
   c[id] = (c[id] ?? 0) + 1;
   try { sessionStorage.setItem(KEY, JSON.stringify(c)); } catch { /* ignore */ }
