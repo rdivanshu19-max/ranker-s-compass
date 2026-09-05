@@ -289,6 +289,31 @@ export default function StoreAdmin({ actorId }: { actorId: string }) {
                   </span>
                 </div>
                 {p.subtitle && <p className="text-xs text-muted-foreground">{p.subtitle}</p>}
+                {(() => {
+                  const raw = p as any;
+                  const places = sanitizePlacements(raw.placements);
+                  const cap = Number(raw.max_impressions) || 0;
+                  const left = remainingImpressions(p.id, cap);
+                  return (
+                    <div className="mt-2 space-y-1.5">
+                      <div className="flex flex-wrap gap-1">
+                        {places.map(id => (
+                          <span key={id} className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
+                            {PLACEMENTS.find(pl => pl.id === id)?.label ?? id}
+                          </span>
+                        ))}
+                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                          {sanitizeStyle(raw.style) === 'popup' ? 'Corner popup' : 'Inline banner'}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground">
+                        {cap <= 0
+                          ? `Unlimited views · ${impressionsOf(p.id)} shown this session`
+                          : `${left} of ${cap} views left this session`}
+                      </p>
+                    </div>
+                  );
+                })()}
                 <div className="mt-2 flex gap-1.5">
                   <Button size="sm" variant="ghost" className="h-7 gap-1 px-2 text-xs" onClick={() => { setEditingPr(p.id); setPrForm({ ...p }); }}>
                     <Pencil className="h-3.5 w-3.5" /> Edit
