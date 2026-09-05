@@ -96,12 +96,15 @@ export default function PromoBanners() {
             >
               <div className={`pointer-events-none absolute inset-y-0 right-0 w-full bg-gradient-to-l ${slide.art}`} />
               {slide.logo && (
-                <img
-                  src={slide.logo}
-                  alt="Rankers Edge"
-                  loading="lazy"
-                  className="pointer-events-none absolute right-0 top-0 hidden h-full w-1/2 object-cover opacity-40 mix-blend-screen sm:block"
-                />
+                <div className="pointer-events-none absolute right-6 top-1/2 hidden -translate-y-1/2 sm:block">
+                  <div className="absolute inset-0 rounded-[2rem] bg-primary/25 blur-3xl" />
+                  <img
+                    src={slide.logo}
+                    alt={slide.logoAlt || slide.title}
+                    loading="lazy"
+                    className="relative h-32 w-32 rounded-[1.75rem] object-contain drop-shadow-2xl lg:h-40 lg:w-40"
+                  />
+                </div>
               )}
               <div className="relative z-10 max-w-xl">
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/15 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-primary">
