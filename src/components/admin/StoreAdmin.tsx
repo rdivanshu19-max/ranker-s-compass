@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { uploadAdminFile } from '@/lib/uploads';
 import type { AffiliateProduct, Promotion } from '@/pages/StorePage';
+import { PLACEMENTS, PROMO_STYLES, impressionsOf, remainingImpressions, type PromoPlacement, type PromoStyle } from '@/lib/promotions';
 
 const STORES = ['Amazon', 'Flipkart', 'Meesho', 'Official Site', 'Other'];
 const CATEGORIES = ['Books', 'Test Series', 'Stationery', 'Gadgets', 'Courses', 'Other'];
@@ -18,7 +19,7 @@ const emptyProduct = {
 const emptyPromo = {
   title: '', subtitle: '', description: '', poster_url: '', link_url: '',
   cta_text: 'Learn more', active: true, sort_order: 0,
-  placements: ['store'] as string[], max_impressions: 3, style: 'banner',
+  placements: ['store'] as PromoPlacement[], max_impressions: 3, style: 'banner' as PromoStyle,
 };
 
 
