@@ -9,6 +9,7 @@ import RankersLoader from '@/components/RankersLoader';
 import { AppBanner, AppLogo } from '@/components/AppMedia';
 import { useFavoriteApps } from '@/hooks/useFavoriteApps';
 import type { StudyApp } from '@/lib/studyApps';
+import PromoSpot from '@/components/PromoSpot';
 
 export default function StudyAppsPage() {
   const navigate = useNavigate();
@@ -83,6 +84,7 @@ export default function StudyAppsPage() {
 
   return (
     <div className="space-y-10">
+      <PromoSpot placement="apps" />
       {/* Hero */}
       <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
         className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/50 px-5 py-10 backdrop-blur-xl sm:px-9 sm:py-14">

@@ -12,6 +12,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, 
 import AILoadingScreen from '@/components/AILoadingScreen';
 import MarkdownMath from '@/components/MarkdownMath';
 import { useAILimit } from '@/hooks/useAILimit';
+import PromoSpot from '@/components/PromoSpot';
 
 const JEE_SUBJECTS = ['Physics', 'Chemistry', 'Mathematics'];
 const NEET_SUBJECTS = ['Physics', 'Chemistry', 'Biology'];
@@ -579,6 +580,7 @@ export default function AITestPage() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
+      <PromoSpot placement="tests" />
       <TutorialOverlay />
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-2">

@@ -9,6 +9,7 @@ import { AppLogo } from '@/components/AppMedia';
 import { autoPoster, type TestSeries } from '@/lib/testSeries';
 import { PRACTICE_PACKS } from '@/lib/practicePacks';
 import PracticePackCard from '@/components/PracticePackCard';
+import PromoSpot from '@/components/PromoSpot';
 
 export default function TestSeriesPage() {
   const navigate = useNavigate();
@@ -40,6 +41,7 @@ export default function TestSeriesPage() {
 
   return (
     <div className="space-y-9">
+      <PromoSpot placement="test_series" />
       <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
         className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/50 px-5 py-10 backdrop-blur-xl sm:px-9 sm:py-14">
         <div className="pointer-events-none absolute -left-16 -bottom-16 h-56 w-56 rounded-full bg-primary/15 blur-3xl" />
