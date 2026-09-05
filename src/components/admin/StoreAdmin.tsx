@@ -238,9 +238,11 @@ export default function StoreAdmin({ actorId }: { actorId: string }) {
                       type="button"
                       onClick={() => setPrForm((f: any) => ({
                         ...f,
-                        placements: on
-                          ? (f.placements || []).filter((x: string) => x !== pl.id)
-                          : [...(f.placements || []), pl.id],
+                        placements: sanitizePlacements(
+                          on
+                            ? (f.placements || []).filter((x: PromoPlacement) => x !== pl.id)
+                            : [...(f.placements || []), pl.id],
+                        ),
                       }))}
                       className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${on
                         ? 'border-primary bg-primary/15 text-primary'
