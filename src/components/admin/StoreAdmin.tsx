@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { uploadAdminFile } from '@/lib/uploads';
 import type { AffiliateProduct, Promotion } from '@/pages/StorePage';
-import { PLACEMENTS, PROMO_STYLES, impressionsOf, remainingImpressions, type PromoPlacement, type PromoStyle } from '@/lib/promotions';
+import { PLACEMENTS, PROMO_STYLES, impressionsOf, remainingImpressions, sanitizePlacements, sanitizeStyle, type PromoPlacement, type PromoStyle } from '@/lib/promotions';
 
 const STORES = ['Amazon', 'Flipkart', 'Meesho', 'Official Site', 'Other'];
 const CATEGORIES = ['Books', 'Test Series', 'Stationery', 'Gadgets', 'Courses', 'Other'];
