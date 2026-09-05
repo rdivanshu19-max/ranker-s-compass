@@ -25,14 +25,14 @@ export default function PromoSpot({ placement, limit = 1, className = '' }: Prop
       const list = await fetchPromotions(placement);
       if (!alive) return;
       const shown = list.slice(0, limit);
-      shown.forEach(p => recordImpression(p.id));
+      shown.forEach(p => recordImpression(p.id, placement));
       setPromos(shown);
     })();
     return () => { alive = false; };
   }, [placement, limit]);
 
-  const banners = promos.filter(p => (p.style || 'banner') !== 'popup' && !closed.includes(p.id));
-  const popups = promos.filter(p => p.style === 'popup' && !closed.includes(p.id));
+  const banners = promos.filter(p => sanitizeStyle(p.style) !== 'popup' && !closed.includes(p.id));
+  const popups = promos.filter(p => sanitizeStyle(p.style) === 'popup' && !closed.includes(p.id));
 
   if (banners.length === 0 && popups.length === 0) return null;
 
