@@ -88,7 +88,8 @@ export default function StoreAdmin({ actorId }: { actorId: string }) {
       ...prForm,
       sort_order: Number(prForm.sort_order) || 0,
       max_impressions: Math.max(0, Number(prForm.max_impressions) || 0),
-      placements: prForm.placements?.length ? prForm.placements : ['store'],
+      placements: sanitizePlacements(prForm.placements),
+      style: sanitizeStyle(prForm.style),
       created_by: actorId,
     };
 
