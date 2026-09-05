@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { uploadAdminFile } from '@/lib/uploads';
 import type { AffiliateProduct, Promotion } from '@/pages/StorePage';
+import { PLACEMENTS, PROMO_STYLES, impressionsOf, remainingImpressions, sanitizePlacements, sanitizeStyle, type PromoPlacement, type PromoStyle } from '@/lib/promotions';
 
 const STORES = ['Amazon', 'Flipkart', 'Meesho', 'Official Site', 'Other'];
 const CATEGORIES = ['Books', 'Test Series', 'Stationery', 'Gadgets', 'Courses', 'Other'];
@@ -18,7 +19,7 @@ const emptyProduct = {
 const emptyPromo = {
   title: '', subtitle: '', description: '', poster_url: '', link_url: '',
   cta_text: 'Learn more', active: true, sort_order: 0,
-  placements: ['store'] as string[], max_impressions: 3, style: 'banner',
+  placements: ['store'] as PromoPlacement[], max_impressions: 3, style: 'banner' as PromoStyle,
 };
 
 
@@ -87,7 +88,8 @@ export default function StoreAdmin({ actorId }: { actorId: string }) {
       ...prForm,
       sort_order: Number(prForm.sort_order) || 0,
       max_impressions: Math.max(0, Number(prForm.max_impressions) || 0),
-      placements: prForm.placements?.length ? prForm.placements : ['store'],
+      placements: sanitizePlacements(prForm.placements),
+      style: sanitizeStyle(prForm.style),
       created_by: actorId,
     };
 
@@ -236,9 +238,11 @@ export default function StoreAdmin({ actorId }: { actorId: string }) {
                       type="button"
                       onClick={() => setPrForm((f: any) => ({
                         ...f,
-                        placements: on
-                          ? (f.placements || []).filter((x: string) => x !== pl.id)
-                          : [...(f.placements || []), pl.id],
+                        placements: sanitizePlacements(
+                          on
+                            ? (f.placements || []).filter((x: PromoPlacement) => x !== pl.id)
+                            : [...(f.placements || []), pl.id],
+                        ),
                       }))}
                       className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${on
                         ? 'border-primary bg-primary/15 text-primary'
@@ -260,10 +264,9 @@ export default function StoreAdmin({ actorId }: { actorId: string }) {
                   <select
                     className="rounded-lg border border-border bg-background px-2 py-2 text-sm"
                     value={prForm.style}
-                    onChange={e => setPrForm({ ...prForm, style: e.target.value })}
+                    onChange={e => setPrForm({ ...prForm, style: sanitizeStyle(e.target.value) as PromoStyle })}
                   >
-                    <option value="banner">Inline banner</option>
-                    <option value="popup">Corner popup</option>
+                    {PROMO_STYLES.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
                   </select>
                 </label>
                 <span className="text-xs text-muted-foreground">0 = unlimited</span>
@@ -286,6 +289,31 @@ export default function StoreAdmin({ actorId }: { actorId: string }) {
                   </span>
                 </div>
                 {p.subtitle && <p className="text-xs text-muted-foreground">{p.subtitle}</p>}
+                {(() => {
+                  const raw = p as any;
+                  const places = sanitizePlacements(raw.placements);
+                  const cap = Number(raw.max_impressions) || 0;
+                  const left = remainingImpressions(p.id, cap);
+                  return (
+                    <div className="mt-2 space-y-1.5">
+                      <div className="flex flex-wrap gap-1">
+                        {places.map(id => (
+                          <span key={id} className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
+                            {PLACEMENTS.find(pl => pl.id === id)?.label ?? id}
+                          </span>
+                        ))}
+                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                          {sanitizeStyle(raw.style) === 'popup' ? 'Corner popup' : 'Inline banner'}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground">
+                        {cap <= 0
+                          ? `Unlimited views · ${impressionsOf(p.id)} shown this session`
+                          : `${left} of ${cap} views left this session`}
+                      </p>
+                    </div>
+                  );
+                })()}
                 <div className="mt-2 flex gap-1.5">
                   <Button size="sm" variant="ghost" className="h-7 gap-1 px-2 text-xs" onClick={() => { setEditingPr(p.id); setPrForm({ ...p }); }}>
                     <Pencil className="h-3.5 w-3.5" /> Edit

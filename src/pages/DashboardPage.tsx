@@ -25,6 +25,7 @@ import { Progress } from '@/components/ui/progress';
 import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { toast } from 'sonner';
+import PromoSpot from '@/components/PromoSpot';
 
 type TopicInsight = {
   topic: string;
@@ -258,6 +259,7 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      <PromoSpot placement="dashboard" />
       <motion.div initial="hidden" animate="visible" variants={fadeUp} transition={{ duration: 0.5 }}>
         <h1 className="text-3xl font-bold font-display">
           Welcome, <span className="text-gradient">{profile?.display_name || 'Student'}</span> 👋

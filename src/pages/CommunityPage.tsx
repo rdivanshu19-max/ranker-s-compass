@@ -11,6 +11,7 @@ import CommunityPost from '@/components/community/CommunityPost';
 import PostComposer from '@/components/community/PostComposer';
 import StoriesRail from '@/components/community/StoriesRail';
 import { computeXp, levelOf, tagsFor, type Post, type Space, type Story, type UserStats } from '@/lib/community';
+import PromoSpot from '@/components/PromoSpot';
 
 type Tab = 'feed' | 'spaces' | 'ranks';
 
@@ -156,6 +157,7 @@ export default function CommunityPage() {
 
   return (
     <div className="space-y-7 pb-24">
+      <PromoSpot placement="community" />
       <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
         className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/50 px-5 py-8 backdrop-blur-xl sm:px-8 sm:py-10">
         <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-primary/20 blur-3xl" />

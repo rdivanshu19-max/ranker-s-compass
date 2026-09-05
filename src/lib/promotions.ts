@@ -4,6 +4,13 @@ export type PromoPlacement =
   | 'dashboard' | 'community' | 'library' | 'tests' | 'apps'
   | 'test_series' | 'store' | 'vault' | 'landing';
 
+export type PromoStyle = 'banner' | 'popup';
+
+export const PROMO_STYLES: { id: PromoStyle; label: string }[] = [
+  { id: 'banner', label: 'Inline banner' },
+  { id: 'popup', label: 'Corner popup' },
+];
+
 export const PLACEMENTS: { id: PromoPlacement; label: string }[] = [
   { id: 'dashboard', label: 'Dashboard' },
   { id: 'community', label: 'Community' },
@@ -15,6 +22,19 @@ export const PLACEMENTS: { id: PromoPlacement; label: string }[] = [
   { id: 'store', label: 'Store' },
   { id: 'landing', label: 'Landing page' },
 ];
+
+const PLACEMENT_IDS = PLACEMENTS.map(p => p.id);
+
+/** Runtime guard so only valid placement ids ever reach the database. */
+export const isPlacement = (v: unknown): v is PromoPlacement =>
+  typeof v === 'string' && (PLACEMENT_IDS as string[]).includes(v);
+
+export const sanitizePlacements = (v: unknown): PromoPlacement[] => {
+  const list = Array.isArray(v) ? v.filter(isPlacement) : [];
+  return list.length ? Array.from(new Set(list)) : ['store'];
+};
+
+export const sanitizeStyle = (v: unknown): PromoStyle => (v === 'popup' ? 'popup' : 'banner');
 
 export type Promotion = {
   id: string;
@@ -54,7 +74,20 @@ export function impressionsOf(id: string): number {
   return readCounts()[id] ?? 0;
 }
 
-export function recordImpression(id: string) {
+/** Impressions left this session; Infinity when the promo is uncapped. */
+export function remainingImpressions(id: string, max?: number | null): number {
+  const cap = max ?? 0;
+  if (cap <= 0) return Infinity;
+  return Math.max(0, cap - impressionsOf(id));
+}
+
+/** Guards against double counting from repeated mounts of the same slot. */
+const counted = new Set<string>();
+
+export function recordImpression(id: string, placement?: PromoPlacement) {
+  const guard = `${id}:${placement ?? '_'}`;
+  if (counted.has(guard)) return;
+  counted.add(guard);
   const c = readCounts();
   c[id] = (c[id] ?? 0) + 1;
   try { sessionStorage.setItem(KEY, JSON.stringify(c)); } catch { /* ignore */ }

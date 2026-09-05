@@ -6,6 +6,7 @@ import { FolderLock, Plus, ExternalLink, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
+import PromoSpot from '@/components/PromoSpot';
 
 
 export default function StudyVaultPage() {
@@ -39,6 +40,7 @@ export default function StudyVaultPage() {
 
   return (
     <div className="space-y-6">
+      <PromoSpot placement="vault" />
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold font-display">Study <span className="text-gradient">Vault</span> 🔒</h1>
