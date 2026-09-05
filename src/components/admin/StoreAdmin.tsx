@@ -264,10 +264,9 @@ export default function StoreAdmin({ actorId }: { actorId: string }) {
                   <select
                     className="rounded-lg border border-border bg-background px-2 py-2 text-sm"
                     value={prForm.style}
-                    onChange={e => setPrForm({ ...prForm, style: e.target.value })}
+                    onChange={e => setPrForm({ ...prForm, style: sanitizeStyle(e.target.value) as PromoStyle })}
                   >
-                    <option value="banner">Inline banner</option>
-                    <option value="popup">Corner popup</option>
+                    {PROMO_STYLES.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
                   </select>
                 </label>
                 <span className="text-xs text-muted-foreground">0 = unlimited</span>
