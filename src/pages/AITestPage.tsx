@@ -578,13 +578,48 @@ export default function AITestPage() {
   const availableChapters = classLevel !== 'Full' && subject !== 'Full' ? SYLLABUS[examType]?.[classLevel]?.[subject] || [] : [];
   const currentConfig = getTestConfig();
 
+  const chaptersForSubject = (subj: string) => {
+    const c11 = SYLLABUS[examType]?.['11th']?.[subj] || [];
+    const c12 = SYLLABUS[examType]?.['12th']?.[subj] || [];
+    if (customClass === '11th') return c11;
+    if (customClass === '12th') return c12;
+    return Array.from(new Set([...c11, ...c12]));
+  };
+
+  const isChapterOn = (subj: string, ch: string) => !!customSel[subj]?.[ch];
+
+  const toggleChapter = (subj: string, ch: string) => {
+    setCustomSel(prev => {
+      const forSubj = { ...(prev[subj] || {}) };
+      if (forSubj[ch]) delete forSubj[ch]; else forSubj[ch] = [];
+      const next = { ...prev, [subj]: forSubj };
+      if (!Object.keys(forSubj).length) delete next[subj];
+      return next;
+    });
+  };
+
+  const toggleTopic = (subj: string, ch: string, topic: string) => {
+    setCustomSel(prev => {
+      const forSubj = { ...(prev[subj] || {}) };
+      const list = forSubj[ch] || [];
+      forSubj[ch] = list.includes(topic) ? list.filter(t => t !== topic) : [...list, topic];
+      return { ...prev, [subj]: forSubj };
+    });
+  };
+
+  const selectedChapters = Object.entries(customSel).flatMap(([s, m]) =>
+    Object.keys(m).map(ch => ({ subject: s, chapter: ch, topics: m[ch] })));
+  const activeSubject = customSubject || subjects[0];
+  const totalMarksPreview = customCount * 4;
+  const integerPreview = integerMode ? Math.max(1, Math.round(customCount * 0.2)) : 0;
+
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <PromoSpot placement="tests" />
       <TutorialOverlay />
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-2">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
           <h1 className="text-3xl font-bold font-display">AI <span className="text-gradient">Mock Tests</span> 🎯</h1>
           <div className="flex items-center gap-2">
             <span className={`text-xs px-3 py-1.5 rounded-xl border font-semibold ${unlimited ? 'border-primary/30 bg-primary/10 text-primary' : remaining === 0 ? 'border-destructive/30 bg-destructive/10 text-destructive' : 'border-primary/30 bg-primary/10 text-primary'}`}>
@@ -598,62 +633,223 @@ export default function AITestPage() {
         <p className="text-muted-foreground">Practice with AI-generated CBT-mode tests matching actual exam patterns.</p>
       </motion.div>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}
+      {savedTest && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+          className="rounded-2xl border border-primary/30 bg-primary/5 p-4 flex flex-wrap items-center gap-3">
+          <RotateCcw className="w-5 h-5 text-primary" />
+          <div className="flex-1 min-w-[180px]">
+            <p className="font-semibold text-sm">Unfinished test found</p>
+            <p className="text-xs text-muted-foreground">
+              {savedTest.questions.length} questions · {formatTime(savedTest.timeLeft)} left · saved {new Date(savedTest.savedAt).toLocaleString()}
+            </p>
+          </div>
+          <Button size="sm" onClick={resumeSavedTest}>Continue test</Button>
+          <Button size="sm" variant="ghost" onClick={discardSavedTest}>Discard</Button>
+        </motion.div>
+      )}
+
+      <div className="flex gap-2 rounded-2xl border border-border bg-card p-1.5">
+        {([['quick', 'Quick test', FlaskConical], ['custom', 'Custom mission', Layers]] as const).map(([id, label, Icon]) => (
+          <button key={id} type="button" onClick={() => setMode(id)}
+            className={`flex-1 flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold transition ${mode === id ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20' : 'text-muted-foreground hover:text-foreground'}`}>
+            <Icon className="w-4 h-4" /> {label}
+          </button>
+        ))}
+      </div>
+
+      <motion.div key={mode} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
         className="bg-card rounded-2xl border border-border p-6 space-y-5">
         <div>
           <label className="text-sm font-medium mb-2 block">Exam Type</label>
           <div className="flex gap-3">
             {(['JEE', 'NEET'] as const).map((item) => (
               <Button key={item} variant={examType === item ? 'default' : 'outline'} size="lg" className="flex-1"
-                onClick={() => { setExamType(item); setSubject('Full'); setChapter('Full'); }}>{item}</Button>
+                onClick={() => { setExamType(item); setSubject('Full'); setChapter('Full'); setCustomSel({}); setCustomSubject(''); }}>{item}</Button>
             ))}
           </div>
         </div>
+
+        {mode === 'quick' ? (
+          <>
+            <div>
+              <label className="text-sm font-medium mb-2 block">Class / Scope</label>
+              <div className="flex gap-2">
+                {(['11th', '12th', 'Full'] as const).map((item) => (
+                  <Button key={item} variant={classLevel === item ? 'default' : 'outline'} size="sm" className="flex-1"
+                    onClick={() => { setClassLevel(item); setSubject('Full'); setChapter('Full'); }}>
+                    {item === 'Full' ? `Complete ${examType}` : `Class ${item}`}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {classLevel !== 'Full' && (
+              <div>
+                <label className="text-sm font-medium mb-2 block">Subject</label>
+                <div className="flex flex-wrap gap-2">
+                  <Button variant={subject === 'Full' ? 'default' : 'outline'} size="sm" onClick={() => { setSubject('Full'); setChapter('Full'); }}>All Subjects</Button>
+                  {subjects.map((item) => (
+                    <Button key={item} variant={subject === item ? 'default' : 'outline'} size="sm" onClick={() => { setSubject(item); setChapter('Full'); }}>{item}</Button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {availableChapters.length > 0 && (
+              <div>
+                <label className="text-sm font-medium mb-2 block">Chapter</label>
+                <div className="flex flex-wrap gap-1.5 max-h-44 overflow-y-auto pr-1">
+                  <Button variant={chapter === 'Full' ? 'default' : 'outline'} size="sm" onClick={() => setChapter('Full')}>All Chapters</Button>
+                  {availableChapters.map((item) => (
+                    <Button key={item} variant={chapter === item ? 'default' : 'outline'} size="sm" className="text-xs" onClick={() => setChapter(item)}>{item}</Button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          <>
+            <div>
+              <label className="text-sm font-medium mb-2 block">Scope</label>
+              <div className="flex gap-2">
+                {(['Both', '11th', '12th'] as const).map(item => (
+                  <Button key={item} variant={customClass === item ? 'default' : 'outline'} size="sm" className="flex-1"
+                    onClick={() => setCustomClass(item)}>{item === 'Both' ? 'Class 11 + 12' : `Class ${item}`}</Button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <label className="text-sm font-medium block">Chapters &amp; topics (choose as many as you like)</label>
+              <div className="flex flex-wrap gap-2">
+                {subjects.map(s => {
+                  const count = Object.keys(customSel[s] || {}).length;
+                  return (
+                    <button key={s} type="button" onClick={() => setCustomSubject(s)}
+                      className={`rounded-full border px-4 py-1.5 text-sm font-semibold transition ${activeSubject === s ? 'border-primary bg-primary/15 text-primary' : 'border-border text-muted-foreground hover:text-foreground'}`}>
+                      {s}{count > 0 && <span className="ml-1.5 rounded-full bg-primary/20 px-1.5 text-[11px]">{count}</span>}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="max-h-72 overflow-y-auto rounded-xl border border-border divide-y divide-border">
+                {chaptersForSubject(activeSubject).map(ch => {
+                  const on = isChapterOn(activeSubject, ch);
+                  const topics = topicsFor(ch);
+                  const chosen = customSel[activeSubject]?.[ch] || [];
+                  const open = expandedChapter === `${activeSubject}:${ch}`;
+                  return (
+                    <div key={ch} className="px-3 py-2.5">
+                      <div className="flex items-center gap-2">
+                        <button type="button" onClick={() => toggleChapter(activeSubject, ch)}
+                          className="flex flex-1 items-center gap-2.5 text-left">
+                          <span className={`grid h-4.5 w-4.5 h-[18px] w-[18px] shrink-0 place-items-center rounded-full border transition ${on ? 'border-primary bg-primary' : 'border-muted-foreground/40'}`}>
+                            {on && <CheckCircle className="h-3 w-3 text-primary-foreground" />}
+                          </span>
+                          <span className={`text-sm ${on ? 'font-semibold' : ''}`}>{ch}</span>
+                        </button>
+                        {topics.length > 0 && (
+                          <button type="button"
+                            onClick={() => setExpandedChapter(open ? null : `${activeSubject}:${ch}`)}
+                            className="flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-[11px] text-muted-foreground hover:text-foreground">
+                            topics <ChevronDown className={`h-3 w-3 transition ${open ? 'rotate-180' : ''}`} />
+                          </button>
+                        )}
+                      </div>
+                      {open && (
+                        <div className="mt-2 flex flex-wrap gap-1.5 pl-7">
+                          {topics.map(t => {
+                            const tOn = chosen.includes(t);
+                            return (
+                              <button key={t} type="button"
+                                onClick={() => { if (!on) toggleChapter(activeSubject, ch); toggleTopic(activeSubject, ch, t); }}
+                                className={`rounded-full border px-2.5 py-1 text-[11px] transition ${tOn ? 'border-primary bg-primary/15 text-primary' : 'border-border text-muted-foreground hover:text-foreground'}`}>
+                                {t}
+                              </button>
+                            );
+                          })}
+                          <span className="self-center text-[11px] text-muted-foreground">
+                            {chosen.length === 0 ? 'No topic picked = full chapter' : `${chosen.length} topic(s)`}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {selectedChapters.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {selectedChapters.map(sc => (
+                    <span key={`${sc.subject}:${sc.chapter}`} className="rounded-full bg-muted px-2.5 py-1 text-[11px] font-medium">
+                      {sc.chapter}{sc.topics.length ? ` · ${sc.topics.length}t` : ''}
+                    </span>
+                  ))}
+                  <Button variant="ghost" size="sm" onClick={() => setCustomSel({})}>Clear</Button>
+                </div>
+              )}
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium mb-2 block">Number of questions</label>
+                <input type="number" min={5} max={100} value={customCount}
+                  onChange={e => setCustomCount(Math.max(5, Math.min(100, Number(e.target.value) || 5)))}
+                  className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm" />
+                <p className="mt-1 text-[11px] text-muted-foreground">5 – 100 questions</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-2 block">Duration (minutes)</label>
+                <input type="number" min={5} max={240} value={customDuration}
+                  onChange={e => setCustomDuration(Math.max(5, Math.min(240, Number(e.target.value) || 5)))}
+                  className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm" />
+                <p className="mt-1 text-[11px] text-muted-foreground">Timer counts down and auto-submits</p>
+              </div>
+            </div>
+          </>
+        )}
 
         <div>
-          <label className="text-sm font-medium mb-2 block">Class / Scope</label>
-          <div className="flex gap-2">
-            {(['11th', '12th', 'Full'] as const).map((item) => (
-              <Button key={item} variant={classLevel === item ? 'default' : 'outline'} size="sm" className="flex-1"
-                onClick={() => { setClassLevel(item); setSubject('Full'); setChapter('Full'); }}>
-                {item === 'Full' ? `Complete ${examType}` : `Class ${item}`}
-              </Button>
+          <label className="text-sm font-medium mb-2 block">Difficulty</label>
+          <div className="grid grid-cols-2 gap-2">
+            {DIFFICULTIES.map(d => (
+              <button key={d.id} type="button" onClick={() => setDifficulty(d.id)}
+                className={`rounded-xl border p-3 text-left transition ${difficulty === d.id ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/40'}`}>
+                <p className="text-sm font-semibold">{d.label}</p>
+                <p className="text-[11px] text-muted-foreground">{d.hint}</p>
+              </button>
             ))}
           </div>
         </div>
 
-        {classLevel !== 'Full' && (
-          <div>
-            <label className="text-sm font-medium mb-2 block">Subject</label>
-            <div className="flex flex-wrap gap-2">
-              <Button variant={subject === 'Full' ? 'default' : 'outline'} size="sm" onClick={() => { setSubject('Full'); setChapter('Full'); }}>All Subjects</Button>
-              {subjects.map((item) => (
-                <Button key={item} variant={subject === item ? 'default' : 'outline'} size="sm" onClick={() => { setSubject(item); setChapter('Full'); }}>{item}</Button>
-              ))}
-            </div>
+        <button type="button" onClick={() => setIntegerMode(v => !v)}
+          className="flex w-full items-start gap-3 rounded-xl border border-border p-4 text-left">
+          <Hash className="mt-0.5 h-4 w-4 text-primary" />
+          <div className="flex-1">
+            <p className="text-sm font-semibold">Include integer-type questions</p>
+            <p className="text-[11px] text-muted-foreground">
+              20% of each subject's questions become numerical-answer questions. Answers are always non-negative integers — you type them on a keypad.
+            </p>
           </div>
-        )}
+          <span className={`mt-1 h-6 w-11 shrink-0 rounded-full p-0.5 transition ${integerMode ? 'bg-primary' : 'bg-muted'}`}>
+            <span className={`block h-5 w-5 rounded-full bg-background transition ${integerMode ? 'translate-x-5' : ''}`} />
+          </span>
+        </button>
 
-        {availableChapters.length > 0 && (
-          <div>
-            <label className="text-sm font-medium mb-2 block">Chapter</label>
-            <div className="flex flex-wrap gap-1.5 max-h-44 overflow-y-auto pr-1">
-              <Button variant={chapter === 'Full' ? 'default' : 'outline'} size="sm" onClick={() => setChapter('Full')}>All Chapters</Button>
-              {availableChapters.map((item) => (
-                <Button key={item} variant={chapter === item ? 'default' : 'outline'} size="sm" className="text-xs" onClick={() => setChapter(item)}>{item}</Button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div className="bg-muted/50 rounded-xl p-4 text-sm space-y-1">
-          <p><strong>Pattern:</strong> +4 correct, -1 incorrect, 0 unanswered</p>
-          <p><strong>Duration:</strong> {formatTime(currentConfig.duration)}</p>
-          <p><strong>Questions:</strong> {currentConfig.numQ} | <strong>Total Marks:</strong> {currentConfig.totalMarks}</p>
+        <div className="rounded-xl bg-muted/50 p-4 font-mono text-xs space-y-1.5">
+          <div className="flex justify-between"><span className="text-muted-foreground">Questions</span><span>{mode === 'custom' ? customCount : currentConfig.numQ}</span></div>
+          <div className="flex justify-between"><span className="text-muted-foreground">Marks</span><span>{mode === 'custom' ? totalMarksPreview : currentConfig.totalMarks}</span></div>
+          <div className="flex justify-between"><span className="text-muted-foreground">Duration</span><span>{formatTime(mode === 'custom' ? customDuration * 60 : currentConfig.duration)}</span></div>
+          <div className="flex justify-between"><span className="text-muted-foreground">Difficulty</span><span>{DIFFICULTIES.find(d => d.id === difficulty)?.label}</span></div>
+          {mode === 'custom' && <div className="flex justify-between"><span className="text-muted-foreground">Integer questions</span><span>{integerMode ? `~${integerPreview}` : '0'}</span></div>}
+          <div className="flex justify-between"><span className="text-muted-foreground">Marking</span><span>+4 / -1 / 0</span></div>
         </div>
 
-        <Button variant="hero" size="xl" className="w-full" onClick={startTest} disabled={!unlimited && remaining === 0}>
-          <FlaskConical className="w-5 h-5 mr-2" /> Start Test
+        <Button variant="hero" size="xl" className="w-full" onClick={startTest}
+          disabled={(!unlimited && remaining === 0) || (mode === 'custom' && selectedChapters.length === 0)}>
+          <FlaskConical className="w-5 h-5 mr-2" />
+          {mode === 'custom' && selectedChapters.length === 0 ? 'Pick at least one chapter' : 'Generate Test'}
         </Button>
       </motion.div>
     </div>
