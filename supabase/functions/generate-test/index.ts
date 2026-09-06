@@ -9,28 +9,61 @@ const corsHeaders = {
 const DAILY_LIMIT = 3;
 const BATCH_SIZE = 5;
 
+type Difficulty = "easy" | "moderate" | "hard" | "very_hard";
+
+const DIFFICULTY_BRIEF: Record<Difficulty, string> = {
+  easy: "NCERT textbook level. Single-step, direct formula or direct recall questions.",
+  moderate: "Standard JEE Main / NEET level. Two-step reasoning, typical exam questions.",
+  hard: "Top-percentile level. Multi-concept, multi-step calculations, tricky distractors.",
+  very_hard: "JEE Advanced killer level. Deep multi-concept problems, non-obvious traps, heavy reasoning.",
+};
+
 function istDate(): string {
   const now = new Date();
   const ist = new Date(now.getTime() + 5.5 * 3600 * 1000);
   return ist.toISOString().split("T")[0];
 }
 
+type Scope = { subject: string | null; chapter: string | null; topics?: string[] };
+
+function scopeText(scope: Scope): string {
+  const s = scope.subject ? ` for the subject ${scope.subject}` : "";
+  const c = scope.chapter ? `, specifically from the chapter "${scope.chapter}"` : "";
+  const t = scope.topics && scope.topics.length
+    ? `, restricted to these topics: ${scope.topics.join(", ")}`
+    : "";
+  return `${s}${c}${t}`;
+}
+
 async function generateBatch(
   apiKey: string,
   examType: string,
-  subject: string | null,
-  chapter: string | null,
+  scope: Scope,
   count: number,
+  difficulty: Difficulty,
+  integer: boolean,
   attempt = 1,
 ): Promise<any[]> {
-  const subjectInstr = subject ? ` for the subject ${subject}` : "";
-  const chapterInstr = chapter ? `, specifically from the chapter "${chapter}"` : "";
-  const prompt = `Generate exactly ${count} diverse multiple choice questions for ${examType} exam${subjectInstr}${chapterInstr}. Each question should be exam-level difficulty matching actual ${examType} patterns.
+  const integerInstr = integer
+    ? `EVERY question in this batch must be an INTEGER-TYPE numerical question:
+- "type" must be "integer", "options" must be an empty array, and "answer" must be the final numeric answer.
+- The answer MUST be a non-negative integer (0 or more). No decimals, no negative values, no fractions.
+- If the natural answer is negative or fractional, rephrase the question so the asked quantity is absolute/scaled (e.g. "give |x|", "give the value of 10x", "give the magnitude"), and say so inside the question text.
+- If rounding is needed, the question text must say "answer to the nearest integer".
+- "correctAnswer" must be -1 for integer questions.`
+    : `Every question is a 4-option single-correct MCQ: "type" must be "mcq", exactly 4 options, "correctAnswer" is the index 0-3, and "answer" must be null.`;
+
+  const prompt = `Generate exactly ${count} diverse ${examType} exam questions${scopeText(scope)}.
+
+DIFFICULTY: ${difficulty.replace("_", " ").toUpperCase()} — ${DIFFICULTY_BRIEF[difficulty]}
+Every question must genuinely match this difficulty level.
+
+${integerInstr}
 
 Return ONLY a JSON object with this exact structure (no markdown fences, no other text):
-{"questions":[{"id":1,"question":"...","options":["A","B","C","D"],"correctAnswer":0,"explanation":"...","subject":"${subject || "General"}","chapter":"${chapter || ""}"}]}
+{"questions":[{"id":1,"type":"${integer ? "integer" : "mcq"}","question":"...","options":${integer ? "[]" : '["A","B","C","D"]'},"correctAnswer":${integer ? -1 : 0},"answer":${integer ? 42 : "null"},"explanation":"...","subject":"${scope.subject || "General"}","chapter":"${scope.chapter || ""}"}]}
 
-Each question must have exactly 4 options. correctAnswer is the index 0-3 of the correct option.`;
+Use LaTeX inside $...$ for any math. Keep explanations short and step-based.`;
 
   try {
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -39,7 +72,7 @@ Each question must have exactly 4 options. correctAnswer is the index 0-3 of the
       body: JSON.stringify({
         model: "openai/gpt-oss-120b",
         messages: [
-          { role: "system", content: "You are an expert MCQ question generator for Indian competitive exams (JEE/NEET). Always return valid JSON only — no markdown, no commentary." },
+          { role: "system", content: "You are an expert paper setter for Indian competitive exams (JEE/NEET). You strictly respect the requested difficulty level and question type. Always return valid JSON only — no markdown, no commentary." },
           { role: "user", content: prompt },
         ],
         response_format: { type: "json_object" },
@@ -52,7 +85,7 @@ Each question must have exactly 4 options. correctAnswer is the index 0-3 of the
       console.error(`Groq batch error (attempt ${attempt}):`, response.status, t);
       if (attempt < 4) {
         await new Promise(r => setTimeout(r, attempt * 600));
-        return generateBatch(apiKey, examType, subject, chapter, count, attempt + 1);
+        return generateBatch(apiKey, examType, scope, count, difficulty, integer, attempt + 1);
       }
       return [];
     }
@@ -60,25 +93,40 @@ Each question must have exactly 4 options. correctAnswer is the index 0-3 of the
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content;
     if (!content) {
-      if (attempt < 4) return generateBatch(apiKey, examType, subject, chapter, count, attempt + 1);
+      if (attempt < 4) return generateBatch(apiKey, examType, scope, count, difficulty, integer, attempt + 1);
       return [];
     }
 
     const parsed = JSON.parse(content);
     const qs = parsed.questions || [];
     if (!Array.isArray(qs) || qs.length === 0) {
-      if (attempt < 4) return generateBatch(apiKey, examType, subject, chapter, count, attempt + 1);
+      if (attempt < 4) return generateBatch(apiKey, examType, scope, count, difficulty, integer, attempt + 1);
       return [];
     }
-    return qs.filter((q: any) =>
-      q && q.question && Array.isArray(q.options) && q.options.length === 4 &&
-      typeof q.correctAnswer === "number" && q.correctAnswer >= 0 && q.correctAnswer < 4
-    );
+
+    if (integer) {
+      return qs
+        .filter((q: any) => q && q.question && (typeof q.answer === "number" || !isNaN(Number(q.answer))))
+        .map((q: any) => ({
+          ...q,
+          type: "integer",
+          options: [],
+          correctAnswer: -1,
+          answer: Math.abs(Math.round(Number(q.answer))),
+        }));
+    }
+
+    return qs
+      .filter((q: any) =>
+        q && q.question && Array.isArray(q.options) && q.options.length === 4 &&
+        typeof q.correctAnswer === "number" && q.correctAnswer >= 0 && q.correctAnswer < 4
+      )
+      .map((q: any) => ({ ...q, type: "mcq", answer: null }));
   } catch (e) {
     console.error("Batch exception (attempt", attempt, "):", e);
     if (attempt < 4) {
       await new Promise(r => setTimeout(r, attempt * 600));
-      return generateBatch(apiKey, examType, subject, chapter, count, attempt + 1);
+      return generateBatch(apiKey, examType, scope, count, difficulty, integer, attempt + 1);
     }
     return [];
   }
@@ -87,10 +135,13 @@ Each question must have exactly 4 options. correctAnswer is the index 0-3 of the
 async function generateInParallel(
   apiKey: string,
   examType: string,
-  subject: string | null,
-  chapter: string | null,
+  scope: Scope,
   total: number,
+  difficulty: Difficulty,
+  integer: boolean,
 ): Promise<any[]> {
+  if (total <= 0) return [];
+
   const buildBatches = (n: number) => {
     const out: number[] = [];
     let r = n;
@@ -106,38 +157,68 @@ async function generateInParallel(
         const key = q.question.trim().toLowerCase().slice(0, 100);
         if (seen.has(key)) continue;
         seen.add(key);
-        merged.push({ ...q, subject: q.subject || subject || "General" });
+        merged.push({ ...q, subject: q.subject || scope.subject || "General" });
       }
     }
     return merged;
   };
 
-  // First pass: full parallel
   const batches = buildBatches(total);
   const firstResults = await Promise.all(
-    batches.map(c => generateBatch(apiKey, examType, subject, chapter, c))
+    batches.map(c => generateBatch(apiKey, examType, scope, c, difficulty, integer))
   );
   let merged = dedupeMerge([], firstResults);
 
-  // Top-up passes: fill any shortfall (up to 2 retries)
   for (let pass = 0; pass < 2 && merged.length < total; pass++) {
     const missing = total - merged.length;
-    const fillBatches = buildBatches(Math.ceil(missing * 1.3)); // overshoot for dedup loss
+    const fillBatches = buildBatches(Math.ceil(missing * 1.3));
     const fillResults = await Promise.all(
-      fillBatches.map(c => generateBatch(apiKey, examType, subject, chapter, c))
+      fillBatches.map(c => generateBatch(apiKey, examType, scope, c, difficulty, integer))
     );
     merged = dedupeMerge(merged, fillResults);
   }
 
-  // Trim & re-id
-  return merged.slice(0, total).map((q, i) => ({ ...q, id: i + 1 }));
+  return merged.slice(0, total);
+}
+
+/** Generates a scope's questions, splitting off an integer-type share when requested. */
+async function generateScope(
+  apiKey: string,
+  examType: string,
+  scope: Scope,
+  total: number,
+  difficulty: Difficulty,
+  integerRatio: number,
+): Promise<any[]> {
+  const intCount = integerRatio > 0 ? Math.max(1, Math.round(total * integerRatio)) : 0;
+  const mcqCount = Math.max(0, total - intCount);
+  const [mcqs, ints] = await Promise.all([
+    generateInParallel(apiKey, examType, scope, mcqCount, difficulty, false),
+    generateInParallel(apiKey, examType, scope, intCount, difficulty, true),
+  ]);
+  return [...mcqs, ...ints];
 }
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { examType, subject, chapter, numQuestions, subjectDistribution } = await req.json();
+    const body = await req.json();
+    const {
+      examType,
+      subject,
+      chapter,
+      topics,
+      numQuestions,
+      subjectDistribution,
+      difficulty = "moderate",
+      integerQuestions = false,
+    } = body;
+
+    const diff: Difficulty = ["easy", "moderate", "hard", "very_hard"].includes(difficulty)
+      ? difficulty : "moderate";
+    const integerRatio = integerQuestions ? 0.2 : 0;
+
     const GROQ_API_KEY = Deno.env.get("GROQ_TEST_API_KEY") || Deno.env.get("GROQ_API_KEY");
     if (!GROQ_API_KEY) throw new Error("GROQ_TEST_API_KEY is not configured");
 
@@ -181,24 +262,37 @@ serve(async (req) => {
     let allQuestions: any[] = [];
 
     if (subjectDistribution && Array.isArray(subjectDistribution)) {
-      // Parallelize across subjects too
       const perSubject = await Promise.all(
-        subjectDistribution.map((dist: any) =>
-          generateInParallel(GROQ_API_KEY, examType, dist.subject, chapter || null, dist.count)
-            .catch(err => { console.error("subject failed:", dist.subject, err); return [] as any[]; })
-        )
+        subjectDistribution.map((dist: any) => {
+          // Chapter-level plan: [{ subject, chapters: [{ name, topics, count }] }]
+          if (Array.isArray(dist.chapters) && dist.chapters.length) {
+            return Promise.all(
+              dist.chapters.map((ch: any) =>
+                generateScope(
+                  GROQ_API_KEY, examType,
+                  { subject: dist.subject, chapter: ch.name, topics: ch.topics || [] },
+                  Number(ch.count) || 0, diff, integerRatio,
+                ).catch(() => [] as any[])
+              )
+            ).then(arrs => arrs.flat());
+          }
+          return generateScope(
+            GROQ_API_KEY, examType,
+            { subject: dist.subject, chapter: chapter || null, topics: topics || [] },
+            Number(dist.count) || 0, diff, integerRatio,
+          ).catch(err => { console.error("subject failed:", dist.subject, err); return [] as any[]; });
+        })
       );
-      let id = 1;
-      for (const arr of perSubject) {
-        for (const q of arr) {
-          allQuestions.push({ ...q, id: id++ });
-        }
-      }
+      allQuestions = perSubject.flat();
     } else {
-      allQuestions = await generateInParallel(
-        GROQ_API_KEY, examType, subject || null, chapter || null, numQuestions || 10,
+      allQuestions = await generateScope(
+        GROQ_API_KEY, examType,
+        { subject: subject || null, chapter: chapter || null, topics: topics || [] },
+        numQuestions || 10, diff, integerRatio,
       );
     }
+
+    allQuestions = allQuestions.map((q, i) => ({ ...q, id: i + 1 }));
 
     if (allQuestions.length === 0) {
       throw new Error("Failed to generate questions. Please try again.");
