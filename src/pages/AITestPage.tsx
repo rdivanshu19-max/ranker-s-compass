@@ -525,14 +525,39 @@ export default function AITestPage() {
                 <span className="shrink-0">Q{currentQ + 1}.</span>
                 <MarkdownMath className="text-lg [&_p]:my-0">{q.question}</MarkdownMath>
               </div>
-              <div className="space-y-2">
-                {q.options.map((opt, oi) => (
-                  <button key={oi} type="button" onClick={() => setAnswers((prev) => ({ ...prev, [currentQ]: oi }))}
-                    className={`w-full text-left p-3 rounded-xl border transition-all ${answers[currentQ] === oi ? 'border-primary bg-primary/10 font-medium' : 'border-border hover:border-primary/40'}`}>
-                    <span className="font-bold mr-2">{String.fromCharCode(65 + oi)}.</span><MarkdownMath className="inline-block align-top [&_p]:my-0">{opt}</MarkdownMath>
-                  </button>
-                ))}
-              </div>
+              {isIntegerQ(q) ? (
+                <div className="space-y-3">
+                  <div className="rounded-xl border border-primary/30 bg-primary/5 p-3">
+                    <p className="text-[11px] text-muted-foreground mb-1">Integer answer (non-negative whole number)</p>
+                    <div className="font-mono text-2xl font-bold tracking-widest min-h-[2rem]">
+                      {String(answers[currentQ] ?? '') || <span className="text-muted-foreground/50">—</span>}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 max-w-xs">
+                    {['1','2','3','4','5','6','7','8','9'].map(d => (
+                      <button key={d} type="button" onClick={() => pressDigit(d)}
+                        className="rounded-xl border border-border py-3 font-mono text-lg font-bold hover:border-primary/50 hover:bg-primary/5 transition">{d}</button>
+                    ))}
+                    <button type="button" onClick={clearIntegerAnswer}
+                      className="rounded-xl border border-border py-3 text-xs font-semibold text-muted-foreground hover:text-foreground">Clear</button>
+                    <button type="button" onClick={() => pressDigit('0')}
+                      className="rounded-xl border border-border py-3 font-mono text-lg font-bold hover:border-primary/50 hover:bg-primary/5 transition">0</button>
+                    <button type="button" onClick={backspaceInteger}
+                      className="rounded-xl border border-border py-3 grid place-items-center hover:border-primary/50"><Delete className="h-4 w-4" /></button>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">No decimals or negative values — round to the nearest integer if asked.</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {q.options.map((opt, oi) => (
+                    <button key={oi} type="button" onClick={() => setAnswers((prev) => ({ ...prev, [currentQ]: oi }))}
+                      className={`w-full text-left p-3 rounded-xl border transition-all ${answers[currentQ] === oi ? 'border-primary bg-primary/10 font-medium' : 'border-border hover:border-primary/40'}`}>
+                      <span className="font-bold mr-2">{String.fromCharCode(65 + oi)}.</span><MarkdownMath className="inline-block align-top [&_p]:my-0">{opt}</MarkdownMath>
+                    </button>
+                  ))}
+                </div>
+              )}
+
               <div className="flex justify-between pt-2">
                 <Button variant="outline" onClick={() => navigateToQuestion(Math.max(0, currentQ - 1))} disabled={currentQ === 0}>Previous</Button>
                 <Button onClick={() => navigateToQuestion(Math.min(questions.length - 1, currentQ + 1))} disabled={currentQ === questions.length - 1}>
