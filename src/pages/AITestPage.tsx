@@ -614,9 +614,11 @@ export default function AITestPage() {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
           {[
             { label: 'Attempted', value: result.attempted, icon: CheckCircle, tone: 'text-primary' },
+            { label: 'Left', value: result.unanswered, icon: MinusCircle, tone: 'text-muted-foreground' },
+            { label: 'Marked', value: result.reviewCount, icon: Flag, tone: 'text-orange-500' },
             { label: 'Correct', value: result.correct, icon: CheckCircle, tone: 'text-green-500' },
             { label: 'Incorrect', value: result.incorrect, icon: XCircle, tone: 'text-destructive' },
             { label: 'Negative', value: `-${result.negativeMarks}`, icon: MinusCircle, tone: 'text-destructive' },
@@ -629,6 +631,7 @@ export default function AITestPage() {
             </div>
           ))}
         </div>
+
 
         <div className="grid sm:grid-cols-2 gap-4">
           <div className="bg-card rounded-2xl border border-border p-6">
