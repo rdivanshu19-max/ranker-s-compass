@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   FlaskConical, Clock, CheckCircle, XCircle, MinusCircle, Flag, ArrowRight,
   BarChart3, Trophy, AlertTriangle, Sparkles, Timer, X, HelpCircle,
+  Layers, RotateCcw, ChevronDown, Hash, Delete,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -13,6 +14,8 @@ import AILoadingScreen from '@/components/AILoadingScreen';
 import MarkdownMath from '@/components/MarkdownMath';
 import { useAILimit } from '@/hooks/useAILimit';
 import PromoSpot from '@/components/PromoSpot';
+import { topicsFor } from '@/data/syllabusTopics';
+
 
 const JEE_SUBJECTS = ['Physics', 'Chemistry', 'Mathematics'];
 const NEET_SUBJECTS = ['Physics', 'Chemistry', 'Biology'];
