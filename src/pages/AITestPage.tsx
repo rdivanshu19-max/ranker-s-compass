@@ -674,25 +674,36 @@ export default function AITestPage() {
           <h3 className="font-bold font-display mb-4">Answer Review</h3>
           <div className="space-y-4 max-h-96 overflow-y-auto">
             {questions.map((q, i) => {
-              const isUnanswered = answers[i] === undefined;
-              const isCorrect = answers[i] === q.correctAnswer;
+              const unanswered = !isAnswered(i);
+              const isCorrect = isQuestionCorrect(q, i);
               const timeSpent = Math.round(result.timePerQuestion[i] || 0);
+              const integer = isIntegerQ(q);
               return (
-                <div key={i} className={`p-4 rounded-xl border ${isUnanswered ? 'border-destructive/30 bg-destructive/5' : isCorrect ? 'border-green-500/30 bg-green-500/5' : 'border-destructive/30 bg-destructive/5'}`}>
+                <div key={i} className={`p-4 rounded-xl border ${!unanswered && isCorrect ? 'border-green-500/30 bg-green-500/5' : 'border-destructive/30 bg-destructive/5'}`}>
                   <div className="flex justify-between items-start">
                     <div className="font-medium text-sm flex-1 flex gap-1.5"><span>Q{i + 1}.</span><MarkdownMath className="[&_p]:my-0">{q.question}</MarkdownMath></div>
                     <span className="text-[10px] text-muted-foreground whitespace-nowrap ml-2">{timeSpent}s</span>
                   </div>
-                  <div className="text-xs mt-1 text-green-600 flex gap-1">✅ Correct: {String.fromCharCode(65 + q.correctAnswer)}. <MarkdownMath className="[&_p]:my-0">{q.options[q.correctAnswer]}</MarkdownMath></div>
-                  {!isUnanswered && !isCorrect && (
-                    <div className="text-xs text-destructive flex gap-1">❌ Your answer: {String.fromCharCode(65 + answers[i])}. <MarkdownMath className="[&_p]:my-0">{q.options[answers[i]]}</MarkdownMath></div>
+                  {integer ? (
+                    <div className="text-xs mt-1 text-green-600">✅ Correct answer: {q.answer}</div>
+                  ) : (
+                    <div className="text-xs mt-1 text-green-600 flex gap-1">✅ Correct: {String.fromCharCode(65 + q.correctAnswer)}. <MarkdownMath className="[&_p]:my-0">{q.options[q.correctAnswer]}</MarkdownMath></div>
                   )}
+                  {!unanswered && !isCorrect && (
+                    integer ? (
+                      <div className="text-xs text-destructive">❌ Your answer: {String(answers[i])}</div>
+                    ) : (
+                      <div className="text-xs text-destructive flex gap-1">❌ Your answer: {String.fromCharCode(65 + Number(answers[i]))}. <MarkdownMath className="[&_p]:my-0">{q.options[Number(answers[i])]}</MarkdownMath></div>
+                    )
+                  )}
+                  {unanswered && <div className="text-xs text-muted-foreground">⚪ Not attempted</div>}
                   <div className="text-xs text-muted-foreground mt-1 flex gap-1">💡 <MarkdownMath className="[&_p]:my-0">{q.explanation}</MarkdownMath></div>
                 </div>
               );
             })}
           </div>
         </div>
+
 
         <Button variant="hero" size="xl" className="w-full" onClick={() => { setState('config'); setResult(null); }}>
           <Sparkles className="w-4 h-4 mr-2" /> Take Another Test
