@@ -129,9 +129,32 @@ export default function AITestPage() {
 
 
 
-  const attemptedCount = useMemo(() => Object.keys(answers).length, [answers]);
+  const attemptedCount = useMemo(
+    () => Object.values(answers).filter(v => v !== undefined && v !== '' && v !== null).length,
+    [answers],
+  );
   const reviewCount = useMemo(() => markedForReview.size, [markedForReview]);
   const unattemptedCount = useMemo(() => Math.max(questions.length - attemptedCount, 0), [questions.length, attemptedCount]);
+
+  const pressDigit = (d: string) => setAnswers(prev => {
+    const cur = String(prev[currentQ] ?? '');
+    if (cur.length >= 6) return prev;
+    const next = (cur === '0' ? '' : cur) + d;
+    return { ...prev, [currentQ]: next };
+  });
+  const backspaceInteger = () => setAnswers(prev => {
+    const cur = String(prev[currentQ] ?? '');
+    const next = cur.slice(0, -1);
+    const copy = { ...prev };
+    if (next === '') delete copy[currentQ]; else copy[currentQ] = next;
+    return copy;
+  });
+  const clearIntegerAnswer = () => setAnswers(prev => {
+    const copy = { ...prev };
+    delete copy[currentQ];
+    return copy;
+  });
+
 
   // Show tutorial on first visit
   useEffect(() => {
