@@ -48,13 +48,36 @@ const SYLLABUS: Record<string, Record<string, Record<string, string[]>>> = {
 };
 
 type TestState = 'config' | 'loading' | 'test' | 'result';
-type Question = { id: number; question: string; options: string[]; correctAnswer: number; explanation: string; subject: string; chapter?: string };
+type Question = {
+  id: number; question: string; options: string[]; correctAnswer: number;
+  explanation: string; subject: string; chapter?: string;
+  type?: 'mcq' | 'integer'; answer?: number | null;
+};
+type Answers = Record<number, number | string>;
 type ResultState = {
   correct: number; incorrect: number; unanswered: number; obtained: number; total: number;
-  negativeMarks: number; attempted: number;
+  negativeMarks: number; attempted: number; reviewCount: number;
   subjectScores: Record<string, { correct: number; incorrect: number; total: number }>;
   timePerQuestion: number[];
 };
+
+type Difficulty = 'easy' | 'moderate' | 'hard' | 'very_hard';
+const DIFFICULTIES: { id: Difficulty; label: string; hint: string }[] = [
+  { id: 'easy', label: 'Easy', hint: 'NCERT level, direct formula' },
+  { id: 'moderate', label: 'Moderate', hint: 'Standard JEE Main / NEET level' },
+  { id: 'hard', label: 'Hard', hint: 'Multi-concept, tricky options' },
+  { id: 'very_hard', label: 'Very Hard', hint: 'JEE Advanced killer level' },
+];
+
+const SAVE_KEY = 'ai-test-progress-v1';
+type SavedTest = {
+  questions: Question[]; answers: Answers; marked: number[]; currentQ: number;
+  timeLeft: number; duration: number; questionTimes: number[];
+  examType: 'JEE' | 'NEET'; classLevel: string; subject: string; chapter: string;
+  savedAt: number;
+};
+
+const isIntegerQ = (q?: Question) => q?.type === 'integer';
 
 const chartColors = { correct: 'hsl(var(--primary))', incorrect: 'hsl(var(--destructive))', unanswered: 'hsl(var(--muted-foreground))' };
 
@@ -67,18 +90,44 @@ export default function AITestPage() {
   const [chapter, setChapter] = useState<string | 'Full'>('Full');
   const [showTutorial, setShowTutorial] = useState(false);
 
+  // Custom mission config
+  const [mode, setMode] = useState<'quick' | 'custom'>('quick');
+  const [customClass, setCustomClass] = useState<'Both' | '11th' | '12th'>('Both');
+  const [customSubject, setCustomSubject] = useState<string>('');
+  const [customSel, setCustomSel] = useState<Record<string, Record<string, string[]>>>({});
+  const [expandedChapter, setExpandedChapter] = useState<string | null>(null);
+  const [customCount, setCustomCount] = useState(20);
+  const [customDuration, setCustomDuration] = useState(30);
+  const [difficulty, setDifficulty] = useState<Difficulty>('moderate');
+  const [integerMode, setIntegerMode] = useState(false);
+
   const [questions, setQuestions] = useState<Question[]>([]);
-  const [answers, setAnswers] = useState<Record<number, number>>({});
+  const [answers, setAnswers] = useState<Answers>({});
   const [markedForReview, setMarkedForReview] = useState<Set<number>>(new Set());
   const [currentQ, setCurrentQ] = useState(0);
   const [timeLeft, setTimeLeft] = useState(0);
+  const [testDuration, setTestDuration] = useState(0);
   const [result, setResult] = useState<ResultState | null>(null);
+  const [savedTest, setSavedTest] = useState<SavedTest | null>(null);
 
   const [questionTimes, setQuestionTimes] = useState<number[]>([]);
   const questionStartRef = useRef<number>(Date.now());
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const subjects = examType === 'JEE' ? JEE_SUBJECTS : NEET_SUBJECTS;
   const { remaining, limit, resetIn, refresh: refreshLimit, unlimited } = useAILimit('ai_test');
+
+  // Load any unfinished test
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(SAVE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as SavedTest;
+        if (parsed?.questions?.length && parsed.timeLeft > 0) setSavedTest(parsed);
+      }
+    } catch { /* ignore */ }
+  }, []);
+
+
 
   const attemptedCount = useMemo(() => Object.keys(answers).length, [answers]);
   const reviewCount = useMemo(() => markedForReview.size, [markedForReview]);
