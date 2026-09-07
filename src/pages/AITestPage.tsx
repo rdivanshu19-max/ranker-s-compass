@@ -219,6 +219,46 @@ export default function AITestPage() {
     setCurrentQ(idx);
   };
 
+  const buildCustomBody = () => {
+    const distribution = Object.entries(customSel)
+      .map(([subj, chapters]) => ({ subject: subj, chapters: Object.entries(chapters) }))
+      .filter(d => d.chapters.length > 0);
+    const totalChapters = distribution.reduce((a, d) => a + d.chapters.length, 0) || 1;
+    const per = Math.max(1, Math.floor(customCount / totalChapters));
+    let allocated = 0;
+    const subjectDistribution = distribution.map(d => ({
+      subject: d.subject,
+      chapters: d.chapters.map(([name, topics]) => {
+        const count = per;
+        allocated += count;
+        return { name, topics, count };
+      }),
+    }));
+    // give leftovers to the first chapter
+    const leftover = customCount - allocated;
+    if (leftover > 0 && subjectDistribution[0]?.chapters[0]) {
+      subjectDistribution[0].chapters[0].count += leftover;
+    }
+    return subjectDistribution;
+  };
+
+  const beginTest = (qs: Question[], duration: number, restore?: SavedTest) => {
+    setQuestions(qs);
+    setAnswers(restore?.answers ?? {});
+    setMarkedForReview(new Set(restore?.marked ?? []));
+    setCurrentQ(restore?.currentQ ?? 0);
+    setTimeLeft(restore?.timeLeft ?? duration);
+    setTestDuration(restore?.duration ?? duration);
+    setResult(null);
+    setQuestionTimes(restore?.questionTimes ?? new Array(qs.length).fill(0));
+    questionStartRef.current = Date.now();
+    setState('test');
+    clearTimer();
+    timerRef.current = setInterval(() => {
+      setTimeLeft((prev) => { if (prev <= 1) { clearTimer(); return 0; } return prev - 1; });
+    }, 1000);
+  };
+
   const startTest = async () => {
     if (!user) {
       toast.error('Please sign in to take AI tests.');
@@ -232,11 +272,15 @@ export default function AITestPage() {
     if ((window as any).gtag) {
       (window as any).gtag('event', 'test_started', { exam: examType, subject, chapter });
     }
-    const { numQ, duration } = getTestConfig();
+    const isCustom = mode === 'custom';
+    const numQ = isCustom ? customCount : getTestConfig().numQ;
+    const duration = isCustom ? customDuration * 60 : getTestConfig().duration;
     const distribution = getSubjectDistribution();
     try {
-      const body: any = { examType, numQuestions: numQ };
-      if (distribution) {
+      const body: any = { examType, numQuestions: numQ, difficulty, integerQuestions: integerMode };
+      if (isCustom) {
+        body.subjectDistribution = buildCustomBody();
+      } else if (distribution) {
         body.subjectDistribution = distribution;
       } else {
         body.subject = subject === 'Full' ? null : subject;
@@ -249,19 +293,7 @@ export default function AITestPage() {
       if (data.questions.length < numQ) {
         toast.warning(`Generated ${data.questions.length}/${numQ} questions. You can start now or retry for a full set.`);
       }
-      setQuestions(data.questions);
-      setAnswers({});
-      setMarkedForReview(new Set());
-      setCurrentQ(0);
-      setTimeLeft(duration);
-      setResult(null);
-      setQuestionTimes(new Array(data.questions.length).fill(0));
-      questionStartRef.current = Date.now();
-      setState('test');
-      clearTimer();
-      timerRef.current = setInterval(() => {
-        setTimeLeft((prev) => { if (prev <= 1) { clearTimer(); return 0; } return prev - 1; });
-      }, 1000);
+      beginTest(data.questions as Question[], duration);
     } catch (e: any) {
       const msg = e.message || 'Something went wrong. Please try again.';
       toast.error(msg.includes('fetch') ? 'Something went wrong. Please check your connection and try again.' : msg);
@@ -271,6 +303,30 @@ export default function AITestPage() {
     }
   };
 
+  const resumeSavedTest = () => {
+    if (!savedTest) return;
+    setExamType(savedTest.examType);
+    beginTest(savedTest.questions, savedTest.duration, savedTest);
+    setSavedTest(null);
+    toast.success('Resumed your unfinished test.');
+  };
+
+  const discardSavedTest = () => {
+    localStorage.removeItem(SAVE_KEY);
+    setSavedTest(null);
+  };
+
+  // Auto-save progress while a test is running
+  useEffect(() => {
+    if (state !== 'test' || questions.length === 0) return;
+    const payload: SavedTest = {
+      questions, answers, marked: Array.from(markedForReview), currentQ,
+      timeLeft, duration: testDuration, questionTimes,
+      examType, classLevel, subject, chapter, savedAt: Date.now(),
+    };
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify(payload)); } catch { /* quota */ }
+  }, [state, questions, answers, markedForReview, currentQ, timeLeft, testDuration, questionTimes, examType, classLevel, subject, chapter]);
+
   // Auto-submit when time runs out
   useEffect(() => {
     if (state === 'test' && timeLeft === 0) {
@@ -278,9 +334,23 @@ export default function AITestPage() {
     }
   }, [timeLeft, state]);
 
+  const isAnswered = (i: number) => {
+    const a = answers[i];
+    return a !== undefined && a !== '' && a !== null;
+  };
+
+  const isQuestionCorrect = (q: Question, i: number) => {
+    const a = answers[i];
+    if (a === undefined || a === '') return false;
+    if (isIntegerQ(q)) return Number(a) === Number(q.answer);
+    return a === q.correctAnswer;
+  };
+
   const submitTest = async () => {
     clearTimer();
     recordQuestionTime(currentQ);
+    localStorage.removeItem(SAVE_KEY);
+    setSavedTest(null);
 
     let correct = 0, incorrect = 0, unanswered = 0;
     const subjectScores: Record<string, { correct: number; incorrect: number; total: number }> = {};
@@ -288,14 +358,18 @@ export default function AITestPage() {
       const subj = q.subject || 'General';
       if (!subjectScores[subj]) subjectScores[subj] = { correct: 0, incorrect: 0, total: 0 };
       subjectScores[subj].total += 1;
-      if (answers[i] === undefined) unanswered += 1;
-      else if (answers[i] === q.correctAnswer) { correct += 1; subjectScores[subj].correct += 1; }
+      if (!isAnswered(i)) unanswered += 1;
+      else if (isQuestionCorrect(q, i)) { correct += 1; subjectScores[subj].correct += 1; }
       else { incorrect += 1; subjectScores[subj].incorrect += 1; }
     });
     // Marking: +4 correct, -1 incorrect, 0 unanswered
     const obtained = correct * 4 - incorrect * 1;
     const total = questions.length * 4;
-    const res: ResultState = { correct, incorrect, unanswered, obtained, total, negativeMarks: incorrect, attempted: correct + incorrect, subjectScores, timePerQuestion: questionTimes };
+    const res: ResultState = {
+      correct, incorrect, unanswered, obtained, total, negativeMarks: incorrect,
+      attempted: correct + incorrect, reviewCount: markedForReview.size,
+      subjectScores, timePerQuestion: questionTimes,
+    };
     setResult(res);
     if ((window as any).gtag) {
       (window as any).gtag('event', 'test_completed', { score: obtained, total, correct, incorrect });
@@ -306,10 +380,11 @@ export default function AITestPage() {
         user_id: user.id, exam_type: examType, class: classLevel, subject: subject === 'Full' ? null : subject,
         chapter: chapter === 'Full' ? null : chapter, total_marks: total, obtained_marks: obtained, total_questions: questions.length,
         attempted: res.attempted, correct, incorrect, unanswered, negative_marks: incorrect, subject_scores: subjectScores,
-        duration_seconds: getTestConfig().duration - timeLeft,
+        duration_seconds: Math.max(0, testDuration - timeLeft),
       });
     }
   };
+
 
   const formatTime = (s: number) => {
     const h = Math.floor(s / 3600);
