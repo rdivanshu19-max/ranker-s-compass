@@ -37,6 +37,8 @@ import AdSensePage from "./pages/AdSensePage";
 import OAuthConsent from "./pages/OAuthConsent";
 import NotFound from "./pages/NotFound";
 import RouteSeo from "./components/RouteSeo";
+import MathangoPage from "./pages/MathangoPage";
+import MathangoTestPage from "./pages/MathangoTestPage";
 
 
 const queryClient = new QueryClient();
@@ -71,6 +73,8 @@ const App = () => (
                 <Route path="test-series" element={<><TestSeriesPage /><AIChatWidget /></>} />
                 <Route path="test-series/:seriesId" element={<><TestSeriesDetailsPage /><AIChatWidget /></>} />
                 <Route path="test/:testId" element={<TestViewPage />} />
+                <Route path="mathango" element={<MathangoPage />} />
+                <Route path="mathango/:n" element={<MathangoTestPage />} />
                 <Route path="practice/:slug" element={<PracticeViewPage />} />
                 <Route path="portal/:portalId" element={<PortalViewPage />} />
                 <Route path="profile" element={<ProfilePage />} />
