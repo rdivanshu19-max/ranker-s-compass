@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>Mock Test 1</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+window.MathJax = {
+  tex: { inlineMath:[['\\(',  '\\)']], displayMath:[['\\[','\\]']], processEscapes:true },
+  options: { skipHtmlTags:['script','noscript','style','textarea'] },
+  startup: { typeset: false }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" id="MathJax-script" async></script>
+<style>
+:root{
+  --bg:#fafafa;--surf:#ffffff;--border:#dcdcdc;
+  --acc:#0f75bc;--acc2:#4cae4c;--txt:#333333;--muted:#555555;
+  --ok:#5cb85c;--err:#d9534f;--blue:#286090;--purple:#8e44ad;
+  --fh:'Rajdhani',sans-serif;--fb:'Noto Sans',sans-serif;--fm:'IBM Plex Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font-family:var(--fb);font-size:14px;min-height:100vh;overflow-x:hidden}
+/* TOPBAR */
+#topbar{background:#f8f9fa;border-bottom:3px solid var(--acc);padding:0 20px;height:54px;display:flex;align-items:center;justify-content:space-between;position:fixed;top:0;left:0;right:0;z-index:100}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{width:34px;height:34px;background:var(--acc);border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-size:18px;font-weight:700;color:#fff}
+.logo-name{font-family:var(--fh);font-size:20px;font-weight:700;color:var(--acc);letter-spacing:1px}
+.logo-sub{font-size:10px;color:var(--muted);font-family:var(--fm)}
+#timer{background:#fff;border:1px solid #ccc;border-radius:4px;padding:4px 12px;font-family:var(--fm);font-size:18px;font-weight:600;color:#333;letter-spacing:1px}
+#timer.urgent{color:var(--err);border-color:var(--err);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.test-name{font-family:var(--fh);font-size:15px;font-weight:600;color:#444}
+/* LAYOUT */
+#wrap{display:flex;margin-top:54px;min-height:calc(100vh - 54px)}
+/* SIDEBAR */
+#sidebar{width:276px;min-width:276px;background:#f1f3f5;border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:54px;bottom:0;left:0;overflow-y:auto;z-index:50}
+.sb-sec{padding:12px 14px;border-bottom:1px solid var(--border)}
+.sb-title{font-family:var(--fm);font-size:11px;font-weight:700;color:#444;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+.subj-tabs{display:flex;gap:4px}
+.stab{padding:5px 10px;border-radius:4px;font-size:12px;font-family:var(--fh);font-weight:600;cursor:pointer;border:1px solid var(--border);background:#fff;color:#333;transition:all .2s;letter-spacing:.5px}
+.stab.active{background:var(--acc);color:#fff;border-color:var(--acc)}
+.stab:hover:not(.active){border-color:var(--acc);color:var(--acc)}
+#palette{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;padding:10px 14px 12px}
+.pq{aspect-ratio:1;border:1px solid #ccc;border-radius:4px 4px 50% 50%;font-size:12px;font-family:var(--fm);font-weight:600;cursor:pointer;background:#ffffff;color:#333;transition:all .15s}
+.pq:hover{border-color:#1076bc;box-shadow:0 0 4px rgba(16,118,188,0.3)}
+.pq.cur{border:2px solid #000000!important;font-weight:700}
+.pq.notvis{background:#ffffff;color:#333;border-radius:4px;border:1px solid #ccc}
+.pq.notans{background:#e74c3c;color:#fff;border-radius:4px 4px 0 0;border:none}
+.pq.ans{background:#2ecc71;color:#fff;border-radius:0 0 4px 4px;border:none}
+.pq.mrk{background:#9b59b6;color:#fff;border-radius:50%;border:none}
+.pq.mrkans{background:#9b59b6;color:#fff;border-radius:50%;border:none;box-shadow:inset 0 -6px 0 #2ecc71}
+.legend{padding:8px 14px 12px;display:flex;flex-direction:column;gap:6px;background:#fff;border-top:1px solid var(--border)}
+.leg-item{display:flex;align-items:center;gap:8px;font-size:11px;color:#333;font-weight:500}
+.leg-dot{width:16px;height:16px;flex-shrink:0;text-align:center;line-height:16px;font-size:10px;font-weight:bold}
+
+.sc{background:#fff;border-radius:4px;padding:8px;text-align:center;border:1px solid var(--border)}
+.sc .v{font-family:var(--fh);font-size:20px;font-weight:700}
+.sc .l{font-size:10px;color:var(--muted);font-family:var(--fm);margin-top:2px}
+/* CONTENT */
+#content{flex:1;margin-left:276px;padding:18px 22px 90px;max-width:900px}
+.tg-banner{background:#eef7fe;border:1px solid #bce0fd;border-radius:4px;padding:10px 16px;display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.tg-banner a{background:var(--acc);color:#fff;font-family:var(--fh);font-weight:700;font-size:13px;padding:5px 14px;border-radius:4px;text-decoration:none;margin-left:auto;white-space:nowrap}
+.sec-hdr{background:#f8f9fa;border:1px solid var(--border);border-left:4px solid var(--acc);border-radius:4px;padding:10px 16px;margin-bottom:16px;font-family:var(--fh);font-size:14px;line-height:1.6;color:#333}
+.sec-hdr strong{color:var(--acc)}
+/* CARD */
+.qcard{background:var(--surf);border:1px solid var(--border);border-radius:4px;padding:22px;box-shadow:0 1px 3px rgba(0,0,0,0.05);animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.q-hdr{display:flex;align-items:center;gap:8px;margin-bottom:14px;border-bottom:1px solid #eee;padding-bottom:10px}
+.q-num{background:var(--acc);color:#fff;font-family:var(--fh);font-size:14px;font-weight:700;padding:3px 10px;border-radius:3px}
+.q-badge{background:#f1f3f5;color:#444;font-family:var(--fm);font-size:11px;padding:3px 8px;border-radius:3px;border:1px solid var(--border)}
+.q-mark-badge{margin-left:auto;background:#fff5f5;color:var(--err);font-size:11px;font-family:var(--fm);padding:3px 8px;border-radius:3px;border:1px solid #fecaca}
+.q-text{font-size:15px;line-height:1.8;color:#222;margin-bottom:18px}
+/* diagram */
+.diag{background:#fff;border:1px solid #ddd;border-radius:4px;padding:10px 14px;margin:12px 0;display:inline-block;max-width:100%}
+.diag svg{display:block;max-width:100%;height:auto}
+/* options */
+.opts{display:flex;flex-direction:column;gap:9px;margin-bottom:18px}
+.opt{display:flex;align-items:flex-start;gap:10px;padding:11px 14px;background:#f8f9fa;border:1px solid #dcdcdc;border-radius:4px;cursor:pointer;text-align:left;color:#333;font-size:14px;font-family:var(--fb);transition:all .18s;line-height:1.7;width:100%}
+.opt:hover{border-color:#b0b0b0;background:#f1f3f5}
+.opt.sel{border-color:#337ab7;background:#edf4fa}
+.opt.corr覆{border-color:var(--ok);background:#f2f9f2}
+.opt.incorr{border-color:var(--err);background:#fff5f5}
+.opt-l{min-width:26px;height:26px;background:#fff;border:1px solid #ccc;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-weight:700;font-size:13px;color:#555;flex-shrink:0;transition:all .18s}
+.opt.sel .opt-l{background:#337ab7;color:#fff;border-color:#337ab7}
+.opt.corr .opt-l{background:var(--ok);color:#fff;border-color:var(--ok)}
+.opt.incorr .opt-l{background:var(--err);color:#fff;border-color:var(--err)}
+/* NAT */
+.nat-wrap{margin-bottom:18px}
+.nat-lbl{font-size:11px;color:var(--muted);margin-bottom:7px;font-family:var(--fm);letter-spacing:1px}
+.nat-inp{background:#fff;border:1px solid var(--border);border-radius:4px;padding:8px 12px;font-family:var(--fm);font-size:18px;color:#333;width:200px;outline:none;transition:border-color .2s}
+.nat-inp:focus{border-color:var(--acc)}
+.nat-inp.corr{border-color:var(--ok);color:var(--ok)}
+.nat-inp.incorr{border-color:var(--err);color:var(--err)}
+.nat-ans{margin-top:8px;font-size:13px;color:var(--ok);font-family:var(--fm)}
+/* actions */
+.q-actions{display:flex;gap:8px;flex-wrap:wrap;padding-top:14px;border-top:1px solid var(--border)}
+.btn{padding:8px 18px;border-radius:4px;font-family:var(--fh);font-size:14px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:all .18s;letter-spacing:.5px}
+.btn-acc{background:#fff;color:#333;border:1px solid #ccc}
+.btn-acc:hover{background:#f1f3f5}
+.btn-sec{background:#fff;color:#333;border:1px solid #ccc}
+.btn-sec:hover{background:#f1f3f5}
+.btn-mrk{background:#fff;color:#333;border:1px solid #ccc}
+.btn-mrk.on{background:#9b59b6;color:#fff;border-color:#9b59b6}
+.btn-clr{background:#fff;color:#333;border:1px solid #ccc}
+.btn-clr:hover{background:#fff5f5;color:var(--err);border-color:var(--err)}
+.btn-sub{background:#4cae4c;color:#fff;border-color:#4cae4c;margin-left:auto}
+.btn-sub:hover{background:#449d44}
+/* solution */
+.sol{display:none;margin-top:14px;padding:13px 15px;background:#f8f9fa;border-radius:4px;border-left:4px solid var(--acc);font-size:13px;line-height:1.7;color:#444}
+.sol.on{display:block}
+/* bottom nav */
+#botnav{position:fixed;bottom:0;left:276px;right:0;background:#edf4fa;border-top:1px solid #bce0fd;padding:12px 22px;display:flex;align-items:center;gap:8px;z-index:90}
+/* result */
+#result{display:none;position:fixed;inset:0;background:rgba(255,255,255,.98);z-index:200;overflow-y:auto;padding:36px 18px}
+.rbox{max-width:780px;margin:0 auto;background:var(--surf);border-radius:8px;border:1px solid var(--border);box-shadow:0 4px 15px rgba(0,0,0,0.1);overflow:hidden}
+.r-hdr{background:#f8f9fa;border-bottom:3px solid var(--acc);padding:26px;text-align:center}
+.r-hdr h1{font-family:var(--fh);font-size:30px;font-weight:700;color:var(--acc);letter-spacing:1px;margin-bottom:5px}
+.r-hdr p{color:var(--muted);font-family:var(--fm);font-size:12px}
+.r-scores{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border-bottom:1px solid var(--border)}
+.r-sc{background:var(--surf);padding:18px;text-align:center}
+.r-sc .big{font-family:var(--fh);font-size:38px;font-weight:700;line-height:1}
+.r-sc .lbl{font-size:10px;color:var(--muted);font-family:var(--fm);margin-top:5px;text-transform:uppercase;letter-spacing:1px}
+.r-subjs{padding:20px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.r-subj{background:#f8f9fa;border-radius:6px;padding:14px;border:1px solid var(--border)}
+.r-subj h3{font-family:var(--fh);font-size:14px;font-weight:700;color:var(--acc);margin-bottom:10px}
+.r-row{display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px}
+.r-row .rv{font-family:var(--fm);font-weight:500}
+.r-acts{padding:18px 20px;display:flex;gap:10px;justify-content:center;border-top:1px solid var(--border)}
+/* watermark */
+.wm{position:fixed;bottom:65px;right:18px;font-family:var(--fh);font-size:12px;color:rgba(0,0,0,.04);letter-spacing:2px;transform:rotate(-15deg);pointer-events:none;z-index:5;font-weight:700}
+/* scrollbar */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:#ccc;border-radius:3px}
+mjx-container{overflow-x:auto;max-width:100%}
+</style>
+<style>
+.logo-name,.logo-sub,a[href*="t.me"],a[href*="karnhim"]{visibility:hidden!important;pointer-events:none!important}
+.logo-icon{pointer-events:none!important}
+</style>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+ var w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);var n;
+ while(n=w.nextNode()){if(/karnhim|t\.me\/|telegram channel/i.test(n.nodeValue)){n.nodeValue=n.nodeValue.replace(/t\.me\/karnhim\s*➜?|karnhim|Telegram Channel/gi,'');}}
+ document.querySelectorAll('a[href*="t.me"]').forEach(function(a){a.removeAttribute('href');a.style.pointerEvents='none';});
+});
+</script>
+</head>
+<body>
+<div id="topbar">
+  <div class="logo">
+    <div class="logo-icon">TG</div>
+    <div>
+      <div class="logo-name">Telegram Channel</div>
+      <div class="logo-sub">QPT 1 </div>
+    </div>
+  </div>
+  <div class="test-name">Mock Test 1 &nbsp;|&nbsp; Full Syllabus</div>
+  <div id="timer">3:00:00</div>
+</div>
+
+<div id="wrap">
+<div id="sidebar">
+  <div class="sb-sec">
+    <div class="sb-title">Subject</div>
+    <div class="subj-tabs">
+      <button class="stab active" onclick="switchSubject('math')">Math</button>
+      <button class="stab" onclick="switchSubject('physics')">Physics</button>
+      <button class="stab" onclick="switchSubject('chemistry')">Chem</button>
+    </div>
+  </div>
+  <div class="sb-sec" style="padding-bottom:0"><div class="sb-title">Question Palette</div></div>
+  <div id="palette"></div>
+  <div class="legend">
+    <div class="sb-title">Instructions</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#ffffff;border:1px solid #ccc;border-radius:4px"></div>Not Visited</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#e74c3c;border-radius:4px 4px 0 0"></div>Not Answered</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#2ecc71;border-radius:0 0 4px 4px"></div>Answered</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#9b59b6;border-radius:50%"></div>Marked for Review</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#9b59b6;border-radius:50%;box-shadow:inset 0 -4px 0 #2ecc71"></div>Answered & Marked for Review</div>
+  </div>
+  <div class="s"><div class="s-title"></div> </div>
+  <div class="sre-id">
+    <div ""><div class="" id="sc-s" style="color:v(-acc"></div><div class=l"></div></div>
+    <div c"><div class="" id="sc-c" style="color:ok)">0</div><div "></div></div>
+    <div clas=""><div class="" id="sc-w" style="color:var(--err)"></div><div></div></div>
+    <div clas=""><div class=""id="sc-u" style="color:var(-">0</div><div ></div></div>
+  </div>
+</div>
+
+<div id="content">
+  <div class="tg-banner">
+    <div>
+      <div style="font-family:var(--fh);font-size:13px;font-weight:700;color:var(--acc)">📚 Telegram Channel</div>
+      <div style="font-size:11px;color:var(--muted)">Free JEE PDFs, Mock Tests & Notes</div>
+    </div>
+    <a href="https://t.me/karnhim" target="_blank">Join Channel ➜</a>
+  </div>
+  <div class="sec-hdr" id="sec-hdr"></div>
+  <div class="qcard" id="qcard"></div>
+</div>
+</div>
+
+<div id="botnav">
+
+  <button class="btn btn-mrk" id="mrkBtn" onclick="toggleMark()">Mark for Review & Next</button>
+  <button class="btn btn-clr" onclick="clearResp()">Clear Response</button>
+  <button class="btn btn-sec" style="background:#337ab7;color:#fff;border-color:#2e6da4" onclick="nav(1)">Save & Next ▶</button>
+  <button class="btn btn-sub" onclick="confirmSubmit()">Submit Test ⏎</button>
+</div>
+
+<div class="wm">t.me/karnhim</div>
+
+<div id="result">
+  <div class="rbox">
+    <div class="r-hdr">
+      <div style="font-size:12px;color:var(--muted);font-family:var(--fm);margin-bottom:6px">MOCK TEST 1</div>
+      <h1>TEST COMPLETE</h1>
+      <p>Physics · Chemistry · Mathematics</p>
+    </div>
+    <div class="r-scores">
+      <div class="r-sc"><div class="big" id="r-tot" style="color:var(--acc)">0</div><div class="lbl">Total Score</div></div>
+      <div class="r-sc"><div class="big" id="r-pct" style="color:var(--ok)">0%</div><div class="lbl">Percentage</div></div>
+      <div class="r-sc"><div class="big" id="r-rnk" style="color:var(--acc2)">—</div><div class="lbl">Percentile Est.</div></div>
+    </div>
+    <div class="r-subjs" id="r-subjs"></div>
+    <div class="r-acts">
+      <button class="btn btn-acc" onclick="reviewMode()">Review Answers</button>
+      <a href="https://t.me/karnhim" target="_blank" class="btn" style="background:#eef7fe;color:#1076bc;border:1px solid #bce0fd;text-decoration:none">Join Telegram</a>
+    </div>
+  </div>
+</div>
+
+
+
+<script>
+// ── SVG DIAGRAMS ──────────────────────────────────────────────────────────────
+const DIAG = {};
+
+// Q28: r1=3 at 75°, r2=4 at 15°, displacement vector
+DIAG[28] = `<div class="diag">
+<svg width="240" height="200" viewBox="0 0 240 200">
+  <defs>
+    <marker id="ah" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#222"/>
+    </marker>
+  </defs>
+  <!-- axes -->
+  <line x1="20" y1="170" x2="220" y2="170" stroke="#aaa" stroke-width="1.5" marker-end="url(#ah)"/>
+  <line x1="20" y1="170" x2="20" y2="20" stroke="#aaa" stroke-width="1.5" marker-end="url(#ah)"/>
+  <text x="225" y="174" font-size="12" fill="#555">x</text>
+  <text x="14" y="16" font-size="12" fill="#555">y</text>
+  <!-- r1: magnitude 3, angle 75° from +x -->
+  <!-- scale: 30px per unit. 75° from x-axis -->
+  <!-- r1x=3*cos75=0.776, r1y=3*sin75=2.898 → *30 = 23.3, 86.9 -->
+  <line x1="20" y1="170" x2="50" y2="83" stroke="#2563eb" stroke-width="2" marker-end="url(#ah2)"/>
+  <defs>
+    <marker id="ah2" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#2563eb"/></marker>
+    <marker id="ah3" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#e63946"/></marker>
+    <marker id="ah4" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#22c55e"/></marker>
+  </defs>
+  <text x="22" y="118" font-size="12" fill="#2563eb" font-weight="bold">r₁=3</text>
+  <!-- r2: magnitude 4, angle 15° from +x -->
+  <!-- r2x=4*cos15=3.864, r2y=4*sin15=1.035 → *30 = 115.9, 31.1 -->
+  <line x1="20" y1="170" x2="136" y2="139" stroke="#e63946" stroke-width="2" marker-end="url(#ah3)"/>
+  <text x="70" y="168" font-size="12" fill="#e63946" font-weight="bold">r₂=4</text>
+  <!-- displacement = r2 - r1 = (136-50, 139-83) = (86,56) -->
+  <line x1="50" y1="83" x2="136" y2="139" stroke="#22c55e" stroke-width="2.5" stroke-dasharray="5,3" marker-end="url(#ah4)"/>
+  <text x="100" y="104" font-size="12" fill="#22c55e" font-weight="bold">Δr</text>
+  <!-- angle labels -->
+  <path d="M 50 170 A 30 30 0 0 1 62 141" stroke="#2563eb" fill="none" stroke-width="1"/>
+  <text x="54" y="150" font-size="10" fill="#2563eb">75°</text>
+  <path d="M 50 170 A 20 20 0 0 1 70 163" stroke="#e63946" fill="none" stroke-width="1"/>
+  <text x="55" y="163" font-size="10" fill="#e63946">15°</text>
+  <!-- origin label -->
+  <text x="8" y="183" font-size="11" fill="#888">O</text>
+  <!-- Point A and B -->
+  <circle cx="50" cy="83" r="4" fill="#2563eb"/>
+  <text x="54" y="80" font-size="11" fill="#2563eb">A</text>
+  <circle cx="136" cy="139" r="4" fill="#e63946"/>
+  <text x="140" y="136" font-size="11" fill="#e63946">B</text>
+</svg>
+</div>`;
+
+// Q34: v-x graph (linear decrease v0 to 0), and option graphs for a-x
+DIAG[34] = `<div class="diag">
+<svg width="300" height="120" viewBox="0 0 300 120">
+  <defs>
+    <marker id="axh" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#333"/></marker>
+  </defs>
+  <text x="10" y="14" font-size="11" fill="#555" font-weight="bold">Given: v-x graph</text>
+  <!-- axes -->
+  <line x1="30" y1="100" x2="200" y2="100" stroke="#555" stroke-width="1.5" marker-end="url(#axh)"/>
+  <line x1="30" y1="100" x2="30" y2="20" stroke="#555" stroke-width="1.5" marker-end="url(#axh)"/>
+  <text x="205" y="104" font-size="11" fill="#555">x</text>
+  <text x="24" y="17" font-size="11" fill="#555">v</text>
+  <!-- v0 label -->
+  <text x="6" y="38" font-size="11" fill="#f5a623">v₀</text>
+  <line x1="28" y1="35" x2="32" y2="35" stroke="#555" stroke-width="1"/>
+  <!-- x0 label -->
+  <text x="158" y="112" font-size="11" fill="#f5a623">x₀</text>
+  <line x1="163" y1="98" x2="163" y2="102" stroke="#555" stroke-width="1"/>
+  <!-- linear decrease -->
+  <line x1="30" y1="35" x2="163" y2="100" stroke="#f5a623" stroke-width="2.5"/>
+</svg>
+</div>
+<div style="font-size:12px;color:#8ab;margin:6px 0 10px;font-style:italic">
+  v = v₀(1 − x/x₀) &nbsp;→&nbsp; a = v·dv/dx = −v₀²/x₀ + (v₀²/x₀²)x &nbsp;(linear in x, negative slope from negative intercept)
+</div>`;
+
+// Q38 - ABCD statements helper visual
+DIAG[38] = `<div class="diag" style="background:#f8f8f8;padding:12px 16px">
+<svg width="320" height="90" viewBox="0 0 320 90">
+  <text x="8" y="16" font-size="11" fill="#333" font-weight="bold">Relative motion in projectile:</text>
+  <text x="8" y="32" font-size="10" fill="#444">A: Relative acceleration = 0  →  Relative path = straight line  ✓ TRUE</text>
+  <text x="8" y="47" font-size="10" fill="#444">B: dv/dx=0 &amp; d²v/dx²&lt;0  →  local max  ✓ TRUE</text>
+  <text x="8" y="62" font-size="10" fill="#444">C: Shortest time → swim perpendicular to river  ✓ TRUE</text>
+  <text x="8" y="77" font-size="10" fill="#cc2222">D: Positive acceleration ≠ speed always increases (vector!)  ✗ FALSE</text>
+</svg>
+</div>`;
+
+// Q34 options diagrams (a-x graphs for options)
+const OPT_DIAG_34 = [
+  // opt A: a starts from origin, goes up-right (positive slope from zero)
+  `<svg width="80" height="60" viewBox="0 0 80 60" style="margin-left:6px">
+    <line x1="10" y1="50" x2="75" y2="50" stroke="#666" stroke-width="1.2"/>
+    <line x1="10" y1="50" x2="10" y2="8" stroke="#666" stroke-width="1.2"/>
+    <text x="3" y="8" font-size="9" fill="#999">a</text>
+    <text x="72" y="54" font-size="9" fill="#999">x</text>
+    <line x1="10" y1="50" x2="65" y2="15" stroke="#e63946" stroke-width="2"/>
+  </svg>`,
+  // opt B: a is a V shape starting negative (correct for linear v-x decreasing)
+  `<svg width="80" height="60" viewBox="0 0 80 60" style="margin-left:6px">
+    <line x1="10" y1="35" x2="75" y2="35" stroke="#666" stroke-width="1.2"/>
+    <line x1="10" y1="55" x2="10" y2="8" stroke="#666" stroke-width="1.2"/>
+    <text x="3" y="8" font-size="9" fill="#999">a</text>
+    <text x="72" y="39" font-size="9" fill="#999">x</text>
+    <line x1="10" y1="52" x2="65" y2="18" stroke="#22c55e" stroke-width="2.5"/>
+    <circle cx="10" cy="52" r="2.5" fill="#22c55e"/>
+  </svg>`,
+  // opt C: a is constant negative
+  `<svg width="80" height="60" viewBox="0 0 80 60" style="margin-left:6px">
+    <line x1="10" y1="35" x2="75" y2="35" stroke="#666" stroke-width="1.2"/>
+    <line x1="10" y1="55" x2="10" y2="8" stroke="#666" stroke-width="1.2"/>
+    <text x="3" y="8" font-size="9" fill="#999">a</text>
+    <text x="72" y="39" font-size="9" fill="#999">x</text>
+    <line x1="12" y1="48" x2="65" y2="48" stroke="#e63946" stroke-width="2"/>
+  </svg>`,
+  // opt D: a decreases from positive to zero (linear drop)
+  `<svg width="80" height="60" viewBox="0 0 80 60" style="margin-left:6px">
+    <line x1="10" y1="40" x2="75" y2="40" stroke="#666" stroke-width="1.2"/>
+    <line x1="10" y1="55" x2="10" y2="8" stroke="#666" stroke-width="1.2"/>
+    <text x="3" y="8" font-size="9" fill="#999">a</text>
+    <text x="72" y="44" font-size="9" fill="#999">x</text>
+    <line x1="12" y1="20" x2="65" y2="40" stroke="#e63946" stroke-width="2"/>
+  </svg>`,
+];
+
+// ── QUESTION DATA ─────────────────────────────────────────────────────────────
+const QS = [
+// ── MATH SCQ 1-20 ──
+{id:1,sub:'math',sec:'scq',
+q:`Let \\(S = \\{1,2,3,\\ldots,100\\}\\). Suppose \\(b\\) and \\(c\\) are chosen at random from the set \\(S\\). The probability that \\(4x^2 + bx + c\\) has equal roots is`,
+opts:[`\\(0.001\\)`,`\\(0.004\\)`,`\\(0.007\\)`,`\\(0.01\\)`],ans:2},
+
+{id:2,sub:'math',sec:'scq',
+q:`If \\(a, b, c \\in \\mathbb{R}^+\\) such that \\(a + b + c = 27\\), then the maximum value of \\(a^2b^3c^4\\) is equal to`,
+opts:[`\\(2^8 \\cdot 3^{10}\\)`,`\\(2^9 \\cdot 3^{11}\\)`,`\\(2^{10} \\cdot 3^{12}\\)`,`\\(2^{11} \\cdot 3^{13}\\)`],ans:3},
+
+{id:3,sub:'math',sec:'scq',
+q:`If \\(x\\) satisfies the inequality \\(\\log_{25} x^2 + (\\log_5 x)^2 < 2\\), then \\(x\\) belongs to`,
+opts:[`\\(\\left(\\tfrac{1}{5},\\,5\\right)\\)`,`\\(\\left(\\tfrac{1}{25},\\,5\\right)\\)`,`\\(\\left(\\tfrac{1}{5},\\,25\\right)\\)`,`\\(\\left(\\tfrac{1}{25},\\,25\\right)\\)`],ans:2},
+
+{id:4,sub:'math',sec:'scq',
+q:`Let \\(\\alpha\\) and \\(\\beta\\) be two real numbers such that \\(\\alpha + \\beta = 1\\) and \\(\\alpha\\beta = -1\\). Let \\(p_n = \\alpha^n + \\beta^n\\), \\(p_{n-1} = 11\\) and \\(p_{n+1} = 29\\) for some integer \\(n \\geq 1\\). Then the value of \\(p_n^2\\) is`,
+opts:[`\\(244\\)`,`\\(344\\)`,`\\(324\\)`,`\\(224\\)`],ans:3},
+
+{id:5,sub:'math',sec:'scq',
+q:`If \\(a,a_1,a_2,\\ldots,a_{2n},b\\) are in A.P. and \\(a,g_1,g_2,\\ldots,g_{2n},b\\) are in G.P., and \\(h\\) is the H.M. of \\(a\\) and \\(b\\), then
+\\[\\frac{a_1+a_{2n}}{g_1g_{2n}}+\\frac{a_2+a_{2n-1}}{g_2g_{2n-1}}+\\cdots+\\frac{a_n+a_{n+1}}{g_ng_{n+1}}\\]
+is equal to`,
+opts:[`\\(\\dfrac{2n}{h}\\)`,`\\(2nh\\)`,`\\(nh\\)`,`\\(\\dfrac{n}{h}\\)`],ans:1},
+
+{id:6,sub:'math',sec:'scq',
+q:`If \\(-3 < \\dfrac{x^2-\\lambda x-2}{x^2+x+1} < 2\\) for all \\(x\\in\\mathbb{R}\\), then \\(\\lambda\\) belongs to`,
+opts:[`\\((-1,\\,7)\\)`,`\\((-6,\\,2)\\)`,`\\((-1,\\,2)\\)`,`\\((-6,\\,7)\\)`],ans:3},
+
+{id:7,sub:'math',sec:'scq',
+q:`Balls are arranged in rows to form an equilateral triangle. The first row has 1 ball, second 2, third 3 and so on. If 669 more balls are added, all balls can be arranged as a square whose each side contains 8 balls less than each side of the triangle. The initial number of balls must be`,
+opts:[`\\(1500\\)`,`\\(1485\\)`,`\\(253\\)`,`\\(1540\\)`],ans:4},
+
+{id:8,sub:'math',sec:'scq',
+q:`If the equations \\(x^3 + lx^2 + 2x + 1 = 0\\) and \\(x^3 + mx^2 + 3x + 2 = 0\\) have a common quadratic factor, then the value of \\((l+m)\\) is`,
+opts:[`\\(5\\)`,`\\(4\\)`,`\\(3\\)`,`\\(2\\)`],ans:1},
+
+{id:9,sub:'math',sec:'scq',
+q:`The set of all solutions of the inequality
+\\[\\frac{(e^x-1)(2x-3)(x^2+x+2)}{(\\sin x-\\sqrt{5})(x+1)x}\\leq 0\\]
+is`,
+opts:[`\\(\\left[\\tfrac{3}{2},\\infty\\right)\\)`,`\\((-\\infty,-1)\\cup\\left[\\tfrac{3}{2},\\infty\\right)\\)`,`\\((-1,0)\\cup\\left[\\tfrac{3}{2},\\infty\\right)\\)`,`\\(\\mathbb{R}-\\{0,-1\\}\\)`],ans:2},
+
+{id:10,sub:'math',sec:'scq',
+q:`The value of the sum in the 50th bracket of \\((1)+(2+3)+(4+5+6)+(7+8+9+10)+\\cdots\\) is`,
+opts:[`\\(62525\\)`,`\\(65225\\)`,`\\(56255\\)`,`\\(555625\\)`],ans:1},
+
+{id:11,sub:'math',sec:'scq',
+q:`Find the number of integral values of \\(k\\) for which \\(e^{\\lambda^2-2\\lambda+1+\\ln 3}\\) and \\(e^{-(\\lambda^2-2\\lambda+1)+\\ln 2}\\), where \\(\\lambda\\in\\mathbb{R}-\\{1\\}\\), are the roots of \\(x^2-(3k+1)x+3k^2-k+2=0\\).`,
+opts:[`\\(1\\)`,`\\(2\\)`,`\\(3\\)`,`\\(0\\)`],ans:4},
+
+{id:12,sub:'math',sec:'scq',
+q:`The sum of the series \\((1+2)+(1+2+2^2)+(1+2+2^2+2^3)+\\cdots\\) up to \\(n\\) terms is`,
+opts:[`\\(2^{n+2}-n-4\\)`,`\\(2(2^n-1)-n\\)`,`\\(2^{n+1}-n\\)`,`\\(2^{n+1}-1\\)`],ans:3},
+
+{id:13,sub:'math',sec:'scq',
+q:`Sum of the squares of all integral values of \\(a\\) for which the inequality \\(x^2+ax+a^2+6a<0\\) is satisfied for all \\(x\\in(1,2)\\) must be equal to`,
+opts:[`\\(90\\)`,`\\(89\\)`,`\\(88\\)`,`\\(91\\)`],ans:2},
+
+{id:14,sub:'math',sec:'scq',
+q:`Consider two positive numbers \\(a\\) and \\(b\\). If the AM of \\(a\\) and \\(b\\) exceeds their GM by \\(\\tfrac{3}{2}\\) and the GM exceeds their HM by \\(\\tfrac{6}{5}\\), then the absolute value of \\(a^2-b^2\\) is equal to`,
+opts:[`\\(153\\)`,`\\(135\\)`,`\\(154\\)`,`\\(136\\)`],ans:1},
+
+{id:15,sub:'math',sec:'scq',
+q:`If \\(-\\pi<\\theta<\\pi\\), the equation \\((\\cos 3\\theta+1)x^2+(2\\cos 2\\theta-1)x+(1-2\\cos\\theta)=0\\) has more than two roots for`,
+opts:[`no value of \\(\\theta\\)`,`one value of \\(\\theta\\)`,`two values of \\(\\theta\\)`,`all values of \\(\\theta\\)`],ans:1},
+
+{id:16,sub:'math',sec:'scq',
+q:`The sum of the solutions of the equation \\(|\\sqrt{x}-2|+\\sqrt{x}(\\sqrt{x}-4)+2=0,\\;(x>0)\\) is equal to`,
+opts:[`\\(10\\)`,`\\(9\\)`,`\\(12\\)`,`\\(4\\)`],ans:4},
+
+{id:17,sub:'math',sec:'scq',
+q:`Let \\(\\alpha=\\log_{10}15\\) and \\(\\beta=\\log_{10}16\\), \\(A=\\{\\log_{10}1,\\log_{10}2,\\ldots,\\log_{10}50\\}\\). The number of elements in \\(A\\) which can be written as \\(a\\alpha+b\\beta+c\\) where \\(a,b,c\\) are rational, is`,
+opts:[`\\(23\\)`,`\\(24\\)`,`\\(25\\)`,`none of these`],ans:2},
+
+{id:18,sub:'math',sec:'scq',
+q:`The first three terms of a geometric sequence are \\(x,y,z\\) with sum \\(42\\). If middle term \\(y\\) is multiplied by \\(\\tfrac{5}{4}\\), then \\(x,\\tfrac{5y}{4},z\\) form an arithmetic sequence. The largest possible value of \\(x\\) is`,
+opts:[`\\(6\\)`,`\\(12\\)`,`\\(24\\)`,`\\(20\\)`],ans:1},
+
+{id:19,sub:'math',sec:'scq',
+q:`The sum of the cubes of all the roots of the equation \\(x^4-3x^3-2x^2+3x+1=0\\) is`,
+opts:[`\\(48\\)`,`\\(36\\)`,`\\(32\\)`,`\\(24\\)`],ans:1},
+
+{id:20,sub:'math',sec:'scq',
+q:`\\(\\dfrac{x-1}{3x+4}<\\dfrac{x-3}{3x-2}\\) holds for all \\(x\\) in the interval`,
+opts:[`\\(\\left(-\\tfrac{4}{3},\\tfrac{2}{3}\\right)\\)`,`\\(\\left(-\\infty,-\\tfrac{5}{4}\\right)\\)`,`\\((-\\infty,\\infty)\\)`,`\\(\\left(-\\infty,-\\tfrac{5}{4}\\right)\\cup\\left(\\tfrac{3}{4},-\\infty\\right)\\)`],ans:2},
+
+// ── MATH NAT 21-25 ──
+{id:21,sub:'math',sec:'nat',
+q:`If \\(a>b>0\\) and \\(a^3+b^3+27ab=729\\), then the quadratic equation \\(ax^2+bx-9=0\\) has roots \\(\\alpha\\) and \\(\\beta\\;(\\alpha<\\beta)\\). Find the value of \\(4\\beta-a\\alpha\\).`,
+opts:null,ans:'384'},
+
+{id:22,sub:'math',sec:'nat',
+q:`The arithmetic mean and the geometric mean of two distinct 2-digit numbers \\(x\\) and \\(y\\) are two integers, one of which can be obtained by reversing the digits of the other (in base 10). Then \\(x+y\\) equals`,
+opts:null,ans:'7'},
+
+{id:23,sub:'math',sec:'nat',
+q:`Let sets \\(A=\\{2,4,6,8,\\ldots\\}\\) and \\(B=\\{3,6,9,12,\\ldots\\}\\) such that \\(n(A)=200\\) and \\(n(B)=250\\). If \\(n(A\\cup B)=k\\), then \\(k\\) is equal to`,
+opts:null,ans:'130'},
+
+{id:24,sub:'math',sec:'nat',
+q:`The number of different possible values for the sum \\(x+y+z\\), where \\(x,y,z\\) are real numbers such that \\(x^4+4y^4+16z^4+64=32xyz\\) is`,
+opts:null,ans:'7'},
+
+{id:25,sub:'math',sec:'nat',
+q:`Let \\(a,b,c,d\\) be four roots of \\(x^4-10x^3+37x^2-60x+32=0\\). If
+\\[\\frac{1}{a^2-5a+10}+\\frac{1}{b^2-5b+10}+\\frac{1}{c^2-5c+10}+\\frac{1}{d^2-5d+10}=\\frac{p}{q}\\]
+where \\(p,q\\) are coprime, find \\(p+q\\).`,
+opts:null,ans:'4'},
+
+// ── PHYSICS SCQ 26-45 ──
+{id:26,sub:'physics',sec:'scq',
+q:`<strong>Assertion:</strong> If \\(a=-2t\\) for a particle moving in a straight line starting with initial velocity \\(4\\text{ m/s}\\) from origin, then the distance travelled in 2 s equals the magnitude of its displacement.<br>
+<strong>Reason:</strong> The particle's velocity changes direction only after \\(t=2\\) s.`,
+opts:[`Both A and R true; R is correct explanation of A.`,`Both A and R true; R is <em>not</em> correct explanation of A.`,`A is true but R is false.`,`Both A and R are false.`],ans:1},
+
+{id:27,sub:'physics',sec:'scq',
+q:`Given that \\(y=A\\sin\\!\\left[\\dfrac{2\\pi}{\\lambda}(ct-x)\\right]\\), where \\(y\\) and \\(x\\) are in metres. Which statement is true?`,
+opts:[`Unit of \\(\\lambda\\) is same as that of \\(x\\) and \\(A\\).`,`Unit of \\((ct-x)\\) is same as that of \\(\\dfrac{2\\pi}{\\lambda}\\).`,`Unit of \\(c\\) is same as that of \\(\\dfrac{2\\pi}{\\lambda}\\).`,`Unit of \\(\\lambda\\) is same as that of \\(x\\) but not \\(A\\).`],ans:4},
+
+{id:28,sub:'physics',sec:'scq',
+q:`In a two-dimensional motion, a particle moves from point \\(A\\) (position vector \\(\\vec{r_1}\\)) to point \\(B\\) (position vector \\(\\vec{r_2}\\)). Given \\(r_1=3\\), \\(r_2=4\\) and the angles with the \\(x\\)-axis are \\(\\theta_1=75°\\) and \\(\\theta_2=15°\\) respectively. Find the magnitude of the displacement vector.` + DIAG[28],
+opts:[`\\(15\\)`,`\\(\\sqrt{17}\\)`,`\\(\\sqrt{13}\\)`,`\\(\\sqrt{15}\\)`],ans:1},
+
+{id:29,sub:'physics',sec:'scq',
+q:`A body starts from rest, travels distance \\(S\\) with uniform acceleration, moves uniformly for \\(2S\\), then decelerates over \\(5S\\) to rest. The ratio of average velocity to maximum velocity is`,
+opts:[`\\(\\dfrac{2}{5}\\)`,`\\(\\dfrac{3}{5}\\)`,`\\(\\dfrac{4}{7}\\)`,`\\(\\dfrac{5}{7}\\)`],ans:3},
+
+{id:30,sub:'physics',sec:'scq',
+q:`A cricketer hits a ball with velocity \\(25\\text{ m/s}\\) at \\(60°\\) above horizontal. How far above the ground does it pass over a fielder \\(50\\text{ m}\\) away? (Take \\(g=9.8\\text{ m/s}^2\\))`,
+opts:[`\\(8.2\\text{ m}\\)`,`\\(9.0\\text{ m}\\)`,`\\(11.6\\text{ m}\\)`,`\\(12.7\\text{ m}\\)`],ans:3},
+
+{id:31,sub:'physics',sec:'scq',
+q:`Two skaters \\(P\\) and \\(Q\\) move towards each other. \\(P\\) throws a ball every \\(5\\text{ s}\\) always at \\(2\\text{ ms}^{-1}\\) w.r.t. ground. Ignore gravity.<br>
+(I) \\(P\\) runs at \\(1\\text{ ms}^{-1}\\) toward \\(Q\\); \\(Q\\) stationary.<br>
+(II) \\(Q\\) runs at \\(1\\text{ ms}^{-1}\\) toward \\(P\\); \\(P\\) stationary.<br>
+Balls received by \\(Q\\):`,
+opts:[`One every 2 s (I) and one every 4 s (II)`,`One every 3.3 s (I) and one every 2.5 s (II)`,`One every 2.5 s (I) and one every 2.5 s (II)`,`One every 2.5 s (I) and one every 3.3 s (II)`],ans:1},
+
+{id:32,sub:'physics',sec:'scq',
+q:`The maximum range of a gun on a horizontal plane is \\(16\\text{ km}\\). If \\(g=10\\text{ ms}^{-2}\\), the muzzle velocity of a shell is`,
+opts:[`\\(160\\text{ ms}^{-1}\\)`,`\\(200\\sqrt{2}\\text{ ms}^{-1}\\)`,`\\(400\\text{ ms}^{-1}\\)`,`\\(800\\text{ ms}^{-1}\\)`],ans:4},
+
+{id:33,sub:'physics',sec:'scq',
+q:`The set of physical quantities which is <em>dimensionally different</em> from the others is`,
+opts:[`Terminal velocity, drift velocity, critical velocity`,`Potential energy, work done, kinetic energy`,`Disintegration constant, frequency, angular velocity`,`Dipole moment, electric flux, electric field`],ans:3},
+
+{id:34,sub:'physics',sec:'scq',
+q:`The given graph shows variation of velocity with displacement (linear decrease from \\(v_0\\) to \\(0\\)). Which graph correctly represents variation of acceleration with displacement?`
++ DIAG[34],
+opts:[
+  `<span style="display:flex;align-items:center">Option A &nbsp;` + OPT_DIAG_34[0] + `</span>`,
+  `<span style="display:flex;align-items:center">Option B &nbsp;` + OPT_DIAG_34[1] + `</span>`,
+  `<span style="display:flex;align-items:center">Option C &nbsp;` + OPT_DIAG_34[2] + `</span>`,
+  `<span style="display:flex;align-items:center">Option D &nbsp;` + OPT_DIAG_34[3] + `</span>`,
+],ans:4},
+
+{id:35,sub:'physics',sec:'scq',
+q:`If error in measuring radius of sphere is \\(2\\%\\) and error in measuring its mass is \\(3\\%\\), then error in measuring the density is`,
+opts:[`\\(5\\%\\)`,`\\(7\\%\\)`,`\\(9\\%\\)`,`\\(11\\%\\)`],ans:1},
+
+{id:36,sub:'physics',sec:'scq',
+q:`A particle is in uniform circular motion. For one complete revolution, which statement is <strong>incorrect</strong>?`,
+opts:[`Average acceleration of the particle is zero.`,`Displacement of the particle is zero.`,`Average speed of the particle is zero.`,`Average velocity of the particle is zero.`],ans:3},
+
+{id:37,sub:'physics',sec:'scq',
+q:`A boy stands on a weighing machine in a lift. When the lift goes down with acceleration \\(g/4\\), the reading is \\(30\\text{ kgf}\\). When it goes up with acceleration \\(g/4\\), the reading is`,
+opts:[`\\(18\\text{ kgf}\\)`,`\\(37.5\\text{ kgf}\\)`,`\\(50\\text{ kgf}\\)`,`\\(67.5\\text{ kgf}\\)`],ans:3},
+
+{id:38,sub:'physics',sec:'scq',
+q:`State in order whether A, B, C, D are True or False.`
++ DIAG[38]
++ `<br><strong>A:</strong> Two projectile particles — path of one as seen by other is a straight line.<br>
+<strong>B:</strong> If \\(\\frac{dv}{dx}=0\\) at \\(x=x_1\\) and \\(\\frac{d^2v}{dx^2}<0\\) at \\(x=x_1\\), then \\(v\\) has a local maximum at \\(x_1\\).<br>
+<strong>C:</strong> To cross a river in shortest time, swimmer must swim perpendicular to river flow.<br>
+<strong>D:</strong> If acceleration of a particle is positive, then its speed increases.`,
+opts:[`FFTF`,`FTTF`,`TTTF`,`FTFF`],ans:3},
+
+{id:39,sub:'physics',sec:'scq',
+q:`If speed of light \\(c\\), acceleration due to gravity \\(g\\) and pressure \\(p\\) are fundamental quantities, then the dimension of gravitational constant is`,
+opts:[`\\(c^2g^0p^{-2}\\)`,`\\(c^0g^2p^{-1}\\)`,`\\(cg^3p^{-2}\\)`,`\\(c^{-1}g^0p^{-1}\\)`],ans:3},
+
+{id:40,sub:'physics',sec:'scq',
+q:`Given the numbers: \\(161\\text{ cm},\\;0.161\\text{ cm},\\;0.0161\\text{ cm}\\). The number of significant figures for the three numbers are`,
+opts:[`3, 4 and 5 respectively`,`3, 3 and 3 respectively`,`3, 3 and 4 respectively`,`3, 4 and 4 respectively`],ans:2},
+
+{id:41,sub:'physics',sec:'scq',
+q:`A stone falls freely such that the distance covered in the last second equals the distance covered in the first 5 s. It is in air for _______ s.`,
+opts:[`\\(12\\)`,`\\(13\\)`,`\\(25\\)`,`\\(26\\)`],ans:2},
+
+{id:42,sub:'physics',sec:'scq',
+q:`Four persons \\(K,L,M,N\\) start at corners of a square of side \\(d\\), each chasing the next with constant speed \\(v\\). They meet after`,
+opts:[`\\(\\dfrac{d}{v}\\text{ s}\\)`,`\\(\\dfrac{\\sqrt{2}d}{v}\\text{ s}\\)`,`\\(\\dfrac{d}{\\sqrt{2}v}\\text{ s}\\)`,`\\(\\dfrac{d}{2v}\\text{ s}\\)`],ans:1},
+
+{id:43,sub:'physics',sec:'scq',
+q:`Match the physical quantities with their correct SI units:<br>
+<table style="border-collapse:collapse;margin:8px 0;font-size:13px">
+<tr><th style="padding:4px 16px;border:1px solid #334;text-align:left">Quantity</th><th style="padding:4px 16px;border:1px solid #334;text-align:left">SI Unit</th></tr>
+<tr><td style="padding:4px 12px;border:1px solid #334">(A) Planck's constant</td><td style="padding:4px 12px;border:1px solid #334">(I) kg m s⁻²</td></tr>
+<tr><td style="padding:4px 12px;border:1px solid #334">(B) Torque</td><td style="padding:4px 12px;border:1px solid #334">(II) kg m²</td></tr>
+<tr><td style="padding:4px 12px;border:1px solid #334">(C) Weight</td><td style="padding:4px 12px;border:1px solid #334">(III) m² kg s⁻¹</td></tr>
+<tr><td style="padding:4px 12px;border:1px solid #334">(D) Specific volume</td><td style="padding:4px 12px;border:1px solid #334">(IV) kg m² s⁻²</td></tr>
+</table>`,
+opts:[`A→II, B→IV, C→I, D→III`,`A→III, B→IV, C→I, D→II`,`A→IV, B→I, C→II, D→III`,`A→II, B→III, C→I, D→IV`],ans:1},
+
+{id:44,sub:'physics',sec:'scq',
+q:`A particle revolves in a circle of radius \\(R\\). If the force acting on it is inversely proportional to \\(R\\), then the time period is proportional to`,
+opts:[`\\(R\\)`,`\\(R^2\\)`,`\\(1/R\\)`,`\\(1/R^2\\)`],ans:2},
+
+{id:45,sub:'physics',sec:'scq',
+q:`A body is projected vertically upwards. Times corresponding to height \\(h\\) while ascending and descending are \\(t_1\\) and \\(t_2\\) respectively. The velocity of projection is`,
+opts:[`\\(g\\sqrt{t_1t_2}\\)`,`\\(\\dfrac{gt_1t_2}{t_1+t_2}\\)`,`\\(\\dfrac{g\\sqrt{t_1t_2}}{2}\\)`,`\\(\\dfrac{g(t_1+t_2)}{2}\\)`],ans:1},
+
+// ── PHYSICS NAT 46-50 ──
+{id:46,sub:'physics',sec:'nat',
+q:`The displacement \\(x\\) (in m) of a particle of mass \\(m\\) is related to time \\(t\\) (in s) by \\(t=\\sqrt{x}+3\\). The displacement of the particle when its velocity is zero will be`,
+opts:null,ans:'0'},
+
+{id:47,sub:'physics',sec:'nat',
+q:`In a circus, a performer throws an apple towards a hoop held at \\(45\\text{ m}\\) height. He throws at \\(24\\text{ m/s}\\) aimed at the hoop. At the exact moment of throwing, the other performer drops the hoop (falls straight down). The hoop is \\(25\\text{ m}\\) horizontally away (see diagram below).<br>
+<div class="diag"><svg width="240" height="160" viewBox="0 0 240 160">
+  <line x1="10" y1="150" x2="230" y2="150" stroke="#555" stroke-width="1.5"/>
+  <line x1="10" y1="150" x2="10" y2="10" stroke="#555" stroke-width="1.5"/>
+  <text x="3" y="8" font-size="10" fill="#888">↑</text>
+  <text x="3" y="16" font-size="8" fill="#888">45m</text>
+  <!-- platform -->
+  <rect x="175" y="10" width="55" height="8" fill="#8ab" rx="2"/>
+  <line x1="175" y1="18" x2="175" y2="150" stroke="#8ab" stroke-width="2"/>
+  <!-- hoop position -->
+  <circle cx="195" cy="12" r="8" fill="none" stroke="#f5a623" stroke-width="2"/>
+  <text x="205" y="16" font-size="10" fill="#f5a623">O</text>
+  <!-- thrower -->
+  <circle cx="20" cy="140" r="5" fill="#e63946"/>
+  <text x="27" y="145" font-size="10" fill="#e63946">Thrower</text>
+  <!-- arrow v0 -->
+  <line x1="25" y1="138" x2="60" y2="120" stroke="#22c55e" stroke-width="1.5" marker-end="url(#arh)"/>
+  <defs><marker id="arh" markerWidth="6" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,6 2.5,0 5" fill="#22c55e"/></marker></defs>
+  <text x="62" y="115" font-size="10" fill="#22c55e">v₀=24 m/s</text>
+  <!-- distance label -->
+  <line x1="20" y1="152" x2="175" y2="152" stroke="#aaa" stroke-width="1" stroke-dasharray="3,2"/>
+  <text x="85" y="162" font-size="10" fill="#aaa">25 m</text>
+  <!-- height label -->
+  <line x1="4" y1="18" x2="4" y2="148" stroke="#aaa" stroke-width="1" stroke-dasharray="3,2"/>
+  <text x="1" y="90" font-size="9" fill="#aaa" transform="rotate(-90,4,90)">45 m</text>
+</svg></div>
+At what height above the ground does the apple pass through the hoop? (Round to nearest integer)`,
+opts:null,ans:'22'},
+
+{id:48,sub:'physics',sec:'nat',
+q:`A balloon rises from rest with constant acceleration \\(g/8\\). A stone is released from it when it has risen to height \\(h\\). The time taken by the stone to reach the ground is \\(n\\sqrt{h/g}\\) seconds. Find \\(n\\).`,
+opts:null,ans:'2'},
+
+{id:49,sub:'physics',sec:'nat',
+q:`A ball projected from ground at \\(45°\\) just clears a wall. The point of projection is \\(4\\text{ m}\\) from the foot of wall and ball strikes ground \\(6\\text{ m}\\) on the other side. The height of wall is \\(h\\text{ m}\\). Find \\(5h\\). (Take \\(g=10\\text{ m/s}^2\\))`,
+opts:null,ans:'12'},
+
+{id:50,sub:'physics',sec:'nat',
+q:`A physical quantity \\(X = \\dfrac{2k^3l^2}{m\\sqrt{n}}\\). Percentage errors in \\(k,l,m,n\\) are \\(1\\%,2\\%,3\\%,4\\%\\) respectively. The percentage uncertainty in \\(X\\) is _______ \\(\\%\\).`,
+opts:null,ans:'12'},
+
+// ── CHEMISTRY SCQ 51-70 ──
+{id:51,sub:'chemistry',sec:'scq',
+q:`100 mL of 0.2 M NaOH is made by mixing \\(V_1\\) mL of 0.5 M NaOH and \\(V_2\\) mL of 0.1 M NaOH. Find \\(V_1\\) and \\(V_2\\).`,
+opts:[`\\(V_1=25\\text{ mL},\\;V_2=75\\text{ mL}\\)`,`\\(V_1=75\\text{ mL},\\;V_2=25\\text{ mL}\\)`,`\\(V_1=50\\text{ mL},\\;V_2=50\\text{ mL}\\)`,`\\(V_1=33.33\\text{ mL},\\;V_2=66.67\\text{ mL}\\)`],ans:1},
+
+{id:52,sub:'chemistry',sec:'scq',
+q:`<strong>Assertion:</strong> Number of radial and angular nodes for 3p-orbital are 1, 1 respectively.<br>
+<strong>Reason:</strong> Number of radial and angular nodes depends only on principal quantum number.`,
+opts:[`Both A&R true; R is correct explanation.`,`Both A&R true; R is not correct explanation.`,`A is true but R is false.`,`Both A and R are false.`],ans:3},
+
+{id:53,sub:'chemistry',sec:'scq',
+q:`Percent by mass of solute (molar mass \\(=25\\text{ g/mol}\\)) in aqueous solution is 30. The mole fraction and molality of the solute are`,
+opts:[`Mole fraction \\(=0.18\\); Molality \\(=17.9\\)`,`Mole fraction \\(=0.235\\); Molality \\(=17.14\\)`,`Mole fraction \\(=0.25\\); Molality \\(=23.1\\)`,`Mole fraction \\(=0.20\\); Molality \\(=20.0\\)`],ans:2},
+
+{id:54,sub:'chemistry',sec:'scq',
+q:`Which of the following is an <strong>incorrect</strong> relationship between concentration terms?<br>
+(\\(M\\)=molarity, \\(m\\)=molality, \\(d\\)=density in g/mL, \\(M'\\)=molar mass solute, \\(M''\\)=molar mass solvent, \\(X',X''\\)=mole fractions)`,
+opts:[
+  `\\(M = \\dfrac{\\text{wt\\%}\\times 10\\times d}{M'}\\)`,
+  `\\(\\dfrac{1}{m}+\\dfrac{M'}{1000}=\\dfrac{d}{M}\\)`,
+  `\\(m = \\dfrac{1000X'}{M''X''}\\)`,
+  `\\(M = \\dfrac{X'\\times d\\times 1000}{X'M'+X'M''}\\)`
+],ans:2},
+
+{id:55,sub:'chemistry',sec:'scq',
+q:`For a unielectronic species, select the <strong>incorrect</strong> energy order.<br>
+\\(\\Psi_1\\): Spherically symmetric orbital, three spherical nodes.<br>
+\\(\\Psi_2\\): Double dumbbell shape, zero spherical nodes.<br>
+\\(\\Psi_3\\): \\(d\\)-orbital, zero planar + zero radial nodes but non-zero angular nodes.<br>
+\\(\\Psi_4\\): \\(p\\)-orbital, planar nodes &gt; radial nodes.`,
+opts:[`\\(\\Psi_1>\\Psi_2>\\Psi_4\\)`,`\\(\\Psi_1>\\Psi_2>\\Psi_3\\)`,`\\(\\Psi_2=\\Psi_3\\)`,`\\(\\Psi_2>\\Psi_4\\)`],ans:4},
+
+{id:56,sub:'chemistry',sec:'scq',
+q:`Which graph correctly shows variation of photoelectric current \\(i\\) with intensity \\(I\\) of incident light?<br>
+<div class="diag"><svg width="280" height="100" viewBox="0 0 280 100">
+  <defs><marker id="ph" markerWidth="6" markerHeight="4" refX="6" refY="2" orient="auto"><polygon points="0 0,6 2,0 4" fill="#444"/></marker></defs>
+  <!-- Graph 1 -->
+  <text x="6" y="12" font-size="9" fill="#888">(A)</text>
+  <line x1="10" y1="90" x2="70" y2="90" stroke="#555" stroke-width="1.2" marker-end="url(#ph)"/>
+  <line x1="10" y1="90" x2="10" y2="20" stroke="#555" stroke-width="1.2" marker-end="url(#ph)"/>
+  <text x="5" y="18" font-size="8" fill="#888">i</text><text x="68" y="94" font-size="8" fill="#888">I</text>
+  <line x1="10" y1="25" x2="60" y2="88" stroke="#e63946" stroke-width="1.8"/>
+  <!-- Graph 2 (correct) -->
+  <text x="86" y="12" font-size="9" fill="#22c55e" font-weight="bold">(B) ✓</text>
+  <line x1="90" y1="90" x2="150" y2="90" stroke="#555" stroke-width="1.2" marker-end="url(#ph)"/>
+  <line x1="90" y1="90" x2="90" y2="20" stroke="#555" stroke-width="1.2" marker-end="url(#ph)"/>
+  <text x="85" y="18" font-size="8" fill="#888">i</text><text x="148" y="94" font-size="8" fill="#888">I</text>
+  <line x1="90" y1="88" x2="140" y2="25" stroke="#22c55e" stroke-width="2"/>
+  <!-- Graph 3 -->
+  <text x="166" y="12" font-size="9" fill="#888">(C)</text>
+  <line x1="170" y1="90" x2="230" y2="90" stroke="#555" stroke-width="1.2" marker-end="url(#ph)"/>
+  <line x1="170" y1="90" x2="170" y2="20" stroke="#555" stroke-width="1.2" marker-end="url(#ph)"/>
+  <text x="165" y="18" font-size="8" fill="#888">i</text><text x="228" y="94" font-size="8" fill="#888">I</text>
+  <path d="M170 85 Q180 60 200 50 Q215 44 220 30" stroke="#e63946" stroke-width="1.8" fill="none"/>
+</svg></div>`,
+opts:[`Graph A (decreasing)`,`Graph B (linear increase from origin)`,`Graph C (curve then saturation)`,`Graph: i independent of I`],ans:2},
+
+{id:57,sub:'chemistry',sec:'scq',
+q:`<strong>Assertion:</strong> The position of an electron can be determined exactly with an electron microscope.<br>
+<strong>Reason:</strong> The product of uncertainty in momentum and position cannot be less than a finite limit (Heisenberg principle).`,
+opts:[`Both A&R true; R is correct explanation.`,`Both A&R true; R is not correct explanation.`,`A true but R false.`,`A is false and R is true.`],ans:4},
+
+{id:58,sub:'chemistry',sec:'scq',
+q:`An impure NaOH sample is dissolved in water to prepare 500 mL solution (density \\(1.10\\text{ g/mL}\\)). During titration, 25 mL of this solution requires 50 mL of 0.5 M H₂SO₄. The NaOH sample was 80% pure by mass. What is the molality of the NaOH solution?`,
+opts:[`\\(1.96\\text{ m}\\)`,`\\(2.00\\text{ m}\\)`,`\\(2.25\\text{ m}\\)`,`\\(2.50\\text{ m}\\)`],ans:4},
+
+{id:59,sub:'chemistry',sec:'scq',
+q:`In an organic compound (molar mass >100 g/mol) containing only C, H & N: mass% of C is six times mass% of H, and (mass% of C + mass% of H) = 1.5 × (mass% of N). What is \\(\\dfrac{\\text{least molecular mass}}{28}\\) of compound?`,
+opts:[`\\(8\\)`,`\\(6\\)`,`\\(5\\)`,`\\(7\\)`],ans:3},
+
+{id:60,sub:'chemistry',sec:'scq',
+q:`The correct statements among the following are:<br>
+(i) \\(E_{2s}(\\text{H})>E_{2s}(\\text{Li})>E_{2s}(\\text{Na})>E_{2s}(\\text{K})\\)<br>
+(ii) Max electrons in shell with PQN \\(n\\) is \\(2n^2\\).<br>
+(iii) Extra stability of half-filled subshell is due to smaller exchange energy.<br>
+(iv) Only two electrons (irrespective of spin) may exist in same orbital.`,
+opts:[`(i) and (ii)`,`(ii) and (iii)`,`(iii) and (iv)`,`(i) and (iv)`],ans:1},
+
+{id:61,sub:'chemistry',sec:'scq',
+q:`The ratio of angular momentum of electron in \\((n+1)^{\\text{th}}\\) orbit to \\(n^{\\text{th}}\\) orbit is \\(a\\;(a>1)\\), and \\(L_{n+1}-L_n=b\\). Then \\(a/b\\) is equal to`,
+opts:[`\\(\\dfrac{n}{n+1}\\)`,`\\(\\dfrac{n+1}{n}\\)`,`\\(\\dfrac{n+1}{n}\\cdot\\dfrac{h}{2\\pi}\\)`,`\\(\\left(\\dfrac{n+1}{n}\\right)\\cdot\\dfrac{2\\pi}{h}\\)`],ans:4},
+
+{id:62,sub:'chemistry',sec:'scq',
+q:`Correct representation of graph between molarity and volume (m³) with a given amount of solute. Also, correct graph between molarity and \\(1/V\\):<br>
+<div class="diag"><svg width="300" height="110" viewBox="0 0 300 110">
+  <defs><marker id="gah" markerWidth="6" markerHeight="4" refX="6" refY="2" orient="auto"><polygon points="0 0,6 2,0 4" fill="#444"/></marker></defs>
+  <!-- Graph ii: M vs V hyperbola -->
+  <text x="6" y="12" font-size="9" fill="#888">(ii) M vs V</text>
+  <line x1="10" y1="100" x2="120" y2="100" stroke="#555" stroke-width="1.2" marker-end="url(#gah)"/>
+  <line x1="10" y1="100" x2="10" y2="15" stroke="#555" stroke-width="1.2" marker-end="url(#gah)"/>
+  <text x="5" y="13" font-size="8" fill="#888">M</text><text x="118" y="104" font-size="8" fill="#888">V</text>
+  <path d="M12 20 Q18 35 25 50 Q40 70 70 82 Q90 88 115 93" stroke="#f5a623" stroke-width="2" fill="none"/>
+  <!-- Graph iii: M vs 1/V linear -->
+  <text x="160" y="12" font-size="9" fill="#888">(iii) M vs 1/V</text>
+  <line x1="160" y1="100" x2="290" y2="100" stroke="#555" stroke-width="1.2" marker-end="url(#gah)"/>
+  <line x1="160" y1="100" x2="160" y2="15" stroke="#555" stroke-width="1.2" marker-end="url(#gah)"/>
+  <text x="155" y="13" font-size="8" fill="#888">M</text><text x="286" y="104" font-size="8" fill="#888">1/V</text>
+  <line x1="162" y1="98" x2="282" y2="22" stroke="#f5a623" stroke-width="2"/>
+</svg></div>`,
+opts:[`(i) and (ii)`,`(i), (ii) and (iii)`,`Only (ii)`,`(ii) and (iii)`],ans:4},
+
+{id:63,sub:'chemistry',sec:'scq',
+q:`Among the following, the correct statement about cathode ray discharge tube is`,
+opts:[`The electrical discharge can only be observed at high pressure and low voltage.`,`In the absence of external field, cathode rays travel in straight lines.`,`Characteristics of cathode rays depend on the material of electrodes.`,`Characteristics of cathode rays depend on the gas in the tube.`],ans:1},
+
+{id:64,sub:'chemistry',sec:'scq',
+q:`The ionization energy of H atom is 13.6 eV. A ground-state H atom is excited by monochromatic light of energy 12.1 eV. How many of these statements are correct?<br>
+(I) H atom is excited to the second excited state.<br>
+(II) Energy of atom in excited state is −1.5 eV.<br>
+(III) Maximum 4 distinct spectral lines can be emitted during de-excitation.<br>
+(IV) All emitted spectral lines belong strictly to the Lyman series.`,
+opts:[`Only one statement is correct`,`Only two statements are correct`,`Only three statements are correct`,`All four statements are correct`],ans:4},
+
+{id:65,sub:'chemistry',sec:'scq',
+q:`When 22.4 L of C₄H₈ at STP is burnt completely, 89.6 L of CO₂ at STP and 72 g of water are produced. Volume of O₂ at STP consumed is closest to`,
+opts:[`\\(89.6\\text{ L}\\)`,`\\(112\\text{ L}\\)`,`\\(134.4\\text{ L}\\)`,`\\(22.4\\text{ L}\\)`],ans:2},
+
+{id:66,sub:'chemistry',sec:'scq',
+q:`Ratio of de-Broglie wavelength \\(\\lambda_\\alpha:\\lambda_p\\) when an \\(\\alpha\\)-particle and a proton are accelerated from rest by potential differences of \\(V\\) volts and \\(8V\\) volts respectively?`,
+opts:[`\\(1:1\\)`,`\\(1:2\\)`,`\\(2:1\\)`,`\\(1:\\sqrt{2}\\)`],ans:3},
+
+{id:67,sub:'chemistry',sec:'scq',
+q:`For a hypothetical H-like atom, \\(U(r)=-ke^2/r^4\\). If Bohr's quantization applies, velocity of particle is`,
+opts:[`\\(\\dfrac{nh}{16ke\\pi^2m^{3/2}}\\)`,`\\(\\dfrac{n^2h^2}{8k^2e^2\\pi^4m^3}\\)`,`\\(\\dfrac{n^3h^3}{2k^2e^3\\pi^3m^4}\\)`,`\\(\\dfrac{n^2h^2}{8k^{1/2}e\\pi^2m^{3/2}}\\)`],ans:1},
+
+{id:68,sub:'chemistry',sec:'scq',
+q:`Ratio of area of orbit of first excited state to area of orbit of ground state for hydrogen atom is`,
+opts:[`\\(16:1\\)`,`\\(4:1\\)`,`\\(8:1\\)`,`\\(1:8\\)`],ans:4},
+
+{id:69,sub:'chemistry',sec:'scq',
+q:`Which compounds have the same number of atoms?<br>
+(i) 2 mole H₂SO₄ &nbsp; (ii) 1 mole Fe₂(SO₄)₃ &nbsp; (iii) 2 mole Na₂C₂O₄ &nbsp; (iv) 44.8 L of C₂H₆ at STP`,
+opts:[`(i) and (ii)`,`(ii), (iii) and (iv)`,`(ii) and (iii)`,`(iii) and (iv)`],ans:3},
+
+{id:70,sub:'chemistry',sec:'scq',
+q:`A body is projected vertically upwards. Times corresponding to height \\(h\\) while ascending and descending are \\(t_1\\) and \\(t_2\\). The velocity of projection is`,
+opts:[`\\(g\\sqrt{t_1t_2}\\)`,`\\(\\dfrac{gt_1t_2}{t_1+t_2}\\)`,`\\(\\dfrac{g\\sqrt{t_1t_2}}{2}\\)`,`\\(\\dfrac{g(t_1+t_2)}{2}\\)`],ans:2},
+
+// ── CHEMISTRY NAT 71-75 ──
+{id:71,sub:'chemistry',sec:'nat',
+q:`In reaction \\(A+2B+3C\\rightleftharpoons AB_2C_3\\):<br>
+6.0 g of \\(A\\), \\(6.0\\times10^{23}\\) atoms of \\(B\\) and 0.036 mol of \\(C\\) reacted to form 4.8 g of \\(AB_2C_3\\). Atomic masses: \\(A=60\\), \\(C=80\\) amu. Find atomic mass of \\(B\\) in amu.`,
+opts:null,ans:'50'},
+
+{id:72,sub:'chemistry',sec:'nat',
+q:`For principal quantum number \\(n=4\\), the total number of orbitals having \\(l=3\\) is`,
+opts:null,ans:'7'},
+
+{id:73,sub:'chemistry',sec:'nat',
+q:`A hydrogen-like atom (atomic number \\(z\\)) in excited state \\(n\\) can:<br>
+→ Transition to first excited state: two photons of 10.2 eV and 17.0 eV.<br>
+→ Transition to second excited state: two photons of 4.25 eV and 5.95 eV.<br>
+Determine \\((n+z)\\).`,
+opts:null,ans:'9'},
+
+{id:74,sub:'chemistry',sec:'nat',
+q:`Mixture of two bivalent metals \\(A\\) and \\(B\\), mass \\(=2\\text{ g}\\). When dissolved in HCl at STP, 2.24 L of H₂ is evolved. Find mass of \\(A\\) in the mixture. (Atomic masses: \\(A=15\\text{ u}\\), \\(B=30\\text{ u}\\))`,
+opts:null,ans:'1'},
+
+{id:75,sub:'chemistry',sec:'nat',
+q:`Uncertainties in velocities of particles \\(A\\) and \\(B\\) are \\(0.05\\) and \\(0.02\\text{ ms}^{-1}\\) respectively. Mass of \\(B\\) is five times mass of \\(A\\). Find \\(\\dfrac{\\Delta x_A}{\\Delta x_B}\\).`,
+opts:null,ans:'2'},
+];
+
+// ── ANSWER KEY ────────────────────────────────────────────────────────────────
+const AK = {
+  1:2,2:3,3:2,4:3,5:1,6:3,7:4,8:1,9:2,10:1,11:4,12:3,13:2,14:1,15:1,16:4,17:2,18:1,19:1,20:2,
+  21:'384',22:'7',23:'130',24:'7',25:'4',
+  26:1,27:4,28:1,29:3,30:3,31:1,32:4,33:3,34:4,35:1,36:3,37:3,38:3,39:3,40:2,41:2,42:1,43:1,44:2,45:1,
+  46:'0',47:'22',48:'2',49:'12',50:'12',
+  51:1,52:3,53:2,54:2,55:4,56:2,57:4,58:4,59:3,60:1,61:4,62:4,63:1,64:4,65:2,66:3,67:1,68:4,69:3,70:2,
+  71:'50',72:'7',73:'9',74:'1',75:'2'
+};
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+const S = {cur:1, subj:'math', submitted:false, resp:{}, marks:{}, timeLeft:10800};
+
+// ── TIMER ─────────────────────────────────────────────────────────────────────
+let tmr;
+function startTimer(){
+  tmr = setInterval(()=>{
+    S.timeLeft--;
+    const h=Math.floor(S.timeLeft/3600), m=Math.floor((S.timeLeft%3600)/60), s=S.timeLeft%60;
+    document.getElementById('timer').textContent=`${p(h)}:${p(m)}:${p(s)}`;
+    if(S.timeLeft<600) document.getElementById('timer').classList.add('urgent');
+    if(S.timeLeft<=0){clearInterval(tmr);doSubmit();}
+  },1000);
+}
+function p(n){return String(n).padStart(2,'0');}
+
+// ── NAVIGATION ────────────────────────────────────────────────────────────────
+function subjQs(subj){return QS.filter(q=>q.sub===subj);}
+function switchSubject(subj){
+  S.subj=subj;
+  document.querySelectorAll('.stab').forEach(t=>t.classList.remove('active'));
+  document.querySelector(`.stab[onclick*="${subj}"]`).classList.add('active');
+  const qs=subjQs(subj);
+  if(qs.length) goQ(qs[0].id);
+  renderPalette();
+}
+function goQ(id){
+  S.cur=id;
+  renderPalette();
+  renderQ();
+}
+function nav(d){
+  const subj=QS.find(q=>q.id===S.cur)?.sub||S.subj;
+  const qs=subjQs(subj);
+  const i=qs.findIndex(q=>q.id===S.cur);
+  if(i+d>=0&&i+d<qs.length) goQ(qs[i+d].id);
+}
+
+// ── PALETTE ──────────────────────────────────────────────────────────────────
+function renderPalette(){
+  const grid=document.getElementById('palette');
+  const qs=subjQs(S.subj);
+  grid.innerHTML='';
+  qs.forEach(q=>{
+    const b=document.createElement('button');
+    b.className='pq';
+    b.textContent=q.id;
+    if(q.id===S.cur) b.classList.add('cur');
+    const r=S.resp[q.id], mk=S.marks[q.id];
+    if(mk&&r!==undefined) b.classList.add('mrkans');
+    else if(mk) b.classList.add('mrk');
+    else if(r!==undefined) b.classList.add('ans');
+    b.onclick=()=>goQ(q.id);
+    grid.appendChild(b);
+  });
+}
+
+// ── RENDER QUESTION ──────────────────────────────────────────────────────────
+function renderQ(){
+  const q=QS.find(x=>x.id===S.cur);
+  if(!q) return;
+  const sn={math:'Mathematics',physics:'Physics',chemistry:'Chemistry'};
+  const ss={scq:'Single Correct',nat:'Numerical Answer'};
+  const mk=q.sec==='scq'?'+4 / −1':'+4 / -1';
+  document.getElementById('sec-hdr').innerHTML=
+    `<strong>${sn[q.sub]}</strong> &nbsp;|&nbsp; ${ss[q.sec]} &nbsp;|&nbsp; Marking: <strong>${mk}</strong> &nbsp;|&nbsp; Q <strong>${q.id}</strong> / 75`;
+
+  const resp=S.resp[q.id];
+  const marked=S.marks[q.id];
+  const rev=S.submitted;
+  const correct=AK[q.id];
+  let optsHTML='';
+
+  if(q.sec==='scq'&&q.opts){
+    optsHTML='<div class="opts">';
+    q.opts.forEach((opt,i)=>{
+      const num=i+1;
+      let cls='opt';
+      if(rev){
+        if(num===correct) cls+=' corr';
+        else if(resp===num) cls+=' incorr';
+      } else if(resp===num) cls+=' sel';
+      optsHTML+=`<button class="${cls}" onclick="${rev?'':'selectOpt('+num+')'}">
+        <span class="opt-l">${'ABCD'[i]}</span>
+        <span class="opt-txt">${opt}</span>
+      </button>`;
+    });
+    optsHTML+='</div>';
+  } else if(q.sec==='nat'){
+    const ic=rev?(String(resp)===String(correct)?'corr':'incorr'):'';
+    optsHTML=`<div class="nat-wrap">
+      <div class="nat-lbl">TYPE YOUR ANSWER</div>
+      <input class="nat-inp ${ic}" type="number" step="any"
+        placeholder="Enter answer..."
+        value="${resp!==undefined?resp:''}"
+        ${rev?'disabled':''}
+        oninput="updateNAT(this.value)">
+      ${rev?`<div class="nat-ans">✓ Correct Answer: ${correct}</div>`:''}
+    </div>`;
+  }
+
+  const card=document.getElementById('qcard');
+  card.innerHTML=`
+    <div class="q-hdr">
+      <span class="q-num">Q${q.id}</span>
+      <span class="q-badge">${ss[q.sec]}</span>
+      <span class="q-mark-badge">${mk}</span>
+    </div>
+    <div class="q-text">${q.q}</div>
+    ${optsHTML}
+    <div class="q-actions">
+      ${!rev?`
+        <button class="btn btn-mrk ${marked?'on':''}" onclick="toggleMark()">⚑ ${marked?'Unmark':'Mark'}</button>
+        <button class="btn btn-clr" onclick="clearResp()">✕ Clear</button>
+      `:`
+        <button class="btn btn-sec" onclick="toggleSol(${q.id})">💡 Answer</button>
+      `}
+    </div>
+    <div class="sol" id="sol-${q.id}">
+      <strong style="color:var(--acc)">Correct Answer:</strong>
+      ${q.sec==='nat'?correct:'Option '+'ABCD'[correct-1]+' — '+q.opts[correct-1]}
+    </div>`;
+
+  // Typeset math
+  typeset(card);
+}
+
+function typeset(el){
+  if(window.MathJax&&MathJax.typesetPromise){
+    MathJax.typesetPromise([el]).catch(e=>console.warn(e));
+  } else {
+    setTimeout(()=>{
+      if(window.MathJax&&MathJax.typesetPromise) MathJax.typesetPromise([el]);
+    },1200);
+  }
+}
+
+function selectOpt(n){
+  if(S.submitted) return;
+  S.resp[S.cur]=n;
+  renderPalette();renderQ();updateScore();
+}
+function updateNAT(v){
+  if(v!=='') S.resp[S.cur]=v; else delete S.resp[S.cur];
+  renderPalette();updateScore();
+}
+function toggleMark(){
+  S.marks[S.cur]=!S.marks[S.cur];
+  renderPalette();renderQ();
+}
+function clearResp(){
+  delete S.resp[S.cur];
+  renderPalette();renderQ();updateScore();
+}
+function toggleSol(id){
+  document.getElementById('sol-'+id)?.classList.toggle('on');
+}
+
+// ── SCORE ─────────────────────────────────────────────────────────────────────
+function updateScore(){
+  let sc=0,co=0,wr=0;
+  QS.forEach(q=>{
+    const r=S.resp[q.id]; if(r===undefined) return;
+    const a=AK[q.id];
+    if(q.sec==='scq'){if(r===a){sc+=4;co++;}else{sc-=1;wr++;}}
+    else{if(String(r)===String(a)){sc+=4;co++;}}
+  });
+  document.getElementById('sc-s').textContent=sc;
+  document.getElementById('sc-c').textContent=co;
+  document.getElementById('sc-w').textContent=wr;
+  document.getElementById('sc-u').textContent=3+Object.keys(S.resp).length;
+}
+
+// ── SUBMIT ────────────────────────────────────────────────────────────────────
+function confirmSubmit(){
+  const att=Object.keys(S.resp).length;
+  if(!confirm(`Submit Test?\n\nAttempted: ${att}\nUnattempted: ${75-att}\n\nThis cannot be undone.`)) return;
+  doSubmit();
+}
+function doSubmit(){
+  clearInterval(tmr);
+  S.submitted=true;
+  let tot=0,co=0,wr=0;
+  const sd={math:{s:0,c:0,w:0,tot:25},physics:{s:0,c:0,w:0,tot:25},chemistry:{s:0,c:0,w:0,tot:25}};
+  QS.forEach(q=>{
+    const r=S.resp[q.id]; if(r===undefined) return;
+    const a=AK[q.id];
+    let s=0,c=0,w=0;
+    if(q.sec==='scq'){if(r===a){s=4;c=1;}else{s=-1;w=1;}}
+    else{if(String(r)===String(a)){s=4;c=1;}}
+    tot+=s;co+=c;wr+=w;
+    sd[q.sub].s+=s;sd[q.sub].c+=c;sd[q.sub].w+=w;
+  });
+  document.getElementById('r-tot').textContent=tot;
+  document.getElementById('r-pct').textContent=Math.round(tot/300*100)+'%';
+  document.getElementById('r-rnk').textContent=Math.min(99,Math.max(1,Math.round(tot/300*90+10)))+'%ile';
+  const sn={math:'Mathematics',physics:'Physics',chemistry:'Chemistry'};
+  document.getElementById('r-subjs').innerHTML=
+    ['math','physics','chemistry'].map(s=>`
+      <div class="r-subj">
+        <h3>${sn[s]}</h3>
+        <div class="r-row"><span>Score</span><span class="rv" style="color:var(--acc)">${sd[s].s}</span></div>
+        <div class="r-row"><span>Correct</span><span class="rv" style="color:var(--ok)">${sd[s].c}</span></div>
+        <div class="r-row"><span>Wrong</span><span class="rv" style="color:var(--err)">${sd[s].w}</span></div>
+        <div class="r-row"><span>Unattempted</span><span class="rv" style="color:var(--muted)">${sd[s].tot-sd[s].c-sd[s].w}</span></div>
+      </div>`).join('');
+  document.getElementById('result').style.display='block';
+  document.body.style.overflow='hidden';
+}
+function reviewMode(){
+  document.getElementById('result').style.display='none';
+  document.body.style.overflow='';
+  renderQ();
+}
+
+// ── SECURITY ─────────────────────────────────────────────────────────────────
+document.addEventListener('contextmenu',e=>e.preventDefault());
+document.addEventListener('keydown',e=>{
+  if(e.key==='F12'||(e.ctrlKey&&['u','s','i','j','a'].includes(e.key.toLowerCase()))) e.preventDefault();
+});
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+renderPalette();
+renderQ();
+updateScore();
+startTimer();
+</script>
+</body>
+</html>

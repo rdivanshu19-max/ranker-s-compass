@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>Mock Test 3 | Full Syllabus</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+window.MathJax = {
+  tex: { inlineMath:[['\\(',  '\\)']], displayMath:[['\\[','\\]']], processEscapes:true },
+  options: { skipHtmlTags:['script','noscript','style','textarea'] },
+  startup: { typeset: false }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" id="MathJax-script" async></script>
+<style>
+:root{
+  --bg:#fafafa;--surf:#ffffff;--border:#dcdcdc;
+  --acc:#0f75bc;--acc2:#4cae4c;--txt:#333333;--muted:#555555;
+  --ok:#5cb85c;--err:#d9534f;--blue:#286090;--purple:#8e44ad;
+  --fh:'Rajdhani',sans-serif;--fb:'Noto Sans',sans-serif;--fm:'IBM Plex Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font-family:var(--fb);font-size:14px;min-height:100vh;overflow-x:hidden}
+/* TOPBAR */
+#topbar{background:#f8f9fa;border-bottom:3px solid var(--acc);padding:0 20px;height:54px;display:flex;align-items:center;justify-content:space-between;position:fixed;top:0;left:0;right:0;z-index:100}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{width:34px;height:34px;background:var(--acc);border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-size:18px;font-weight:700;color:#fff}
+.logo-name{font-family:var(--fh);font-size:20px;font-weight:700;color:var(--acc);letter-spacing:1px}
+.logo-sub{font-size:10px;color:var(--muted);font-family:var(--fm)}
+#timer{background:#fff;border:1px solid #ccc;border-radius:4px;padding:4px 12px;font-family:var(--fm);font-size:18px;font-weight:600;color:#333;letter-spacing:1px}
+#timer.urgent{color:var(--err);border-color:var(--err);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.test-name{font-family:var(--fh);font-size:15px;font-weight:600;color:#444}
+/* LAYOUT */
+#wrap{display:flex;margin-top:54px;min-height:calc(100vh - 54px)}
+/* SIDEBAR */
+#sidebar{width:276px;min-width:276px;background:#f1f3f5;border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:54px;bottom:0;left:0;overflow-y:auto;z-index:50}
+.sb-sec{padding:12px 14px;border-bottom:1px solid var(--border)}
+.sb-title{font-family:var(--fm);font-size:11px;font-weight:700;color:#444;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+.subj-tabs{display:flex;gap:4px}
+.stab{padding:5px 10px;border-radius:4px;font-size:12px;font-family:var(--fh);font-weight:600;cursor:pointer;border:1px solid var(--border);background:#fff;color:#333;transition:all .2s;letter-spacing:.5px}
+.stab.active{background:var(--acc);color:#fff;border-color:var(--acc)}
+.stab:hover:not(.active){border-color:var(--acc);color:var(--acc)}
+#palette{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;padding:10px 14px 12px}
+.pq{aspect-ratio:1;border:1px solid #ccc;border-radius:4px 4px 50% 50%;font-size:12px;font-family:var(--fm);font-weight:600;cursor:pointer;background:#ffffff;color:#333;transition:all .15s}
+.pq:hover{border-color:#1076bc;box-shadow:0 0 4px rgba(16,118,188,0.3)}
+.pq.cur{border:2px solid #000000!important;font-weight:700}
+.pq.notvis{background:#ffffff;color:#333;border-radius:4px;border:1px solid #ccc}
+.pq.notans{background:#e74c3c;color:#fff;border-radius:4px 4px 0 0;border:none}
+.pq.ans{background:#2ecc71;color:#fff;border-radius:0 0 4px 4px;border:none}
+.pq.mrk{background:#9b59b6;color:#fff;border-radius:50%;border:none}
+.pq.mrkans{background:#9b59b6;color:#fff;border-radius:50%;border:none;box-shadow:inset 0 -6px 0 #2ecc71}
+.legend{padding:8px 14px 12px;display:flex;flex-direction:column;gap:6px;background:#fff;border-top:1px solid var(--border)}
+.leg-item{display:flex;align-items:center;gap:8px;font-size:11px;color:#333;font-weight:500}
+.leg-dot{width:16px;height:16px;flex-shrink:0;text-align:center;line-height:16px;font-size:10px;font-weight:bold}
+
+.sc{background:#fff;border-radius:4px;padding:8px;text-align:center;border:1px solid var(--border)}
+.sc .v{font-family:var(--fh);font-size:20px;font-weight:700}
+.sc .l{font-size:10px;color:var(--muted);font-family:var(--fm);margin-top:2px}
+/* CONTENT */
+#content{flex:1;margin-left:276px;padding:18px 22px 90px;max-width:900px}
+.tg-banner{background:#eef7fe;border:1px solid #bce0fd;border-radius:4px;padding:10px 16px;display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.tg-banner a{background:var(--acc);color:#fff;font-family:var(--fh);font-weight:700;font-size:13px;padding:5px 14px;border-radius:4px;text-decoration:none;margin-left:auto;white-space:nowrap}
+.sec-hdr{background:#f8f9fa;border:1px solid var(--border);border-left:4px solid var(--acc);border-radius:4px;padding:10px 16px;margin-bottom:16px;font-family:var(--fh);font-size:14px;line-height:1.6;color:#333}
+.sec-hdr strong{color:var(--acc)}
+/* CARD */
+.qcard{background:var(--surf);border:1px solid var(--border);border-radius:4px;padding:22px;box-shadow:0 1px 3px rgba(0,0,0,0.05);animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.q-hdr{display:flex;align-items:center;gap:8px;margin-bottom:14px;border-bottom:1px solid #eee;padding-bottom:10px}
+.q-num{background:var(--acc);color:#fff;font-family:var(--fh);font-size:14px;font-weight:700;padding:3px 10px;border-radius:3px}
+.q-badge{background:#f1f3f5;color:#444;font-family:var(--fm);font-size:11px;padding:3px 8px;border-radius:3px;border:1px solid var(--border)}
+.q-mark-badge{margin-left:auto;background:#fff5f5;color:var(--err);font-size:11px;font-family:var(--fm);padding:3px 8px;border-radius:3px;border:1px solid #fecaca}
+.q-text{font-size:15px;line-height:1.8;color:#222;margin-bottom:18px}
+/* diagram */
+.diag{background:#fff;border:1px solid #ddd;border-radius:4px;padding:10px 14px;margin:12px 0;display:inline-block;max-width:100%}
+.diag svg{display:block;max-width:100%;height:auto}
+/* options */
+.opts{display:flex;flex-direction:column;gap:9px;margin-bottom:18px}
+.opt{display:flex;align-items:flex-start;gap:10px;padding:11px 14px;background:#f8f9fa;border:1px solid #dcdcdc;border-radius:4px;cursor:pointer;text-align:left;color:#333;font-size:14px;font-family:var(--fb);transition:all .18s;line-height:1.7;width:100%}
+.opt:hover{border-color:#b0b0b0;background:#f1f3f5}
+.opt.sel{border-color:#337ab7;background:#edf4fa}
+.opt.corr{border-color:var(--ok);background:#f2f9f2}
+.opt.incorr{border-color:var(--err);background:#fff5f5}
+.opt-l{min-width:26px;height:26px;background:#fff;border:1px solid #ccc;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-weight:700;font-size:13px;color:#555;flex-shrink:0;transition:all .18s}
+.opt.sel .opt-l{background:#337ab7;color:#fff;border-color:#337ab7}
+.opt.corr .opt-l{background:var(--ok);color:#fff;border-color:var(--ok)}
+.opt.incorr .opt-l{background:var(--err);color:#fff;border-color:var(--err)}
+/* NAT */
+.nat-wrap{margin-bottom:18px}
+.nat-lbl{font-size:11px;color:var(--muted);margin-bottom:7px;font-family:var(--fm);letter-spacing:1px}
+.nat-inp{background:#fff;border:1px solid var(--border);border-radius:4px;padding:8px 12px;font-family:var(--fm);font-size:18px;color:#333;width:200px;outline:none;transition:border-color .2s}
+.nat-inp:focus{border-color:var(--acc)}
+.nat-inp.corr{border-color:var(--ok);color:var(--ok)}
+.nat-inp.incorr{border-color:var(--err);color:var(--err)}
+.nat-ans{margin-top:8px;font-size:13px;color:var(--ok);font-family:var(--fm)}
+/* actions */
+.q-actions{display:flex;gap:8px;flex-wrap:wrap;padding-top:14px;border-top:1px solid var(--border)}
+.btn{padding:8px 18px;border-radius:4px;font-family:var(--fh);font-size:14px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:all .18s;letter-spacing:.5px}
+.btn-acc{background:#fff;color:#333;border:1px solid #ccc}
+.btn-acc:hover{background:#f1f3f5}
+.btn-sec{background:#fff;color:#333;border:1px solid #ccc}
+.btn-sec:hover{background:#f1f3f5}
+.btn-mrk{background:#fff;color:#333;border:1px solid #ccc}
+.btn-mrk.on{background:#9b59b6;color:#fff;border-color:#9b59b6}
+.btn-clr{background:#fff;color:#333;border:1px solid #ccc}
+.btn-clr:hover{background:#fff5f5;color:var(--err);border-color:var(--err)}
+.btn-sub{background:#4cae4c;color:#fff;border-color:#4cae4c;margin-left:auto}
+.btn-sub:hover{background:#449d44}
+/* solution */
+.sol{display:none;margin-top:14px;padding:13px 15px;background:#f8f9fa;border-radius:4px;border-left:4px solid var(--acc);font-size:13px;line-height:1.7;color:#444}
+.sol.on{display:block}
+/* bottom nav */
+#botnav{position:fixed;bottom:0;left:276px;right:0;background:#edf4fa;border-top:1px solid #bce0fd;padding:12px 22px;display:flex;align-items:center;gap:8px;z-index:90}
+/* result */
+#result{display:none;position:fixed;inset:0;background:rgba(255,255,255,.98);z-index:200;overflow-y:auto;padding:36px 18px}
+.rbox{max-width:780px;margin:0 auto;background:var(--surf);border-radius:8px;border:1px solid var(--border);box-shadow:0 4px 15px rgba(0,0,0,0.1);overflow:hidden}
+.r-hdr{background:#f8f9fa;border-bottom:3px solid var(--acc);padding:26px;text-align:center}
+.r-hdr h1{font-family:var(--fh);font-size:30px;font-weight:700;color:var(--acc);letter-spacing:1px;margin-bottom:5px}
+.r-hdr p{color:var(--muted);font-family:var(--fm);font-size:12px}
+.r-scores{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border-bottom:1px solid var(--border)}
+.r-sc{background:var(--surf);padding:18px;text-align:center}
+.r-sc .big{font-family:var(--fh);font-size:38px;font-weight:700;line-height:1}
+.r-sc .lbl{font-size:10px;color:var(--muted);font-family:var(--fm);margin-top:5px;text-transform:uppercase;letter-spacing:1px}
+.r-subjs{padding:20px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.r-subj{background:#f8f9fa;border-radius:6px;padding:14px;border:1px solid var(--border)}
+.r-subj h3{font-family:var(--fh);font-size:14px;font-weight:700;color:var(--acc);margin-bottom:10px}
+.r-row{display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px}
+.r-row .rv{font-family:var(--fm);font-weight:500}
+.r-acts{padding:18px 20px;display:flex;gap:10px;justify-content:center;border-top:1px solid var(--border)}
+/* watermark */
+.wm{position:fixed;bottom:65px;right:18px;font-family:var(--fh);font-size:12px;color:rgba(0,0,0,.04);letter-spacing:2px;transform:rotate(-15deg);pointer-events:none;z-index:5;font-weight:700}
+/* scrollbar */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:#ccc;border-radius:3px}
+mjx-container{overflow-x:auto;max-width:100%}
+</style>
+<style>
+.logo-name,.logo-sub,a[href*="t.me"],a[href*="karnhim"]{visibility:hidden!important;pointer-events:none!important}
+.logo-icon{pointer-events:none!important}
+</style>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+ var w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);var n;
+ while(n=w.nextNode()){if(/karnhim|t\.me\/|telegram channel/i.test(n.nodeValue)){n.nodeValue=n.nodeValue.replace(/t\.me\/karnhim\s*➜?|karnhim|Telegram Channel/gi,'');}}
+ document.querySelectorAll('a[href*="t.me"]').forEach(function(a){a.removeAttribute('href');a.style.pointerEvents='none';});
+});
+</script>
+</head>
+<body>
+<div id="topbar">
+  <div class="logo">
+    <div class="logo-icon">CBT</div>
+    <div>
+      <div class="logo-name">Test Portal</div>
+      <div class="logo-sub">QPT 3</div>
+    </div>
+  </div>
+  <div class="test-name">Mock Test 3 &nbsp;|&nbsp; Full Syllabus</div>
+  <div id="timer">3:00:00</div>
+</div>
+
+<div id="wrap">
+<div id="sidebar">
+  <div class="sb-sec">
+    <div class="sb-title">Subject</div>
+    <div class="subj-tabs">
+      <button class="stab active" onclick="switchSubject('math')">Math</button>
+      <button class="stab" onclick="switchSubject('physics')">Physics</button>
+      <button class="stab" onclick="switchSubject('chemistry')">Chem</button>
+    </div>
+  </div>
+  <div class="sb-sec" style="padding-bottom:0"><div class="sb-title">Question Palette</div></div>
+  <div id="palette"></div>
+  <div class="legend">
+    <div class="sb-title">Instructions</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#ffffff;border:1px solid #ccc;border-radius:4px"></div>Not Visited</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#e74c3c;border-radius:4px 4px 0 0"></div>Not Answered</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#2ecc71;border-radius:0 0 4px 4px"></div>Answered</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#9b59b6;border-radius:50%"></div>Marked for Review</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#9b59b6;border-radius:50%;box-shadow:inset 0 -4px 0 #2ecc71"></div>Answered & Marked for Review</div>
+  </div>
+</div>
+
+<div id="content">
+  <div class="tg-banner">
+    <div>
+      <div style="font-family:var(--fh);font-size:13px;font-weight:700;color:var(--acc)">📚 Official Telegram Updates</div>
+      <div style="font-size:11px;color:var(--muted)">Free Premium PDFs, Mock Tests & Daily Notes</div>
+    </div>
+    <a href="https://t.me/karnhim" target="_blank">t.me/karnhim ➜</a>
+  </div>
+  <div class="sec-hdr" id="sec-hdr"></div>
+  <div class="qcard" id="qcard"></div>
+</div>
+</div>
+
+<div id="botnav">
+  <button class="btn btn-mrk" id="mrkBtn" onclick="toggleMark()">Mark for Review & Next</button>
+  <button class="btn btn-clr" onclick="clearResp()">Clear Response</button>
+  <button class="btn btn-sec" style="background:#337ab7;color:#fff;border-color:#2e6da4" onclick="nav(1)">Save & Next ▶</button>
+  <button class="btn btn-sub" onclick="confirmSubmit()">Submit Test ⏎</button>
+</div>
+
+<div class="wm">https://t.me/karnhim</div>
+
+<div id="result">
+  <div class="rbox">
+    <div class="r-hdr">
+      <div style="font-size:12px;color:var(--muted);font-family:var(--fm);margin-bottom:6px">MOCK TEST 3 · COMPLETE STATUS</div>
+      <h1>TEST COMPLETE</h1>
+      <p>Physics · Chemistry · Mathematics</p>
+    </div>
+    <div class="r-scores">
+      <div class="r-sc"><div class="big" id="r-tot" style="color:var(--acc)">0</div><div class="lbl">Total Score</div></div>
+      <div class="r-sc"><div class="big" id="r-pct" style="color:var(--ok)">0%</div><div class="lbl">Percentage</div></div>
+      <div class="r-sc"><div class="big" id="r-rnk" style="color:var(--acc2)">—</div><div class="lbl">Percentile Est.</div></div>
+    </div>
+    <div class="r-subjs" id="r-subjs"></div>
+    <div class="r-acts">
+      <button class="btn btn-acc" onclick="reviewMode()">Review Answers</button>
+      <a href="https://t.me/karnhim" target="_blank" class="btn" style="background:#eef7fe;color:#1076bc;border:1px solid #bce0fd;text-decoration:none">Join Telegram</a>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── SVG DIAGRAMS ──────────────────────────────────────────────────────────────
+const DIAG = {};
+
+DIAG[26] = `<div class="diag">
+<svg width="240" height="150" viewBox="0 0 240 150">
+  <polygon points="20,130 200,130 20,40" fill="#f8f9fa" stroke="#333" stroke-width="1.5"/>
+  <circle cx="50" cy="30" r="10" fill="#0f75bc"/>
+  <path d="M40,130 A20,20 0 0,0 55,113" fill="none" stroke="#e74c3c" stroke-width="1.5"/>
+  <text x="60" y="125" font-size="12" fill="#e74c3c">θ=30°</text>
+  <text x="25" y="80" font-size="11" fill="#555">h=5m</text>
+</svg>
+</div>`;
+
+DIAG[27] = `<div class="diag">
+<svg width="280" height="90" viewBox="0 0 280 90">
+  <rect x="10" y="60" width="260" height="15" fill="#f5a623" rx="2"/>
+  <circle cx="25" cy="45" r="8" fill="#d9534f"/>
+  <circle cx="255" cy="45" r="8" fill="#2ecc71"/>
+  <text x="22" y="32" font-size="10" fill="#333">m</text>
+  <text x="248" y="32" font-size="10" fill="#333">2m</text>
+  <text x="120" y="72" font-size="11" fill="#fff">Plank (3m)</text>
+</svg>
+</div>`;
+
+DIAG[29] = `<div class="diag">
+<svg width="240" height="160" viewBox="0 0 240 160">
+  <line x1="20" y1="30" x2="160" y2="30" stroke="#333" stroke-width="4"/>
+  <circle cx="20" cy="30" r="5" fill="#d9534f"/>
+  <circle cx="160" cy="30" r="4" fill="#333"/>
+  <circle cx="200" cy="50" r="20" fill="none" stroke="#333" stroke-width="2"/>
+  <circle cx="200" cy="50" r="4" fill="#333"/>
+  <line x1="160" y1="30" x2="180" y2="50" stroke="#555" stroke-width="1.5"/>
+  <line x1="220" y1="50" x2="220" y2="110" stroke="#555" stroke-width="1.5"/>
+  <rect x="205" y="110" width="30" height="25" fill="#4cae4c"/>
+  <text x="212" y="126" font-size="10" fill="#fff">m₀</text>
+</svg>
+</div>`;
+
+DIAG[32] = `<div class="diag">
+<svg width="200" height="140" viewBox="0 0 200 140">
+  <rect x="20" y="20" width="160" height="100" fill="#edf4fa" stroke="#333" stroke-width="1.5"/>
+  <rect x="100" y="20" width="80" height="50" fill="#ffffff" stroke="#333" stroke-dasharray="4,4"/>
+  <text x="25" y="35" font-size="12" font-weight="bold">A</text>
+  <text x="165" y="35" font-size="12" font-weight="bold">B</text>
+  <text x="165" y="115" font-size="12" font-weight="bold">C</text>
+  <text x="25" y="115" font-size="12" font-weight="bold">D</text>
+  <text x="130" y="45" font-size="11" fill="#cc2222">Cutout</text>
+</svg>
+</div>`;
+
+DIAG[36] = `<div class="diag">
+<svg width="180" height="150" viewBox="0 0 180 150">
+  <polygon points="30,120 150,120 30,30" fill="none" stroke="#333" stroke-width="1.5"/>
+  <circle cx="30" cy="120" r="8" fill="#333"/><text x="42" y="124" font-size="11">1.0 kg</text>
+  <circle cx="150" cy="120" r="8" fill="#333"/><text x="120" y="114" font-size="11">1.5 kg</text>
+  <circle cx="30" cy="30" r="8" fill="#333"/><text x="42" y="34" font-size="11">2.5 kg</text>
+  <text x="80" y="135" font-size="10" fill="#666">3 cm</text>
+  <text x="10" y="80" font-size="10" fill="#666">4 cm</text>
+</svg>
+</div>`;
+
+DIAG[38] = `<div class="diag">
+<svg width="240" height="130" viewBox="0 0 240 130">
+  <path d="M20,70 A80,80 0 0,1 180,70 Z" fill="#edf4fa" stroke="#0f75bc" stroke-width="1.5"/>
+  <path d="M70,70 A40,40 0 0,1 150,70 Z" fill="#f2f9f2" stroke="#2ecc71" stroke-width="1.5"/>
+  <circle cx="100" cy="70" r="3" fill="red"/><text x="96" y="83" font-size="9" fill="red">O</text>
+  <circle cx="110" cy="70" r="3" fill="purple"/><text x="110" y="83" font-size="9" fill="purple">O'</text>
+</svg>
+</div>`;
+
+DIAG[42] = `<div class="diag">
+<svg width="220" height="140" viewBox="0 0 220 140">
+  <line x1="20" y1="120" x2="200" y2="120" stroke="#333" stroke-width="1.5"/>
+  <line x1="30" y1="10" x2="30" y2="130" stroke="#333" stroke-width="1.5"/>
+  <line x1="30" y1="120" x2="90" y2="40" stroke="#0f75bc" stroke-width="2.5"/>
+  <line x1="90" y1="40" x2="190" y2="40" stroke="#0f75bc" stroke-width="2.5"/>
+  <text x="25" y="44" font-size="10">4</text>
+  <text x="86" y="134" font-size="10">2</text>
+  <text x="136" y="134" font-size="10">4</text>
+  <text x="186" y="134" font-size="10">6</text>
+  <text x="195" y="132" font-size="10">t (s)</text>
+  <text x="15" y="20" font-size="10">X (m)</text>
+</svg>
+</div>`;
+
+DIAG[52] = `<div class="diag">
+<svg width="240" height="140" viewBox="0 0 240 140">
+  <line x1="20" y1="120" x2="220" y2="120" stroke="#333" stroke-width="1.5"/>
+  <line x1="30" y1="10" x2="30" y2="130" stroke="#333" stroke-width="1.5"/>
+  <path d="M30,20 Q80,70 130,80" fill="none" stroke="#bb2224" stroke-width="2"/>
+  <line x1="130" y1="80" x2="130" y2="40" stroke="#bb2224" stroke-width="2" stroke-dasharray="2,2"/>
+  <path d="M130,40 Q170,55 210,60" fill="none" stroke="#bb2224" stroke-width="2"/>
+  <text x="125" y="134" font-size="10">4</text>
+  <text x="210" y="134" font-size="10">Time (h)</text>
+</svg>
+</div>`;
+
+
+// ── DATASET 74 QUESTIONS ──────────────────────────────────────────────────────
+const QS = [
+  // ── MATHEMATICS SCQ (1 to 20) ──
+  {id:1,sub:'math',sec:'scq',q:`There are 10 girls and 8 boys in a classroom including Mr. Ravi, Ms. Rani and Ms. Radha. A list of speakers consisting of 8 girls and 6 boys has to be prepared. Mr. Ravi refuses to speak if Ms. Rani is a speaker and Ms. Rani refuses to speak if Ms. Radha is a speaker. The number of ways the list can be prepared is:`,opts:[`202`,`308`,`567`,`952`],ans:4},
+  {id:2,sub:'math',sec:'scq',q:`The number of ways in which three numbers in arithmetic progression can be selected from \\(\\{1, 2, 3, \\ldots, 50\\}\\) is:`,opts:[`276`,`600`,`840`,`640`],ans:2},
+  {id:3,sub:'math',sec:'scq',q:`The sides AB, BC and CA of a \\(\\Delta ABC\\) have \\(a, b\\) and \\(c\\) interior points on them respectively. Then the number of triangles that can be constructed using these interior points as vertices is:`,opts:[`\\(\\Sigma ab(a+b-2)\\)`,`\\(\\Sigma ab(a+b)\\)`,`\\(\\Sigma a^2\\)`,`None of these`],ans:4},
+  {id:4,sub:'math',sec:'scq',q:`If \\(N\\) is the number of positive integral solutions of the equation \\(x_1 x_2 x_3 x_4 = 770\\), then the value of \\(N\\) is:`,opts:[`250`,`252`,`254`,`256`],ans:4},
+  {id:5,sub:'math',sec:'scq',q:`Consider the letters of the word 'INCURSION'. The number of arrangements of all letters in which vowels are in alphabetical order is:`,opts:[`\\(\\dfrac{9!}{2!}\\)`,`\\(\\dfrac{9!}{2!4!}\\)`,`\\(^{9}C_{4}\\)`,`\\(^{9}P_{5}\\)`],ans:2},
+  {id:6,sub:'math',sec:'scq',q:`The number of 6-digit numbers of the form \\(ababab\\) (in base 10), each of which is a product of exactly 6 distinct primes, is:`,opts:[`8`,`10`,`13`,`15`],ans:1},
+  {id:7,sub:'math',sec:'scq',q:`The sum of all 4-digit numbers that can be formed by using the digits 2, 4, 6, 8 (repetition of digits is not allowed) is:`,opts:[`133320`,`123330`,`113230`,`323430`],ans:1},
+  {id:8,sub:'math',sec:'scq',q:`The number of words of 4 letters which can be formed with the letters of the word MATHEMATICS is \\(\\alpha\\), then the value of \\(\\dfrac{\\alpha}{300}\\) is:`,opts:[`7.18`,`6.18`,`8.18`,`9.18`],ans:3},
+  {id:9,sub:'math',sec:'scq',q:`The letters of the word "GOPAL" are permuted and all the permutations are arranged in alphabetical order as in an English dictionary. Then the rank of the word "GOPAL" is:`,opts:[`41`,`60`,`85`,`116`],ans:2},
+  {id:10,sub:'math',sec:'scq',q:`The number of ways in which 5 boys and 4 girls can be arranged on a circular table such that no two girls sit together and two particular boys are always together is:`,opts:[`288`,`44`,`720`,`540`],ans:1},
+  {id:11,sub:'math',sec:'scq',q:`The greatest integer less than \\((\\sqrt{2}+1)^{6}\\) is equal to:`,opts:[`196`,`197`,`198`,`199`],ans:2},
+  {id:12,sub:'math',sec:'scq',q:`If the sum of odd numbered terms and the sum of even numbered terms in the expansion of \\((x+a)^{n}\\) are \\(A\\) and \\(B\\) respectively, then the value of \\(A^2 - B^2\\) is:`,opts:[`\\((x^2-a^2)^n\\)`,`\\(A^2+B^2\\)`,`\\(4AB\\)`,`None of these`],ans:1},
+  {id:13,sub:'math',sec:'scq',q:`The coefficient of \\(x^{20}\\) in \\((1+x)(1+2x)(1+4x)(1+8x)\\cdots(1+2^{20}x)\\) is:`,opts:[`\\(2^{211}-2^{190}\\)`,`\\(2^{191}-2^{171}\\)`,`\\(2^{231}-2^{209}\\)`,`\\(2^{161}-2^{142}\\)`],ans:1},
+  {id:14,sub:'math',sec:'scq',q:`If \\(2^{2020} + 2021\\) is divided by 9, then the remainder obtained is:`,opts:[`0`,`1`,`3`,`7`],ans:4},
+  {id:15,sub:'math',sec:'scq',q:`The term independent of \\(t\\) in the expansion of \\([(t^{-1}-1)x + (t^{-1}+1)^{-1}x^{-1}]^8\\) is:`,opts:[`\\(56\\left(\\dfrac{1-t}{1+t}\\right)^3\\)`,`\\(56\\left(\\dfrac{1+t}{1-t}\\right)^3\\)`,`\\(70\\left(\\dfrac{1-t}{1+t}\\right)^4\\)`,`\\(70\\left(\\dfrac{1+t}{1-t}\\right)^4\\)`],ans:3},
+  {id:16,sub:'math',sec:'scq',q:`The number of integral terms in the expansion of \\((5^{1/6} + 7^{1/9})^{1824}\\) is:`,opts:[`84`,`96`,`102`,`203`],ans:3},
+  {id:17,sub:'math',sec:'scq',q:`The remainder when \\((2021)^{2023}\\) is divided by 7 is:`,opts:[`2`,`3`,`4`,`5`],ans:4},
+  {id:18,sub:'math',sec:'scq',q:`The remainder when \\(2017^{2018} + 2018^{2019} + 2019^{2020}\\) is divided by 5 is:`,opts:[`2`,`4`,`3`,`0`],ans:4},
+  {id:19,sub:'math',sec:'scq',q:`The number of positive integral solutions of the inequality \\(x + y + z \\le 20\\) is:`,opts:[`1008`,`1028`,`1108`,`1140`],ans:4},
+  {id:20,sub:'math',sec:'scq',q:`The coefficient of \\(x^5\\) in the expansion of \\((1+x)^{21} + (1+x)^{22} + \\cdots + (1+x)^{30}\\) is:`,opts:[`\\(^{31}C_{5}\\)`,`\\(^{9}C_{5}\\)`,`\\(^{31}C_{6} - ^{21}C_{6}\\)`,`\\(^{30}C_{5} + ^{20}C_{5}\\)`],ans:3},
+
+  // ── MATHEMATICS NAT (21 to 25) ──
+  {id:21,sub:'math',sec:'nat',q:`Number of ways in which 10 identical balls can be distributed in 5 boxes labeled A, B, C, D & E such that no two adjacent boxes are empty together is equal to \\(k\\). Then find the sum of digits of \\([\\frac{k}{11}]\\) (where \\([\\cdot]\\) denotes the greatest integer function).`,opts:null,ans:'6'},
+  {id:22,sub:'math',sec:'nat',q:`If 4 dice are rolled once, the number of ways of getting the sum as 10 is \\(K\\). Then the value of \\(\\dfrac{K}{10}\\) is equal to:`,opts:null,ans:'8'},
+  {id:23,sub:'math',sec:'nat',q:`For \\(n \\in \\mathbb{N}\\), in the expansion of \\((\\sqrt[4]{x^{-3}} + a\\sqrt[4]{x^5})^n\\), the sum of all the binomial coefficients lies between 200 and 400. If the term independent of \\(x\\) is 448, then find the value of \\(a\\).`,opts:null,ans:'2'},
+  {id:24,sub:'math',sec:'nat',q:`If \\(a, b, c\\) are the last three digits of the number \\((6! + 1)^{6!}\\), then find the value of \\(a + b + c\\).`,opts:null,ans:'1'},
+  {id:25,sub:'math',sec:'nat',q:`In a shooting competition, a man can score 5, 4, 3, 2, 1, or 0 points for each shot. Then the number of different ways in which he can score a total of 10 points in seven shots is:`,opts:null,ans:'1694'},
+
+  // ── PHYSICS SCQ (26 to 44) ──
+  {id:26,sub:'physics',sec:'scq',q:`A small ball is dropped from a height \\(h = 5\\text{ m}\\) above a fixed smooth inclined plane having an angle of inclination \\(\\theta = 30^{\\circ}\\). The ball strikes the incline and rebounds. If the coefficient of restitution between the ball and the incline is \\(e = 0.5\\), find the distance between the first and the second point of impact measured along the incline (Take \\(g = 10\\text{ m/s}^2\\)).` + DIAG[26],opts:[`5.0 m`,`7.5 m`,`10.0 m`,`15.0 m`],ans:3},
+  {id:27,sub:'physics',sec:'scq',q:`A uniform wooden plank of mass \\(3m\\) and length \\(L\\) is at rest on a perfectly smooth horizontal ice surface. Two men A and B having masses \\(m\\) and \\(2m\\) respectively, are standing at the left and right ends of the plank. Simultaneously, they start walking towards each other. Man A walks with a speed \\(u\\) relative to the plank, while Man B walks with a speed \\(2u\\) relative to the plank. Find the displacement of the plank relative to the ice surface by the time the two men meet.` + DIAG[27],opts:[`L/3 towards the left`,`L/6 towards the left`,`L/6 towards the right`,`L/2 towards the right`],ans:2},
+  {id:28,sub:'physics',sec:'scq',q:`A uniform thin lamina of mass \\(M\\) is in the shape of an isosceles right-angled triangle. The two equal sides forming the right angle each have a length \\(a\\). What is the radius of gyration of the lamina about an axis passing through the right-angled vertex and perpendicular to the plane of the lamina?`,opts:[`\\(\\dfrac{a}{\\sqrt{6}}\\)`,`\\(\\dfrac{a}{\\sqrt{3}}\\)`,`\\(\\dfrac{a}{2}\\)`,`\\(\\dfrac{a}{\\sqrt{2}}\\)`],ans:2},
+  {id:29,sub:'physics',sec:'scq',q:`A uniform rod of mass \\(m = 6\\text{ kg}\\) and length \\(L = 2\\text{ m}\\) is hinged at one end (Point O) so that it can rotate freely in a vertical plane. The other end (Point A) is supported by a massless, inextensible string. This string passes over a uniform solid cylindrical pulley of mass \\(M = 4\\text{ kg}\\) and radius \\(R\\), and a block of mass \\(m_0 = 1\\text{ kg}\\) hangs from the other end of the string. The system is released from rest with the rod in a completely horizontal position. Find the initial angular acceleration of the rod.` + DIAG[29],opts:[`1 rad/s²`,`2 rad/s²`,`3 rad/s²`,`4 rad/s²`],ans:3},
+  {id:30,sub:'physics',sec:'scq',q:`A block of mass \\(m_1 = 100\\text{ g}\\) rests on a horizontal table. The coefficient of friction between the block and the table is 0.05. When hit by another mass \\(m_2 = 100\\text{ g}\\) moving with speed \\(v\\) that gets embedded in it, the combined mass moves and comes to a stop after moving a distance of 4 m on the table. If a freely falling object were to acquire speed \\(v/2\\) after being dropped from height \\(H\\), then neglecting energy losses and taking \\(g = 10\\text{ m/s}^2\\), the value of \\(H\\) is close to:`,opts:[`0.3 m`,`0.2 m`,`0.4 m`,`0.25 m`],ans:3},
+  {id:31,sub:'physics',sec:'scq',q:`A wheel of moment of inertia \\(2.5\\text{ kg}\\cdot\\text{m}^2\\) has an initial angular velocity of 40 rad/s. A constant torque of 10 Nm acts on the wheel. The time during which the wheel is accelerated to 60 rad/s is:`,opts:[`6 s`,`5 s`,`4.5 s`,`4 s`],ans:2},
+  {id:32,sub:'physics',sec:'scq',q:`A uniform rectangular thin sheet ABCD of mass \\(M\\) has length \\(a\\) and breadth \\(b\\). If the shaded portion HBGO is cut-off as shown, the coordinates of the centre of mass of the remaining portion will be:` + DIAG[32],opts:[`\\((\\dfrac{5a}{12}, \\dfrac{5b}{12})\\)`,`\\((\\dfrac{5a}{3}, \\dfrac{5b}{3})\\)`,`\\((\\dfrac{2a}{3}, \\dfrac{2b}{3})\\)`,`\\((\\dfrac{3a}{4}, \\dfrac{3b}{4})\\)`],ans:1},
+  {id:33,sub:'physics',sec:'scq',q:`A mass 'm' is supported by a massless string wound around a uniform solid cylinder of mass \\(m\\) and radius \\(R\\). If the string does not slip on the cylinder, with what acceleration will the mass fall upon release?`,opts:[`g`,`2g/3`,`g/2`,`5g/6`],ans:2},
+  {id:34,sub:'physics',sec:'scq',q:`<strong>Assertion:</strong> In an elastic collision of two billiard balls, the total kinetic energy is conserved during the short time of oscillation of the balls (i.e., when they are in contact).<br><strong>Reason:</strong> Energy spent against friction does not follow the law of conservation of energy.`,opts:[`Both assertion and reason are true and reason is a correct explanation.`,`Both assertion and reason are true but reason is not a correct explanation.`,`Assertion is true but reason is false.`,`Both assertion and reason are false.`],ans:3},
+  {id:35,sub:'physics',sec:'scq',q:`A cylinder weighing 450 N with a radius of 30 cm is held fixed on an incline that is rotating at 0.5 rad/s. The cylinder is released when the incline is at a position equal to 30°. If the cylinder is 6 m from the bottom A at the instant of release, what is the initial acceleration of the centre of the cylinder relative to the incline, if there is no slipping? (Take \\(g = 10\\text{ m/s}^2\\))`,opts:[`2.33 m/s²`,`4.66 m/s²`,`1.33 m/s²`,`3.33 m/s²`],ans:4},
+  {id:36,sub:'physics',sec:'scq',q:`Three point particles of masses 1.0 kg, 1.5 kg and 2.5 kg are placed at three corners of a right-angled triangle of sides 4.0 cm, 3.0 cm and 5.0 cm as shown. The centre of mass of the system is located at:` + DIAG[36],opts:[`0.6 cm right and 2.0 cm above 1 kg mass`,`1.5 cm right and 1.2 cm above 1 kg mass`,`2.0 cm right and 0.9 cm above 1 kg mass`,`0.9 cm right and 2.0 cm above 1 kg mass`],ans:4},
+  {id:37,sub:'physics',sec:'scq',q:`A child is standing with folded hands at the centre of a platform rotating about its central axis. The kinetic energy of the system is K. The child now stretches his arms so that the moment of inertia of the system is doubled. The kinetic energy of the system now becomes:`,opts:[`K`,`K/2`,`K/4`,`4K`],ans:2},
+  {id:38,sub:'physics',sec:'scq',q:`Two solid hemispheres of radii \\(R\\) and \\(R/2\\) have centers O and O' respectively. The density of the bigger hemisphere is \\(\\rho\\) and that of the smaller hemisphere is \\(2\\rho\\). Taking the center of the bigger hemisphere at the origin and the distance between centers \\(OO' = R/10\\), find the coordinates of the center of mass of the system.` + DIAG[38],opts:[`\\((-\\dfrac{R}{50}, \\dfrac{21R}{80})\\)`,`\\((-\\dfrac{R}{30}, \\dfrac{21R}{80})\\)`,`\\((-\\dfrac{R}{50}, \\dfrac{7R}{16})\\)`,`\\((-\\dfrac{R}{30}, \\dfrac{7R}{16})\\)`],ans:1},
+  {id:39,sub:'physics',sec:'scq',q:`A solid sphere of radius \\(R\\) and mass \\(M\\) is rolled by a horizontal force \\(F\\) acting at the top of the sphere. If the sphere starts from rest and rolls without slipping, the work done by force \\(F\\) when the center moves a distance \\(S\\) is:`,opts:[`2FS`,`3FS`,`FS`,`1.5FS`],ans:1},
+  {id:40,sub:'physics',sec:'scq',q:`A rigid body is in pure rotation (undergoing fixed axis rotation). Then which of the following statements is true?`,opts:[`You can find two points in the body in a plane perpendicular to the axis having the same velocity.`,`You can find two points in the body in a plane perpendicular to the axis having the same acceleration.`,`Speed of all particles lying on the curved surface of a cylinder whose axis coincides with the axis of rotation is the same.`,`None of these`],ans:3},
+  {id:41,sub:'physics',sec:'scq',q:`A thin rod of mass \\(m\\) hinged at its upper end is to be maintained in equilibrium making an angle \\(\\theta\\) with the vertical. The minimum force that needs to be applied to its bottom end to make this possible is:`,opts:[`\\(\\dfrac{mg}{2\\sin\\theta}\\)`,`\\(\\dfrac{mg}{\\cos\\theta}\\)`,`\\(\\dfrac{mg\\sin\\theta}{2}\\)`,`\\(mg\\sin\\theta\\)`],ans:3},
+  {id:42,sub:'physics',sec:'scq',q:`In the given figure, the position-time graph of a particle of mass 0.1 kg is shown. The impulse delivered to the particle at \\(t = 2\\text{ sec}\\) is:` + DIAG[42],opts:[`0.2 kg m s⁻¹`,`-0.2 kg m s⁻¹`,`0.1 kg m s⁻¹`,`-0.4 kg m s⁻¹`],ans:2},
+  {id:43,sub:'physics',sec:'scq',q:`A solid cylinder P rolls without slipping from rest down an inclined plane attaining a speed \\(v_p\\) at the bottom. Another smooth solid cylinder Q of the same mass and dimensions slides without friction from rest down the same inclined plane, attaining a speed \\(v_q\\) at the bottom. The ratio of the speeds \\(\\left(\\dfrac{v_p}{v_q}\\right)\\) is:`,opts:[`\\(\\sqrt{\\dfrac{3}{4}}\\)`,`\\(\\sqrt{\\dfrac{3}{2}}\\)`,`\\(\\sqrt{\\dfrac{2}{3}}\\)`,`\\(\\sqrt{\\dfrac{4}{3}}\\)`],ans:3},
+  {id:44,sub:'physics',sec:'scq',q:`Which one of the following graphs best depicts the variation of the moment of inertia \\(I\\) of a uniform triangular lamina about an axis parallel to its base at a distance \\(x\\) from it?`,opts:[`U-shaped parabola reaching minimum before h`,`V-shaped sharp minimum curve`,`Linear decreasing plot`,`Symmetrical curve matching axis`],ans:1},
+
+  // ── PHYSICS NAT (45 to 49) ──
+  {id:45,sub:'physics',sec:'nat',q:`A gun of mass 10 kg fires 4 bullets per second. The mass of each bullet is 20 g and the velocity of the bullet when it leaves the gun is 300 m/s. The force required to hold the gun during firing is (in Newtons):`,opts:null,ans:'24'},
+  {id:46,sub:'physics',sec:'nat',q:`A boy is pushing a ring of mass 2 kg and radius 0.5 m with a stick. The stick applies a normal force of 2 N on the ring and rolls it without slipping with a linear acceleration of 0.3 m/s². The coefficient of friction between the stick and the ring is \\(P/10\\). Find the value of \\(P\\).`,opts:null,ans:'4'},
+  {id:47,sub:'physics',sec:'nat',q:`A lamina is made by removing a small disc of diameter 2R from a bigger disc of uniform mass density and radius 2R. The moment of inertia of this lamina about axes perpendicular to its plane passing through points O and P is \\(I_O\\) and \\(I_P\\) respectively. If the ratio \\(\\dfrac{I_P}{I_O} = \\dfrac{m}{n}\\) in lowest fractional terms, find the value of \\(m + n^2\\).`,opts:null,ans:'137'},
+  {id:48,sub:'physics',sec:'nat',q:`A uniform cylinder of radius \\(R = 3\\text{ m}\\) is spun about its axis at an angular velocity \\(\\omega_0 = 40\\sqrt{\\pi}\\text{ rad/s}\\) and placed between two perpendicular walls. The coefficient of friction between the walls and the cylinder is \\(\\mu = 2\\). How many rotations will the cylinder make before coming to rest? (Take \\(g = 10\\text{ m/s}^2\\))`,opts:null,ans:'12'},
+  {id:49,sub:'physics',sec:'nat',q:`A uniform rigid rod of mass \\(M = 6\\text{ kg}\\) and length \\(L = 4\\text{ m}\\) is suspended vertically from a frictionless pivot point P located at a distance of \\(L/4\\) from the top end. A small bullet of mass \\(m = 2\\text{ kg}\\) traveling horizontally at \\(v = 16\\text{ m/s}\\) strikes the extreme lower end A and embeds itself. Find the angular velocity of the system immediately after collision (in rad/s).`,opts:null,ans:'4'},
+
+  // ── CHEMISTRY SCQ (50 to 69) ──
+  {id:50,sub:'chemistry',sec:'scq',q:`In a flask containing 0.5 atm pressure of \\(A_2(g)\\), some solid AB is added which undergoes dissociation according to: \\(2AB(s) \\rightleftharpoons A_2(g) + B_2(g)\\) with \\(K_p = 0.06\\text{ atm}^2\\). The total pressure (atm) at equilibrium will be:`,opts:[`0.5 atm`,`0.2 atm`,`0.7 atm`,`1.4 atm`],ans:3},
+  {id:51,sub:'chemistry',sec:'scq',q:`The solubility product values of barium sulphate and barium carbonate are \\(1.0 \\times 10^{-10}\\) and \\(5.0 \\times 10^{-9}\\) respectively. When the two salts are equilibrated together in pure water, the ratio of \\(\\dfrac{[SO_4^{2-}]}{[CO_4^{2-}]}\\) is:`,opts:[`0.02`,`0.10`,`0.05`,`0.12`],ans:1},
+  {id:52,sub:'chemistry',sec:'scq',q:`The reaction between phosphorus \\(P_4(s)\\) and hydrogen \\(H_2(g)\\) forms phosphine: \\(P_4(s) + 6H_2(g) \\rightleftharpoons 4PH_3(g)\\). The graph shows the variation of \\([H_2]\\) where a disturbance was introduced at \\(t = 4\\text{ hours}\\). Which option explains the change?` + DIAG[52],opts:[`The pressure on the reaction mixture was increased`,`A catalyst was added`,`The volume of the reaction mixture was decreased`,`More phosphorus was added`],ans:3},
+  {id:53,sub:'chemistry',sec:'scq',q:`What will be the pH of a solution prepared by mixing 40 mL of 0.1 M HCl with 10 mL of 0.45 M NaOH?`,opts:[`12`,`10`,`8`,`6`],ans:1},
+  {id:54,sub:'chemistry',sec:'scq',q:`Which one of the following mixtures does NOT act as a buffer solution?`,opts:[`\\(0.8M\\text{ H}_2\\text{S} + 0.8M\\text{ KHS}\\)`,`\\(2M\\text{ C}_6\\text{H}_5\\text{NH}_2 + 2M\\text{ C}_6\\text{H}_5\\text{NH}_3^+ \\text{Br}^-\\)`,`\\(3M\\text{ H}_2\\text{CO}_3 + 3M\\text{ KHCO}_3\\)`,`\\(0.05M\\text{ KClO}_4 + 0.05M\\text{ HClO}_4\\)`],ans:4},
+  {id:55,sub:'chemistry',sec:'scq',q:`<strong>Assertion:</strong> With a change in concentration of the reactant, the value of equilibrium constant \\(K_C\\) changes.<br><strong>Reason:</strong> A larger value of \\(K_C\\) means less extent of reaction in the forward direction.`,opts:[`Both assertion and reason are true and reason is the correct explanation.`,`Both assertion and reason are true but reason is not the correct explanation.`,`Assertion is true but reason is false.`,`Both assertion and reason are false.`],ans:4},
+  {id:56,sub:'chemistry',sec:'scq',q:`4 mL of a solution of \\(pH = 2\\) is mixed with 6 mL of a solution of \\(pH = 12\\). What would be the final pH of the mixture? (Take \\(\\log 2 = 0.3\\))`,opts:[`10.3`,`11.3`,`11.0`,`4.3`],ans:2},
+  {id:57,sub:'chemistry',sec:'scq',q:`For the endothermic solid decomposition: \\(2BaO_2(s) \\rightleftharpoons 2BaO(s) + O_2(g)\\) (\\(\\Delta H = +ve\\)), the equilibrium partial pressure of \\(O_2\\) depends on:`,opts:[`Increased mass of BaO₂`,`Increased mass of BaO`,`Increased temperature at equilibrium`,`Increased mass of both solids`],ans:3},
+  {id:58,sub:'chemistry',sec:'scq',q:`\\(K_a\\) for HCN is \\(5 \\times 10^{-10}\\) at 25°C. For maintaining a constant solution \\(pH = 9\\), the volume of 5 M KCN solution required to be added to 10 mL of 2 M HCN solution is:`,opts:[`4 mL`,`2.5 mL`,`2 mL`,`6.4 mL`],ans:1},
+  {id:59,sub:'chemistry',sec:'scq',q:`For the reaction \\(2NO_2(g) \\rightleftharpoons 2NO(g) + O_2(g)\\), comparing \\(K_p\\) and \\(K_c\\) values at 184°C (where \\(K_c = 1.8 \\times 10^{-6}\\)), it is found that:`,opts:[`Whether Kp is greater than, less than or equal to Kc depends upon pressure`,`Kp = Kc`,`Kp < Kc`,`Kp > Kc`],ans:4},
+  {id:60,sub:'chemistry',sec:'scq',q:`<strong>Assertion:</strong> \\(BaCO_3\\) is more soluble in \\(HNO_3\\) than in plain water.<br><strong>Reason:</strong> Carbonate is a weak base and reacts with the proton from the strong acid, causing the barium salt to dissociate further.`,opts:[`Both assertion and reason are true and reason is the correct explanation.`,`Both assertion and reason are true but reason is not the correct explanation.`,`Assertion is true but reason is false.`,`Both assertion and reason are false.`],ans:1},
+  {id:61,sub:'chemistry',sec:'scq',q:`A solution contains 0.10 M \\(Ba(NO_3)_2\\) and 0.10 M \\(Sr(NO_3)_2\\). If solid \\(Na_2CrO_4\\) is slowly added, what is \\([Ba^{2+}]\\) at the instant \\(SrCrO_4\\) begins to precipitate? (Given \\(K_{sp}(BaCrO_4) = 6 \\times 10^{-9}\\) and \\(K_{sp}(SrCrO_4) = 7 \\times 10^{-6}\\))`,opts:[`8.5 × 10⁻⁵ M`,`9.5 × 10⁻⁵ M`,`8.5 × 10⁻⁹ M`,`8.5 × 10⁻⁶ M`],ans:1},
+  {id:62,sub:'chemistry',sec:'scq',q:`For the gaseous reaction \\(N_2O_4(g) \\rightleftharpoons 2NO_2(g)\\), if the percentage dissociation values of \\(N_2O_4\\) are arranged in sequences as 25%, 50%, 75%, and 100%, the corresponding sequence of observed vapour densities will follow:`,opts:[`d₁ > d₂ > d₃ > d₄`,`d₄ > d₃ > d₂ > d₁`,`d₁ = d₂ = d₃ = d₄`,`(d₁ = d₂) > d₃ > d₄`],ans:1},
+  {id:63,sub:'chemistry',sec:'scq',q:`The equilibrium constant for the reaction \\(HPO_4^{2-}(aq) + HCO_3^-(aq) \\rightleftharpoons H_2PO_4^-(aq) + CO_3^{2-}(aq)\\) is approx \\(10^{-3}\\). Which is the strongest conjugate base among the species?`,opts:[`HPO₄²⁻(aq)`,`HCO₃⁻(aq)`,`H₂PO₄⁻(aq)`,`CO₃²⁻(aq)`],ans:4},
+  {id:64,sub:'chemistry',sec:'scq',q:`A 0.5 M solution of ammonium benzoate is found to be hydrolysed to the extent of 0.25 percent. Hence, its hydrolysis constant \\(K_h\\) value is:`,opts:[`2.5 × 10⁻⁵`,`1.5 × 10⁻⁴`,`3.125 × 10⁻⁵`,`6.25 × 10⁻⁶`],ans:4},
+  {id:65,sub:'chemistry',sec:'scq',q:`For the decomposition reaction \\(N_2O_4 \\rightleftharpoons 2NO_2\\), the equilibrium constant \\(K_p = 0.120\\text{ atm}\\) at 298 K. If total pressure of the system is 2 atm, the degree of dissociation (\\(\\alpha\\)) is:`,opts:[`0.122`,`0.242`,`1.21`,`0.212`],ans:1},
+  {id:66,sub:'chemistry',sec:'scq',q:`The ratio of volumes of 0.1 N \\(CH_3COOH\\) to 0.1 N \\(CH_3COONa\\) required to prepare a buffer solution of \\(pH = 5.74\\) is: (Given \\(pK_a\\) of acetic acid is 4.74)`,opts:[`10:1`,`5:1`,`1:5`,`1:10`],ans:4},
+  {id:67,sub:'chemistry',sec:'scq',q:`Which of the following oxoanions is the strongest Brønsted base?`,opts:[`ClO⁻`,`ClO₂⁻`,`ClO₃⁻`,`ClO₄⁻`],ans:1},
+  {id:68,sub:'chemistry',sec:'scq',q:`Which \\(\\ln K\\) vs \\(1/T\\) plot is correct for a chemical equilibrium that shifts towards the reactants at higher temperatures?`,opts:[`Linear plot with a positive slope`,`Linear plot with a negative slope`,`Hyperbolic curve going down`,`Parabolic minimum curve`],ans:1},
+  {id:69,sub:'chemistry',sec:'scq',q:`During the titration of a weak acid (acetic acid) with a strong base (aqueous NaOH), the neutralization curve shows a steep vertical rise near the endpoint. This vertical region indicates the:`,opts:[`Alkaline nature of equivalence point`,`Acidic nature of equivalence point`,`Neutral nature of equivalence point`,`Experimental error variation`],ans:1},
+
+  // ── CHEMISTRY NAT (70 to 74) ──
+  {id:70,sub:'chemistry',sec:'nat',q:`The dissociation constant \\(K_a\\) of a substituted benzoic acid at 25°C is \\(1.0 \\times 10^{-4}\\). Find the pH of a 0.01 M solution of its sodium salt.`,opts:null,ans:'8'},
+  {id:71,sub:'chemistry',sec:'nat',q:`For the equilibrium \\(CaCO_3(s) \\rightleftharpoons CaO(s) + CO_2(g)\\), \\(K_p = 1.64\\text{ atm}\\) at 1000 K. If 50 g of solid \\(CaCO_3\\) is heated in a 10-liter closed container to 1000 K, find the percentage of \\(CaCO_3\\) that remains unreacted at equilibrium. (Take \\(R = 0.082\\text{ L atm K}^{-1}\\text{mol}^{-1}\\))`,opts:null,ans:'60'},
+  {id:72,sub:'chemistry',sec:'nat',q:`How many litres of pure water must be added to 1 litre of an aqueous solution of HCl with a pH of 1 to create a final aqueous solution with a pH of 2?`,opts:null,ans:'9'},
+  {id:73,sub:'chemistry',sec:'nat',q:`The solubility product constant \\(K_{sp}\\) of a sparingly soluble salt \\(AX_2\\) is \\(3.2 \\times 10^{-11}\\). Its molar solubility (in moles/liter) is given by \\(S = \\text{Value} \\times 10^{-4}\\). Find this missing Value.`,opts:null,ans:'2'},
+  {id:74,sub:'chemistry',sec:'nat',q:`The values of \\(K_{p1}\\) and \\(K_{p2}\\) for the two reactions \\(X \\rightleftharpoons Y + Z\\) and \\(A \\rightleftharpoons 2B\\) are in the ratio of 9:1. If the degree of dissociation of X and A are equal, find the ratio of total pressure at equilibrium (1) to equilibrium (2).`,opts:null,ans:'36'}
+];
+
+const AK = {
+  1:4,2:2,3:4,4:4,5:2,6:1,7:1,8:3,9:2,10:1,11:2,12:1,13:1,14:4,15:3,16:3,17:4,18:4,19:4,20:3,
+  21:'6',22:'8',23:'2',24:'1',25:'1694',
+  26:3,27:2,28:2,29:3,30:3,31:2,32:1,33:2,34:3,35:4,36:4,37:2,38:1,39:1,40:3,41:3,42:2,43:3,44:1,
+  45:'24',46:'4',47:'137',48:'12',49:'4',
+  50:3,51:1,52:3,53:1,54:4,55:4,56:2,57:3,58:4,59:4,60:1,61:1,62:1,63:4,64:4,65:1,66:4,67:1,68:1,69:1,
+  70:'8',71:'60',72:'9',73:'2',74:'36'
+};
+
+// ── ENGINE STATE ──────────────────────────────────────────────────────────────
+const S = {cur:1, subj:'math', submitted:false, resp:{}, marks:{}, timeLeft:10800};
+
+let tmr;
+function startTimer(){
+  tmr = setInterval(()=>{
+    S.timeLeft--;
+    const h=Math.floor(S.timeLeft/3600), m=Math.floor((S.timeLeft%3600)/60), s=S.timeLeft%60;
+    document.getElementById('timer').textContent=`${p(h)}:${p(m)}:${p(s)}`;
+    if(S.timeLeft<600) document.getElementById('timer').classList.add('urgent');
+    if(S.timeLeft<=0){clearInterval(tmr);doSubmit();}
+  },1000);
+}
+function p(n){return String(n).padStart(2,'0');}
+
+function subjQs(subj){return QS.filter(q=>q.sub===subj);}
+function switchSubject(subj){
+  S.subj=subj;
+  document.querySelectorAll('.stab').forEach(t=>t.classList.remove('active'));
+  const btn = document.querySelector(`.stab[onclick*="${subj}"]`);
+  if(btn) btn.classList.add('active');
+  const qs=subjQs(subj);
+  if(qs.length) goQ(qs[0].id);
+  renderPalette();
+}
+function goQ(id){
+  S.cur=id;
+  renderPalette();
+  renderQ();
+}
+function nav(d){
+  const subj=QS.find(q=>q.id===S.cur)?.sub||S.subj;
+  const qs=subjQs(subj);
+  const i=qs.findIndex(q=>q.id===S.cur);
+  if(i+d>=0&&i+d<qs.length) goQ(qs[i+d].id);
+}
+
+function renderPalette(){
+  const grid=document.getElementById('palette');
+  const qs=subjQs(S.subj);
+  grid.innerHTML='';
+  qs.forEach(q=>{
+    const b=document.createElement('button');
+    b.className='pq';
+    b.textContent=q.id;
+    if(q.id===S.cur) b.classList.add('cur');
+    const r=S.resp[q.id], mk=S.marks[q.id];
+    if(mk && r!==undefined) b.classList.add('mrkans');
+    else if(mk) b.classList.add('mrk');
+    else if(r!==undefined) b.classList.add('ans');
+    b.onclick=()=>goQ(q.id);
+    grid.appendChild(b);
+  });
+}
+
+function renderQ(){
+  const q=QS.find(x=>x.id===S.cur);
+  if(!q) return;
+  const sn={math:'Mathematics',physics:'Physics',chemistry:'Chemistry'};
+  const ss={scq:'Single Correct',nat:'Numerical Answer'};
+  const mk='+4 / −1';
+  document.getElementById('sec-hdr').innerHTML=
+    `<strong>${sn[q.sub]}</strong> &nbsp;|&nbsp; ${ss[q.sec]} &nbsp;|&nbsp; Marking: <strong>${mk}</strong> &nbsp;|&nbsp; Q <strong>${q.id}</strong> / 74`;
+
+  const resp=S.resp[q.id];
+  const marked=S.marks[q.id];
+  const rev=S.submitted;
+  const correct=AK[q.id];
+  let optsHTML='';
+
+  if(q.sec==='scq' && q.opts){
+    optsHTML='<div class="opts">';
+    q.opts.forEach((opt,i)=>{
+      const num=i+1;
+      let cls='opt';
+      if(rev){
+        if(num===correct) cls+=' corr';
+        else if(resp===num) cls+=' incorr';
+      } else if(resp===num) cls+=' sel';
+      optsHTML+=`<button class="${cls}" onclick="${rev?'':'selectOpt('+num+')'}">
+        <span class="opt-l">${'ABCD'[i]}</span>
+        <span class="opt-txt">${opt}</span>
+      </button>`;
+    });
+    optsHTML+='</div>';
+  } else if(q.sec==='nat'){
+    const ic=rev?(String(resp)===String(correct)?'corr':'incorr'): '';
+    optsHTML=`<div class="nat-wrap">
+      <div class="nat-lbl">TYPE YOUR NUMERICAL ANSWER</div>
+      <input class="nat-inp ${ic}" type="number" step="any"
+        placeholder="Enter value..."
+        value="${resp!==undefined?resp:''}"
+        ${rev?'disabled':''}
+        oninput="updateNAT(this.value)">
+      ${rev?`<div class="nat-ans">✓ Correct Answer: ${correct}</div>`:''}
+    </div>`;
+  }
+
+  const card=document.getElementById('qcard');
+  card.innerHTML=`
+    <div class="q-hdr">
+      <span class="q-num">Q${q.id}</span>
+      <span class="q-badge">${ss[q.sec]}</span>
+      <span class="q-mark-badge">${mk}</span>
+    </div>
+    <div class="q-text">${q.q}</div>
+    ${optsHTML}
+    <div class="q-actions">
+      ${!rev?`
+        <button class="btn btn-mrk ${marked?'on':''}" onclick="toggleMark()">⚑ ${marked?'Unmark':'Mark for Review'}</button>
+        <button class="btn btn-clr" onclick="clearResp()">✕ Clear</button>
+      `:`
+        <button class="btn btn-sec" onclick="toggleSol(${q.id})">💡 View Answer Key</button>
+      `}
+    </div>
+    <div class="sol" id="sol-${q.id}">
+      <strong style="color:var(--acc)">Correct Solution Key:</strong>
+      ${q.sec==='nat'?correct:'Option '+'ABCD'[correct-1]+' — '+q.opts[correct-1]}
+    </div>`;
+
+  typeset(card);
+}
+
+function typeset(el){
+  if(window.MathJax && MathJax.typesetPromise){
+    MathJax.typesetPromise([el]).catch(e=>console.warn(e));
+  }
+}
+
+function selectOpt(n){
+  if(S.submitted) return;
+  S.resp[S.cur]=n;
+  renderPalette(); renderQ();
+}
+function updateNAT(v){
+  if(v!=='') S.resp[S.cur]=v; else delete S.resp[S.cur];
+  renderPalette();
+}
+function toggleMark(){
+  S.marks[S.cur]=!S.marks[S.cur];
+  renderPalette(); renderQ();
+}
+function clearResp(){
+  delete S.resp[S.cur];
+  renderPalette(); renderQ();
+}
+function toggleSol(id){
+  document.getElementById('sol-'+id)?.classList.toggle('on');
+}
+
+function confirmSubmit(){
+  const att=Object.keys(S.resp).length;
+  if(!confirm(`Are you sure you want to finish and submit your test answers?\n\nAttempted: ${att}\nUnattempted: ${74-att}`)) return;
+  doSubmit();
+}
+
+function doSubmit(){
+  clearInterval(tmr);
+  S.submitted=true;
+  let tot=0, co=0, wr=0;
+  const sd={math:{s:0,c:0,w:0,tot:25},physics:{s:0,c:0,w:0,tot:24},chemistry:{s:0,c:0,w:0,tot:25}};
+  QS.forEach(q=>{
+    const r=S.resp[q.id]; if(r===undefined) return;
+    const a=AK[q.id];
+    let s=0, c=0, w=0;
+    if(q.sec==='scq'){ if(r===a){s=4;c=1;}else{s=-1;w=1;} }
+    else{ if(String(r)===String(a)){s=4;c=1;}else{s=0;w=1;} }
+    tot+=s; co+=c; wr+=w;
+    if(sd[q.sub]) { sd[q.sub].s+=s; sd[q.sub].c+=c; sd[q.sub].w+=w; }
+  });
+
+  document.getElementById('r-tot').textContent=tot;
+  document.getElementById('r-pct').textContent=Math.round(tot/296*100)+'%';
+  document.getElementById('r-rnk').textContent=Math.min(99,Math.max(1,Math.round(tot/296*90+10)))+'%ile';
+  
+  const sn={math:'Mathematics',physics:'Physics',chemistry:'Chemistry'};
+  document.getElementById('r-subjs').innerHTML=
+    ['math','physics','chemistry'].map(s=>`
+      <div class="r-subj">
+        <h3>${sn[s]}</h3>
+        <div class="r-row"><span>Subjective Score</span><span class="rv" style="color:var(--acc)">${sd[s].s}</span></div>
+        <div class="r-row"><span>Correct</span><span class="rv" style="color:var(--ok)">${sd[s].c}</span></div>
+        <div class="r-row"><span>Incorrect</span><span class="rv" style="color:var(--err)">${sd[s].w}</span></div>
+      </div>`).join('');
+  document.getElementById('result').style.display='block';
+  document.body.style.overflow='hidden';
+}
+
+function reviewMode(){
+  document.getElementById('result').style.display='none';
+  document.body.style.overflow='';
+  renderQ();
+}
+
+renderPalette();
+renderQ();
+startTimer();
+</script>
+</body>
+</html>

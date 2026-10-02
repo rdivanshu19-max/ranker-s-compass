@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>Mock Test 4 | Full Syllabus</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+window.MathJax = {
+  tex: { inlineMath:[['\\(',  '\\)']], displayMath:[['\\[','\\]']], processEscapes:true },
+  options: { skipHtmlTags:['script','noscript','style','textarea'] },
+  startup: { typeset: false }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" id="MathJax-script" async></script>
+<style>
+:root{
+  --bg:#fafafa;--surf:#ffffff;--border:#dcdcdc;
+  --acc:#0f75bc;--acc2:#4cae4c;--txt:#333333;--muted:#555555;
+  --ok:#5cb85c;--err:#d9534f;--blue:#286090;--purple:#8e44ad;
+  --fh:'Rajdhani',sans-serif;--fb:'Noto Sans',sans-serif;--fm:'IBM Plex Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font-family:var(--fb);font-size:14px;min-height:100vh;overflow-x:hidden}
+/* TOPBAR */
+#topbar{background:#f8f9fa;border-bottom:3px solid var(--acc);padding:0 20px;height:54px;display:flex;align-items:center;justify-content:space-between;position:fixed;top:0;left:0;right:0;z-index:100}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{width:34px;height:34px;background:var(--acc);border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-size:18px;font-weight:700;color:#fff}
+.logo-name{font-family:var(--fh);font-size:20px;font-weight:700;color:var(--acc);letter-spacing:1px}
+.logo-sub{font-size:10px;color:var(--muted);font-family:var(--fm)}
+#timer{background:#fff;border:1px solid #ccc;border-radius:4px;padding:4px 12px;font-family:var(--fm);font-size:18px;font-weight:600;color:#333;letter-spacing:1px}
+#timer.urgent{color:var(--err);border-color:var(--err);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.test-name{font-family:var(--fh);font-size:15px;font-weight:600;color:#444}
+/* LAYOUT */
+#wrap{display:flex;margin-top:54px;min-height:calc(100vh - 54px)}
+/* SIDEBAR */
+#sidebar{width:276px;min-width:276px;background:#f1f3f5;border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:54px;bottom:0;left:0;overflow-y:auto;z-index:50}
+.sb-sec{padding:12px 14px;border-bottom:1px solid var(--border)}
+.sb-title{font-family:var(--fm);font-size:11px;font-weight:700;color:#444;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+.subj-tabs{display:flex;gap:4px}
+.stab{padding:5px 10px;border-radius:4px;font-size:12px;font-family:var(--fh);font-weight:600;cursor:pointer;border:1px solid var(--border);background:#fff;color:#333;transition:all .2s;letter-spacing:.5px}
+.stab.active{background:var(--acc);color:#fff;border-color:var(--acc)}
+.stab:hover:not(.active){border-color:var(--acc);color:var(--acc)}
+#palette{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;padding:10px 14px 12px}
+.pq{aspect-ratio:1;border:1px solid #ccc;border-radius:4px 4px 50% 50%;font-size:12px;font-family:var(--fm);font-weight:600;cursor:pointer;background:#ffffff;color:#333;transition:all .15s}
+.pq:hover{border-color:#1076bc;box-shadow:0 0 4px rgba(16,118,188,0.3)}
+.pq.cur{border:2px solid #000000!important;font-weight:700}
+.pq.notvis{background:#ffffff;color:#333;border-radius:4px;border:1px solid #ccc}
+.pq.notans{background:#e74c3c;color:#fff;border-radius:4px 4px 0 0;border:none}
+.pq.ans{background:#2ecc71;color:#fff;border-radius:0 0 4px 4px;border:none}
+.pq.mrk{background:#9b59b6;color:#fff;border-radius:50%;border:none}
+.pq.mrkans{background:#9b59b6;color:#fff;border-radius:50%;border:none;box-shadow:inset 0 -6px 0 #2ecc71}
+.legend{padding:8px 14px 12px;display:flex;flex-direction:column;gap:6px;background:#fff;border-top:1px solid var(--border)}
+.leg-item{display:flex;align-items:center;gap:8px;font-size:11px;color:#333;font-weight:500}
+.leg-dot{width:16px;height:16px;flex-shrink:0;text-align:center;line-height:16px;font-size:10px;font-weight:bold}
+
+.sc{background:#fff;border-radius:4px;padding:8px;text-align:center;border:1px solid var(--border)}
+.sc .v{font-family:var(--fh);font-size:20px;font-weight:700}
+.sc .l{font-size:10px;color:var(--muted);font-family:var(--fm);margin-top:2px}
+/* CONTENT */
+#content{flex:1;margin-left:276px;padding:18px 22px 90px;max-width:900px}
+.tg-banner{background:#eef7fe;border:1px solid #bce0fd;border-radius:4px;padding:10px 16px;display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.tg-banner a{background:var(--acc);color:#fff;font-family:var(--fh);font-weight:700;font-size:13px;padding:5px 14px;border-radius:4px;text-decoration:none;margin-left:auto;white-space:nowrap}
+.sec-hdr{background:#f8f9fa;border:1px solid var(--border);border-left:4px solid var(--acc);border-radius:4px;padding:10px 16px;margin-bottom:16px;font-family:var(--fh);font-size:14px;line-height:1.6;color:#333}
+.sec-hdr strong{color:var(--acc)}
+/* CARD */
+.qcard{background:var(--surf);border:1px solid var(--border);border-radius:4px;padding:22px;box-shadow:0 1px 3px rgba(0,0,0,0.05);animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.q-hdr{display:flex;align-items:center;gap:8px;margin-bottom:14px;border-bottom:1px solid #eee;padding-bottom:10px}
+.q-num{background:var(--acc);color:#fff;font-family:var(--fh);font-size:14px;font-weight:700;padding:3px 10px;border-radius:3px}
+.q-badge{background:#f1f3f5;color:#444;font-family:var(--fm);font-size:11px;padding:3px 8px;border-radius:3px;border:1px solid var(--border)}
+.q-mark-badge{margin-left:auto;background:#fff5f5;color:var(--err);font-size:11px;font-family:var(--fm);padding:3px 8px;border-radius:3px;border:1px solid #fecaca}
+.q-text{font-size:15px;line-height:1.8;color:#222;margin-bottom:18px}
+/* diagram */
+.diag{background:#fff;border:1px solid #ddd;border-radius:4px;padding:10px 14px;margin:12px 0;display:inline-block;max-width:100%}
+.diag svg{display:block;max-width:100%;height:auto}
+/* options */
+.opts{display:flex;flex-direction:column;gap:9px;margin-bottom:18px}
+.opt{display:flex;align-items:flex-start;gap:10px;padding:11px 14px;background:#f8f9fa;border:1px solid #dcdcdc;border-radius:4px;cursor:pointer;text-align:left;color:#333;font-size:14px;font-family:var(--fb);transition:all .18s;line-height:1.7;width:100%}
+.opt:hover{border-color:#b0b0b0;background:#f1f3f5}
+.opt.sel{border-color:#337ab7;background:#edf4fa}
+.opt.corr{border-color:var(--ok);background:#f2f9f2}
+.opt.incorr{border-color:var(--err);background:#fff5f5}
+.opt-l{min-width:26px;height:26px;background:#fff;border:1px solid #ccc;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-weight:700;font-size:13px;color:#555;flex-shrink:0;transition:all .18s}
+.opt.sel .opt-l{background:#337ab7;color:#fff;border-color:#337ab7}
+.opt.corr .opt-l{background:var(--ok);color:#fff;border-color:var(--ok)}
+.opt.incorr .opt-l{background:var(--err);color:#fff;border-color:var(--err)}
+/* NAT */
+.nat-wrap{margin-bottom:18px}
+.nat-lbl{font-size:11px;color:var(--muted);margin-bottom:7px;font-family:var(--fm);letter-spacing:1px}
+.nat-inp{background:#fff;border:1px solid var(--border);border-radius:4px;padding:8px 12px;font-family:var(--fm);font-size:18px;color:#333;width:200px;outline:none;transition:border-color .2s}
+.nat-inp:focus{border-color:var(--acc)}
+.nat-inp.corr{border-color:var(--ok);color:var(--ok)}
+.nat-inp.incorr{border-color:var(--err);color:var(--err)}
+.nat-ans{margin-top:8px;font-size:13px;color:var(--ok);font-family:var(--fm)}
+/* actions */
+.q-actions{display:flex;gap:8px;flex-wrap:wrap;padding-top:14px;border-top:1px solid var(--border)}
+.btn{padding:8px 18px;border-radius:4px;font-family:var(--fh);font-size:14px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:all .18s;letter-spacing:.5px}
+.btn-acc{background:#fff;color:#333;border:1px solid #ccc}
+.btn-acc:hover{background:#f1f3f5}
+.btn-sec{background:#fff;color:#333;border:1px solid #ccc}
+.btn-sec:hover{background:#f1f3f5}
+.btn-mrk{background:#fff;color:#333;border:1px solid #ccc}
+.btn-mrk.on{background:#9b59b6;color:#fff;border-color:#9b59b6}
+.btn-clr{background:#fff;color:#333;border:1px solid #ccc}
+.btn-clr:hover{background:#fff5f5;color:var(--err);border-color:var(--err)}
+.btn-sub{background:#4cae4c;color:#fff;border-color:#4cae4c;margin-left:auto}
+.btn-sub:hover{background:#449d44}
+/* solution */
+.sol{display:none;margin-top:14px;padding:13px 15px;background:#f8f9fa;border-radius:4px;border-left:4px solid var(--acc);font-size:13px;line-height:1.7;color:#444}
+.sol.on{display:block}
+/* bottom nav */
+#botnav{position:fixed;bottom:0;left:276px;right:0;background:#edf4fa;border-top:1px solid #bce0fd;padding:12px 22px;display:flex;align-items:center;gap:8px;z-index:90}
+/* result */
+#result{display:none;position:fixed;inset:0;background:rgba(255,255,255,.98);z-index:200;overflow-y:auto;padding:36px 18px}
+.rbox{max-width:780px;margin:0 auto;background:var(--surf);border-radius:8px;border:1px solid var(--border);box-shadow:0 4px 15px rgba(0,0,0,0.1);overflow:hidden}
+.r-hdr{background:#f8f9fa;border-bottom:3px solid var(--acc);padding:26px;text-align:center}
+.r-hdr h1{font-family:var(--fh);font-size:30px;font-weight:700;color:var(--acc);letter-spacing:1px;margin-bottom:5px}
+.r-hdr p{color:var(--muted);font-family:var(--fm);font-size:12px}
+.r-scores{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border-bottom:1px solid var(--border)}
+.r-sc{background:var(--surf);padding:18px;text-align:center}
+.r-sc .big{font-family:var(--fh);font-size:38px;font-weight:700;line-height:1}
+.r-sc .lbl{font-size:10px;color:var(--muted);font-family:var(--fm);margin-top:5px;text-transform:uppercase;letter-spacing:1px}
+.r-subjs{padding:20px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.r-subj{background:#f8f9fa;border-radius:6px;padding:14px;border:1px solid var(--border)}
+.r-subj h3{font-family:var(--fh);font-size:14px;font-weight:700;color:var(--acc);margin-bottom:10px}
+.r-row{display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px}
+.r-row .rv{font-family:var(--fm);font-weight:500}
+.r-acts{padding:18px 20px;display:flex;gap:10px;justify-content:center;border-top:1px solid var(--border)}
+/* watermark */
+.wm{position:fixed;bottom:65px;right:18px;font-family:var(--fh);font-size:12px;color:rgba(0,0,0,.04);letter-spacing:2px;transform:rotate(-15deg);pointer-events:none;z-index:5;font-weight:700}
+/* scrollbar */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:#ccc;border-radius:3px}
+mjx-container{overflow-x:auto;max-width:100%}
+</style>
+<style>
+.logo-name,.logo-sub,a[href*="t.me"],a[href*="karnhim"]{visibility:hidden!important;pointer-events:none!important}
+.logo-icon{pointer-events:none!important}
+</style>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+ var w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);var n;
+ while(n=w.nextNode()){if(/karnhim|t\.me\/|telegram channel/i.test(n.nodeValue)){n.nodeValue=n.nodeValue.replace(/t\.me\/karnhim\s*➜?|karnhim|Telegram Channel/gi,'');}}
+ document.querySelectorAll('a[href*="t.me"]').forEach(function(a){a.removeAttribute('href');a.style.pointerEvents='none';});
+});
+</script>
+</head>
+<body>
+<div id="topbar">
+  <div class="logo">
+    <div class="logo-icon">CBT</div>
+    <div>
+      <div class="logo-name">Test Portal</div>
+      <div class="logo-sub">QPT 4</div>
+    </div>
+  </div>
+  <div class="test-name">Mock Test 4 &nbsp;|&nbsp; Full Syllabus</div>
+  <div id="timer">3:00:00</div>
+</div>
+
+<div id="wrap">
+<div id="sidebar">
+  <div class="sb-sec">
+    <div class="sb-title">Subject</div>
+    <div class="subj-tabs">
+      <button class="stab active" onclick="switchSubject('physics')">Physics</button>
+      <button class="stab" onclick="switchSubject('chemistry')">Chem</button>
+      <button class="stab" onclick="switchSubject('math')">Math</button>
+    </div>
+  </div>
+  <div class="sb-sec" style="padding-bottom:0"><div class="sb-title">Question Palette</div></div>
+  <div id="palette"></div>
+  <div class="legend">
+    <div class="sb-title">Instructions</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#ffffff;border:1px solid #ccc;border-radius:4px"></div>Not Visited</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#e74c3c;border-radius:4px 4px 0 0"></div>Not Answered</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#2ecc71;border-radius:0 0 4px 4px"></div>Answered</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#9b59b6;border-radius:50%"></div>Marked for Review</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#9b59b6;border-radius:50%;box-shadow:inset 0 -4px 0 #2ecc71"></div>Answered & Marked for Review</div>
+  </div>
+</div>
+
+<div id="content">
+  <div class="tg-banner">
+    <div>
+      <div style="font-family:var(--fh);font-size:13px;font-weight:700;color:var(--acc)">📚 Official Telegram Updates</div>
+      <div style="font-size:11px;color:var(--muted)">Free Premium PDFs, Mock Tests & Daily Notes</div>
+    </div>
+    <a href="https://t.me/karnhim" target="_blank">t.me/karnhim ➜</a>
+  </div>
+  <div class="sec-hdr" id="sec-hdr"></div>
+  <div class="qcard" id="qcard"></div>
+</div>
+</div>
+
+<div id="botnav">
+  <button class="btn btn-mrk" id="mrkBtn" onclick="toggleMark()">Mark for Review & Next</button>
+  <button class="btn btn-clr" onclick="clearResp()">Clear Response</button>
+  <button class="btn btn-sec" style="background:#337ab7;color:#fff;border-color:#2e6da4" onclick="nav(1)">Save & Next ▶</button>
+  <button class="btn btn-sub" onclick="confirmSubmit()">Submit Test ⏎</button>
+</div>
+
+<div class="wm">https://t.me/karnhim</div>
+
+<div id="result">
+  <div class="rbox">
+    <div class="r-hdr">
+      <div style="font-size:12px;color:var(--muted);font-family:var(--fm);margin-bottom:6px">MOCK TEST 4 · COMPLETE STATUS</div>
+      <h1>TEST COMPLETE</h1>
+      <p>Physics · Chemistry · Mathematics</p>
+    </div>
+    <div class="r-scores">
+      <div class="r-sc"><div class="big" id="r-tot" style="color:var(--acc)">0</div><div class="lbl">Total Score</div></div>
+      <div class="r-sc"><div class="big" id="r-pct" style="color:var(--ok)">0%</div><div class="lbl">Percentage</div></div>
+      <div class="r-sc"><div class="big" id="r-rnk" style="color:var(--acc2)">—</div><div class="lbl">Percentile Est.</div></div>
+    </div>
+    <div class="r-subjs" id="r-subjs"></div>
+    <div class="r-acts">
+      <button class="btn btn-acc" onclick="reviewMode()">Review Answers</button>
+      <a href="https://t.me/karnhim" target="_blank" class="btn" style="background:#eef7fe;color:#1076bc;border:1px solid #bce0fd;text-decoration:none">Join Telegram</a>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── QUESTION DATA (images via absolute URLs) ─────────────────────────────
+const QS = [
+  {id:1,sub:'physics',sec:'scq',q:`There is a horizontal film of soap solution. On it a thread is placed in the form of a loop. The film is pierced inside the loop and the thread becomes a circular loop of radius \\(R\\). If the surface tension of the film be \\(T\\), then tension in the thread will be:`,opts:[`\\(\\pi R^2 T\\)`,`\\(2RT\\)`,`\\(RT\\)`,`\\(\\frac{\\pi R^2}{T}\\)`],ans:2,exp:`Consider a small thread element subtending angle \\(d\\theta\\) at the center. The outward force due to surface tension is \\(2T(R d\\theta)\\) since soap film has two surfaces. The inward restoring force due to thread tension is \\(2 T_{\\text{thread}} \\sin(d\\theta/2) \\approx T_{\\text{thread}} d\\theta\\). Balancing forces gives \\(T_{\\text{thread}} d\\theta = 2 T R d\\theta \\implies T_{\\text{thread}} = 2RT\\).`},
+  {id:2,sub:'physics',sec:'scq',q:`A particle executing SHM has a maximum speed of \\(0.5\\text{ m s}^{-1}\\) and a maximum acceleration of \\(1.0\\text{ m s}^{-2}\\). The angular frequency of oscillation is`,opts:[`\\(2\\text{ rad s}^{-1}\\)`,`\\(0.5\\text{ rad s}^{-1}\\)`,`\\(2\\pi\\text{ rad s}^{-1}\\)`,`\\(0.5\\pi\\text{ rad s}^{-1}\\)`],ans:1,exp:`In SHM, \\(v_{\\max} = A\\omega\\) and \\(a_{\\max} = A\\omega^2\\). Dividing the two expressions gives \\(\\omega = \\frac{a_{\\max}}{v_{\\max}} = \\frac{1.0}{0.5} = 2\\text{ rad s}^{-1}\\).`},
+  {id:3,sub:'physics',sec:'scq',q:`Consider two stress-strain graphs of two metal wires of different materials (say material X and Y). Here, A, B, C and D represent the proportionality limit point, yield point, ultimate strength point and breaking point. Which of the following statement is correct?<div class="diag"><img src="https://cbttesthub.vercel.app/tests/QPT-4/questions/PHY_MCQ_3/image.png" alt="diagram" style="max-width:420px;width:100%;height:auto;display:block"></div>`,opts:[`Wire X is more ductile than wire Y.`,`Wire Y is more ductile than wire X.`,`Young's modulus of wire X is more than wire Y.`,`These wires cannot be compared as data is insufficient.`],ans:1,exp:`The ductility of a material is determined by the length of the plastic deformation region between the yield point/ultimate strength and the breaking point. Wire X has a wider region between C and D than wire Y, making wire X more ductile.`},
+  {id:4,sub:'physics',sec:'scq',q:`A given shaped glass tube having uniform cross section is filled with water and is mounted on a rotatable shaft as shown in figure. If the tube is rotated with a constant angular velocity \\(\\omega\\) then<div class="diag"><img src="https://cbttesthub.vercel.app/tests/QPT-4/questions/PHY_MCQ_4/image.png" alt="diagram" style="max-width:420px;width:100%;height:auto;display:block"></div>`,opts:[`water levels in both sections A and B go up`,`water level in section A goes up and that in B comes down`,`water level in section A comes down and that in B it goes up`,`water levels remain same in both sections.`],ans:3,exp:`When rotated with angular velocity \\(\\omega\\), pressure increases radially as \\(\\Delta P = \\frac{1}{2}\\rho \\omega^2 r^2\\). Section B is at distance \\(2L\\) from the axis while section A is at distance \\(L\\), so higher pressure is exerted towards B, causing the water level in section A to come down and in section B to go up.`},
+  {id:5,sub:'physics',sec:'scq',q:`Eight equal drops of water are falling through air with a steady velocity of \\(10\\text{ cm s}^{-1}\\). If the drops combine to form a single drop of big size, then the terminal velocity of this big drop is`,opts:[`\\(80\\text{ cm s}^{-1}\\)`,`\\(30\\text{ cm s}^{-1}\\)`,`\\(10\\text{ cm s}^{-1}\\)`,`\\(40\\text{ cm s}^{-1}\\)`],ans:4,exp:`Terminal velocity \\(v_T \\propto r^2\\). Volume conservation \\(8 \\times \\frac{4}{3}\\pi r^3 = \\frac{4}{3}\\pi R^3 \\implies R = 2r\\). New terminal velocity \\(v'_T = (R/r)^2 v_T = 2^2 \\times 10 = 40\\text{ cm s}^{-1}\\).`},
+  {id:6,sub:'physics',sec:'scq',q:`The position and velocity of a particle executing simple harmonic motion at \\(t = 0\\) are given by \\(3\\text{ cm}\\) and \\(8\\text{ cm s}^{-1}\\) respectively. If the angular frequency of the particle is \\(2\\text{ rad s}^{-1}\\), then the amplitude of oscillation (in cm) is`,opts:[`3`,`4`,`5`,`6`],ans:3,exp:`Using \\(v = \\omega \\sqrt{A^2 - x^2}\\), substitute \\(v = 8\\text{ cm s}^{-1}\\), \\(x = 3\\text{ cm}\\), and \\(\\omega = 2\\text{ rad s}^{-1}\\): \\(8 = 2 \\sqrt{A^2 - 9} \\implies 4 = \\sqrt{A^2 - 9} \\implies 16 = A^2 - 9 \\implies A = 5\\text{ cm}\\).`},
+  {id:7,sub:'physics',sec:'scq',q:`Two wires of same material are hanging as shown in the figure. Breaking stress is equal for both the wires.<br><br><strong>Assertion:</strong> If mass \\(m_1\\) increases, then upper wire will break first.<br><strong>Reason:</strong> Breaking load of two wires of same material can be different.<div class="diag"><img src="https://cbttesthub.vercel.app/tests/QPT-4/questions/PHY_MCQ_7/image.png" alt="diagram" style="max-width:420px;width:100%;height:auto;display:block"></div>`,opts:[`Assertion is true, reason is true; reason is a correct explanation for assertion.`,`Assertion is true, reason is true; reason is not a correct explanation for assertion.`,`Assertion is true, reason is false.`,`Assertion is false but, reason is true.`],ans:2,exp:`Tension in the upper wire is \\(T_1 = (m_1 + m_2)g\\) while tension in the lower wire is \\(T_2 = m_2 g\\). Increasing \\(m_1\\) increases stress in the upper wire, making it break first (Assertion true). Breaking load depends on area of cross section (Reason true), but this does not explain why \\(m_1\\) specifically increases tension in the upper wire.`},
+  {id:8,sub:'physics',sec:'scq',q:`Water enters through end A with speed \\(v_A\\) and leaves through end B with speed \\(v_B\\) of a cylindrical tube AB. The tube is always completely filled with water. In case I, the tube is horizontal and in case II, it is vertical with end A upwards and in case III, it is vertical with end B upwards. We have \\(v_A = v_B\\) for`,opts:[`case I`,`case II`,`case III`,`All cases`],ans:4,exp:`By the equation of continuity \\(A_A v_A = A_B v_B\\), for an incompressible liquid in a tube of uniform cross-section (\\(A_A = A_B\\)), \\(v_A = v_B\\) in all orientations (horizontal or vertical).`},
+  {id:9,sub:'physics',sec:'scq',q:`A particle is dropped from depth of \\(20\\text{ m}\\) below the earth's surface along a tunnel created inside the planet of mass \\(M\\) with radius \\(R\\) as shown in the figure, the time period of oscillation is : (if \\(GM = 10R^3\\), given \\(\\pi^2 = 10\\))<div class="diag"><img src="https://cbttesthub.vercel.app/tests/QPT-4/questions/PHY_MCQ_9/image.png" alt="diagram" style="max-width:420px;width:100%;height:auto;display:block"></div>`,opts:[`\\(4\\text{ s}\\)`,`\\(20\\text{ s}\\)`,`\\(2\\text{ s}\\)`,`\\(10\\text{ s}\\)`],ans:3,exp:`Inside a uniform spherical planet, gravitational force inside a tunnel is linear with distance from center \\(r\\), \\(F = -\\frac{GMm}{R^3} r\\). The time period of SHM is \\(T = 2\\pi \\sqrt{\\frac{R^3}{GM}}\\). Given \\(GM = 10R^3 \\implies \\frac{GM}{R^3} = 10\\), so \\(T = \\frac{2\\pi}{\\sqrt{10}}\\). With \\(\\pi^2 = 10\\), \\(T = \\frac{2\\sqrt{10}}{\\sqrt{10}} = 2\\text{ s}\\).`},
+  {id:10,sub:'physics',sec:'scq',q:`In a cylinder-piston arrangement, the air is under a pressure \\(P_1\\). A soap bubble of radius \\(r\\) lies inside the cylinder. Soap bubble has surface tension \\(T\\). The radius of soap bubble is to be reduced to half. Find the pressure \\(P_2\\) to which air should be compressed isothermally.`,opts:[`\\(P_1 + \\frac{4T}{r}\\)`,`\\(4P_1 + \\frac{4T}{r}\\)`,`\\(8P_1 + \\frac{24T}{r}\\)`,`\\(P_1 + \\frac{24T}{r}\\)`],ans:3,exp:`Initial pressure inside soap bubble \\(P_{\\text{in},1} = P_1 + \\frac{4T}{r}\\). When radius halves to \\(r/2\\), final inside pressure \\(P_{\\text{in},2} = P_2 + \\frac{4T}{r/2} = P_2 + \\frac{8T}{r}\\). For isothermal process, \\(P_{\\text{in},1} V_1 = P_{\\text{in},2} V_2 \\implies \\left(P_1 + \\frac{4T}{r}\\right) V = \\left(P_2 + \\frac{8T}{r}\\right) \\frac{V}{8} \\implies P_2 = 8P_1 + \\frac{24T}{r}\\).`},
+  {id:11,sub:'physics',sec:'scq',q:`The edge of an aluminium cube is \\(10\\text{ cm}\\) long. One face of the cube is firmly fixed to a vertical wall. A mass of \\(100\\text{ kg}\\) is then attached to the opposite face of the cube. The shear modulus of aluminium is \\(25\\text{ GPa}\\). What is the vertical deflection of this face?`,opts:[`\\(3.92 \\times 10^{-7}\\text{ m}\\)`,`\\(5.98 \\times 10^{-7}\\text{ m}\\)`,`\\(2.72 \\times 10^{-7}\\text{ m}\\)`,`\\(4.82 \\times 10^{-7}\\text{ m}\\)`],ans:1,exp:`Shear stress \\(= \\frac{F}{A} = \\eta \\frac{\\Delta x}{L} \\implies \\Delta x = \\frac{F L}{A \\eta} = \\frac{mg L}{L^2 \\eta} = \\frac{mg}{L \\eta}\\). Substituting values: \\(\\Delta x = \\frac{100 \\times 9.8}{0.1 \\times 25 \\times 10^9} = 3.92 \\times 10^{-7}\\text{ m}\\).`},
+  {id:12,sub:'physics',sec:'scq',q:`A particle starts SHM from the mean position. Its amplitude is \\(a\\) and total energy \\(E\\). At one instant its kinetic energy is \\(3E/4\\). Its displacement at that instant is`,opts:[`\\(\\frac{a}{\\sqrt{2}}\\)`,`\\(\\frac{a}{2}\\)`,`\\(\\frac{a}{\\sqrt{3}}\\)`,`\\(\\frac{a}{4}\\)`],ans:2,exp:`Total energy \\(E = KE + PE\\). Given \\(KE = \\frac{3}{4}E\\), \\(PE = E - \\frac{3}{4}E = \\frac{E}{4}\\). Since \\(PE = \\frac{1}{2}m\\omega^2 x^2\\) and \\(E = \\frac{1}{2}m\\omega^2 a^2\\), \\(\\frac{x^2}{a^2} = \\frac{1}{4} \\implies x = \\frac{a}{2}\\).`},
+  {id:13,sub:'physics',sec:'scq',q:`The Young's modulus of steel is twice that of brass. Two wires of same length and of same area of cross-section, one of steel and another of brass are suspended from the same roof. If we want the lower ends of the wires to be at the same level, then the weights added to the steel and brass wires must be in the ratio of:`,opts:[`\\(2:1\\)`,`\\(4:1\\)`,`\\(1:1\\)`,`\\(1:2\\)`],ans:1,exp:`Elongation \\(\\Delta L = \\frac{W L}{A Y}\\). For lower ends to remain at the same level, \\(\\Delta L_{\\text{steel}} = \\Delta L_{\\text{brass}} \\implies \\frac{W_{\\text{steel}}}{Y_{\\text{steel}}} = \\frac{W_{\\text{brass}}}{Y_{\\text{brass}}} \\implies \\frac{W_{\\text{steel}}}{W_{\\text{brass}}} = \\frac{Y_{\\text{steel}}}{Y_{\\text{brass}}} = 2:1\\).`},
+  {id:14,sub:'physics',sec:'scq',q:`The time period of a bob performing simple harmonic motion in water is \\(2\\text{ s}\\). If density of bob is \\(\\frac{4}{3} \\times 10^3\\text{ kg m}^{-3}\\), then time period of bob performing simple harmonic motion in air will be`,opts:[`\\(3\\text{ s}\\)`,`\\(4\\text{ s}\\)`,`\\(2\\text{ s}\\)`,`\\(1\\text{ s}\\)`],ans:4,exp:`Effective acceleration due to gravity in water is \\(g' = g\\left(1 - \\frac{\\rho_{\\text{water}}}{\\rho}\\right) = g\\left(1 - \\frac{3}{4}\\right) = \\frac{g}{4}\\). Time period in water \\(T_{\\text{water}} = 2\\pi\\sqrt{L/g'} = 2 T_{\\text{air}} = 2\\text{ s} \\implies T_{\\text{air}} = 1\\text{ s}\\).`},
+  {id:15,sub:'physics',sec:'scq',q:`A cylindrical tank is filled with water to level of \\(3\\text{ m}\\). A hole is opened at height of \\(52.5\\text{ cm}\\) from bottom. The ratio of the area of the hole to that of cross-sectional area of the cylinder is \\(0.1\\). The square of the speed with which water is coming out from the orifice is (Take \\(g = 10\\text{ ms}^{-2}\\))`,opts:[`\\(50\\text{ m}^2\\text{ s}^{-2}\\)`,`\\(40\\text{ m}^2\\text{ s}^{-2}\\)`,`\\(51.5\\text{ m}^2\\text{ s}^{-2}\\)`,`\\(50.5\\text{ m}^2\\text{ s}^{-2}\\)`],ans:1,exp:`Using Torricelli's theorem with area ratio correction, \\(v^2 = \\frac{2g h'}{1 - (a/A)^2}\\). Here \\(h' = 3 - 0.525 = 2.475\\text{ m}\\) and \\(a/A = 0.1\\). \\(v^2 = \\frac{2 \\times 10 \\times 2.475}{1 - 0.01} = \\frac{49.5}{0.99} = 50\\text{ m}^2\\text{ s}^{-2}\\).`},
+  {id:16,sub:'physics',sec:'scq',q:`The bob of a simple pendulum is a spherical hollow ball filled with water. A plugged hole near the bottom of the oscillating bob gets suddenly unplugged. During observation, till water is coming out, the time period of oscillation would`,opts:[`First increase and then decrease to the original value`,`First decrease and then increase to the original value`,`Remain unchanged`,`Increase towards a saturation value`],ans:1,exp:`As water flows out, the center of gravity of the bob shifts downwards, increasing the effective length \\(L\\) of the pendulum and thus increasing the time period \\(T\\). When water completely drains out, the center of gravity returns to the geometric center, reducing \\(L\\) and \\(T\\) back to original values.`},
+  {id:17,sub:'physics',sec:'scq',q:`The bulk modulus of a spherical object is \\(B\\). If it is subjected to uniform pressure \\(p\\), the fractional decrease in radius is`,opts:[`\\(\\frac{p}{3B}\\)`,`\\(\\frac{p}{B}\\)`,`\\(\\frac{3p}{B}\\)`,`\\(\\frac{p}{2B}\\)`],ans:1,exp:`Bulk modulus \\(B = \\frac{p}{(-\\Delta V/V)} \\implies \\frac{\\Delta V}{V} = \\frac{p}{B}\\). For a sphere, \\(V = \\frac{4}{3}\\pi r^3 \\implies \\frac{\\Delta V}{V} = 3\\frac{\\Delta r}{r}\\). Thus fractional decrease in radius \\(\\frac{\\Delta r}{r} = \\frac{p}{3B}\\).`},
+  {id:18,sub:'physics',sec:'scq',q:`<strong>Assertion:</strong> Smaller drops of liquid resist deforming forces better than the larger drops.<br><strong>Reason:</strong> Excess pressure inside a drop is directly proportional to its surface area.`,opts:[`If both assertion and reason are true and reason is the correct explanation of assertion`,`If both assertion and reason are true but reason is not the correct explanation of assertion`,`If assertion is true but reason is false`,`If both assertion and reason are false.`],ans:3,exp:`Smaller drops have smaller radius \\(r\\), leading to higher excess pressure \\(\\Delta P = \\frac{2T}{r}\\), making them more rigid against deforming forces (Assertion true). Excess pressure is inversely proportional to radius \\(r\\), not directly proportional to surface area (Reason false).`},
+  {id:19,sub:'physics',sec:'scq',q:`The displacement of a particle is given at time \\(t\\) by: \\(x = A\\sin(2\\omega t) + B\\sin^2(\\omega t)\\). Then,`,opts:[`the motion of the particle is SHM with an amplitude of \\(\\sqrt{A^2 + \\frac{B^2}{4}}\\)`,`the motion of the particle is not SHM, but oscillatory with a time period of \\(T = \\pi/\\omega\\)`,`the motion of the particle is oscillatory with a time period of \\(T = \\pi/2\\omega\\)`,`the motion of the particle is aperiodic.`],ans:1,exp:`\\(x = A\\sin(2\\omega t) + B\\sin^2(\\omega t) = A\\sin(2\\omega t) + \\frac{B}{2}(1 - \\cos(2\\omega t)) \\implies x - \\frac{B}{2} = A\\sin(2\\omega t) - \\frac{B}{2}\\cos(2\\omega t)\\). This represents simple harmonic motion about mean position \\(x_0 = B/2\\) with amplitude \\(\\sqrt{A^2 + \\frac{B^2}{4}}\\).`},
+  {id:20,sub:'physics',sec:'scq',q:`A solid sphere of volume \\(V\\) and density \\(\\rho\\) floats at the interface of two immiscible liquids of densities \\(\\rho_1\\) and \\(\\rho_2\\) respectively. If \\(\\rho_1 < \\rho < \\rho_2\\), then the ratio of volume of the parts of the sphere in upper and lower liquid is`,opts:[`\\(\\frac{\\rho_2 - \\rho}{\\rho - \\rho_1}\\)`,`\\(\\frac{\\rho + \\rho_1}{\\rho - \\rho_2}\\)`,`\\(\\frac{\\rho + \\rho_2}{\\rho + \\rho_1}\\)`,`\\(\\frac{\\rho_1 - \\rho}{\\rho_2 - \\rho}\\)`],ans:1,exp:`For floating equilibrium, total weight equals buoyant force: \\(V \\rho g = V_1 \\rho_1 g + V_2 \\rho_2 g \\implies (V_1 + V_2)\\rho = V_1 \\rho_1 + V_2 \\rho_2 \\implies \\frac{V_1}{V_2} = \\frac{\\rho_2 - \\rho}{\\rho - \\rho_1}\\).`},
+  {id:21,sub:'physics',sec:'nat',q:`In determination of Young's modulus of elasticity of wire, a force is applied and extension is recorded. Initial length of wire is \\(1\\text{ m}\\). The curve between extension and stress is depicted then Young's modulus of wire will be \\(K \\times 10^9\\text{ N/m}^2\\), where \\(K\\) is<div class="diag"><img src="https://cbttesthub.vercel.app/tests/QPT-4/questions/PHY_NVQ_1/image.png" alt="diagram" style="max-width:420px;width:100%;height:auto;display:block"></div>`,opts:null,ans:'2',exp:`From stress-extension graph, initial length \\(L = 1\\text{ m}\\). Slope \\(= \\frac{\\Delta \\text{Stress}}{\\Delta \\text{Extension}} = \\frac{(8000 - 4000) \\times 10^3\\text{ N/m}^2}{(4 - 2) \\times 10^{-3}\\text{ m}} = \\frac{4 \\times 10^6}{2 \\times 10^{-3}} = 2 \\times 10^9\\text{ N/m}^2\\). Hence \\(K = 2\\).`},
+  {id:22,sub:'physics',sec:'nat',q:`Two springs with negligible masses and force constants \\(k_1 = 200\\text{ N/m}\\) and \\(k_2 = 160\\text{ N/m}\\) are attached to the block of mass \\(m = 10\\text{ kg}\\) as shown in figure. Initially the block is at rest, at the equilibrium position in which both springs are neither stretched nor compressed. At time \\(t = 0\\), sharp impulse of \\(50\\text{ N s}\\) is given to the block with a hammer along the spring. Then the amplitude of spring will be \\(K\\) metre. Find \\(6K\\)<div class="diag"><img src="https://cbttesthub.vercel.app/tests/QPT-4/questions/PHY_NVQ_2/image.png" alt="diagram" style="max-width:420px;width:100%;height:auto;display:block"></div>`,opts:null,ans:'5',exp:`Equivalent spring constant for parallel springs \\(k_{\\text{eq}} = k_1 + k_2 = 200 + 160 = 360\\text{ N/m}\\). Velocity after impulse \\(v_0 = J/m = 50/10 = 5\\text{ m/s}\\). Energy conservation \\(\\frac{1}{2} k_{\\text{eq}} A^2 = \\frac{1}{2} m v_0^2 \\implies 360 A^2 = 10(25) = 250 \\implies A = \\frac{5}{6}\\text{ m}\\). Thus \\(6K = 6 \\times (5/6) = 5\\).`},
+  {id:23,sub:'physics',sec:'nat',q:`A \\(0.1\\text{ kg}\\) mass is suspended from a wire of negligible mass. The length of the wire is \\(1\\text{ m}\\) and its cross-sectional area is \\(4.9 \\times 10^{-7}\\text{ m}^2\\). If the mass is pulled a little in the vertically downward direction and released, it performs simple harmonic motion of angular frequency \\(140\\text{ rad s}^{-1}\\). If the Young's modulus of the material of the wire is \\(n \\times 10^9\\text{ N m}^{-2}\\), the value of \\(n\\) is`,opts:null,ans:'4',exp:`Angular frequency of vertical oscillation \\(\\omega = \\sqrt{\\frac{Y A}{m L}} \\implies 140 = \\sqrt{\\frac{Y \\times 4.9 \\times 10^{-7}}{0.1 \\times 1}} \\implies 19600 = Y \\times 4.9 \\times 10^{-6} \\implies Y = 4 \\times 10^9\\text{ N m}^{-2}\\). Thus \\(n = 4\\).`},
+  {id:24,sub:'physics',sec:'nat',q:`A sphere of mass \\(M\\) and radius \\(R\\) is falling in a viscous fluid. The terminal velocity attained by the falling object will be proportional to \\(R^x\\), find \\(x\\).`,opts:null,ans:'2',exp:`By Stokes' Law, terminal velocity \\(v_T = \\frac{2}{9}\\frac{R^2(\\rho - \\sigma)g}{\\eta} \\propto R^2\\). Therefore \\(x = 2\\).`},
+  {id:25,sub:'physics',sec:'nat',q:`A rubber cord has a cross-sectional area \\(10^{-6}\\text{ m}^2\\) and total unstretched length \\(0.1\\text{ m}\\). It is stretched to \\(0.125\\text{ m}\\) and then released to project a particle of mass \\(5.0\\text{ g}\\). The velocity of projection is (in m/s) [Given, Young's modulus of rubber, \\(Y = 5 \\times 10^8\\text{ N m}^{-2}\\)]`,opts:null,ans:'25',exp:`Work done in stretching rubber cord \\(U = \\frac{1}{2}\\frac{Y A (\\Delta L)^2}{L_0} = \\frac{1}{2} \\frac{(5 \\times 10^8)(10^{-6})(0.025)^2}{0.1} = 1.5625\\text{ J}\\). Kinetic energy \\(\\frac{1}{2} m v^2 = 1.5625 \\implies \\frac{1}{2}(0.005) v^2 = 1.5625 \\implies v = 25\\text{ m/s}\\).`},
+  {id:26,sub:'chemistry',sec:'scq',q:`The experimental data for the reaction,<div class="diag"><img src="https://cbttesthub.vercel.app/tests/QPT-4/questions/CHM_MCQ_1/image.png" alt="diagram" style="max-width:420px;width:100%;height:auto;display:block"></div>`,opts:[`\\(\\text{Rate} = k[A]^2 [B_2]^2\\)`,`\\(\\text{Rate} = k[A][B_2]\\)`,`\\(\\text{Rate} = k[B_2]\\)`,`\\(\\text{Rate} = k[B_2]^2\\)`],ans:3,exp:`Comparing experiments 1 & 2: doubling \\([B_2]\\) doubles the rate, so order w.r.t \\(B_2\\) is 1. Comparing experiments 2 & 3: doubling \\([A]\\) keeps rate constant, so order w.r.t \\(A\\) is 0. Rate law \\(= k[B_2]\\).`},
+  {id:27,sub:'chemistry',sec:'scq',q:`Statement-1: Reverse osmosis is used to purify saline water.<br>Statement-2: Solvent molecules pass from concentrated to dilute solution through semipermeable membrane if high pressure is applied on solution.`,opts:[`Statement-1 is True, Statement-2 is True; Statement-2 is a correct explanation for Statement-1.`,`Statement-1 is True, Statement-2 is True; Statement-2 is NOT a correct explanation for Statement-1.`,`Statement-1 is True, Statement-2 is False.`,`Statement-1 is False, Statement-2 is True.`],ans:1,exp:`In reverse osmosis, applying pressure greater than osmotic pressure on concentrated solution forces solvent molecules to pass from concentrated to dilute solution through semipermeable membrane (Statement-2 true and correctly explains Statement-1).`},
+  {id:28,sub:'chemistry',sec:'scq',q:`Using the standard electrode potentials given below identify the correct statements from the following.<br><br>\\(Fe^{2+} + 2e^- \\to Fe; E^\\circ = -0.44\\text{ V}\\)<br>\\(Cu^{2+} + 2e^- \\to Cu; E^\\circ = +0.34\\text{ V}\\)<br>\\(Ag^+ + e^- \\to Ag; E^\\circ = +0.80\\text{ V}\\)<br><br>(i) Copper can displace iron from \\(\\text{FeSO}_4\\) solution.<br>(ii) Iron can displace copper from \\(\\text{CuSO}_4\\) solution.<br>(iii) Silver can displace copper from \\(\\text{CuSO}_4\\) solution.<br>(iv) Iron can displace silver from \\(\\text{AgNO}_3\\) solution.`,opts:[`(i), (ii)`,`(ii), (iii)`,`(ii), (iv)`,`(i), (iv)`],ans:3,exp:`Metals with lower reduction potential (\\(E^\\circ\\)) act as stronger reducing agents and displace metals with higher \\(E^\\circ\\) from their salt solutions. Fe (\\(E^\\circ = -0.44\\text{ V}\\)) displaces Cu (\\(+0.34\\text{ V}\\)) and Ag (\\(+0.80\\text{ V}\\)). Statements (ii) and (iv) are correct.`},
+  {id:29,sub:'chemistry',sec:'scq',q:`The reaction, \\(\\text{cis } Z \\xrightleftharpoons[K_b]{K_f} \\text{trans}\\) Z is first order in both directions. At \\(28^\\circ\\text{C}\\), the equilibrium constant is \\(10^{-2}\\) and the rate constant \\(k_f = 3 \\times 10^{-5}\\text{ s}^{-1}\\). In an experiment starting with the pure cis-form, how long would it take for half of the equilibrium amount of trans-isomer to be formed?`,opts:[`\\(5.6 \\times 10^4\\text{ s}\\)`,`\\(9.8 \\times 10^2\\text{ s}\\)`,`\\(2.3 \\times 10^2\\text{ s}\\)`,`\\(7.5 \\times 10^3\\text{ s}\\)`],ans:3,exp:`Equilibrium constant \\(K = \\frac{k_f}{k_b} = 10^{-2} \\implies k_b = \\frac{3 \\times 10^{-5}}{10^{-2}} = 3 \\times 10^{-3}\\text{ s}^{-1}\\). Overall rate constant \\(k_{\\text{overall}} = k_f + k_b = 3.03 \\times 10^{-3}\\text{ s}^{-1}\\). Time to reach half equilibrium amount \\(t = \\frac{\\ln 2}{k_{\\text{overall}}} = \\frac{0.693}{3.03 \\times 10^{-3}} \\approx 2.3 \\times 10^2\\text{ s}\\).`},
+  {id:30,sub:'chemistry',sec:'scq',q:`The plot of total vapour pressure as a function of mole fraction of the components of an ideal solution formed by mixing liquids X and Y is:`,opts:[`<img src="https://cbttesthub.vercel.app/tests/QPT-4/questions/CHM_MCQ_5/option_a.png" alt="option" style="max-width:240px;width:100%;height:auto;display:block">`,`<img src="https://cbttesthub.vercel.app/tests/QPT-4/questions/CHM_MCQ_5/option_b.png" alt="option" style="max-width:240px;width:100%;height:auto;display:block">`,`<img src="https://cbttesthub.vercel.app/tests/QPT-4/questions/CHM_MCQ_5/option_c.png" alt="option" style="max-width:240px;width:100%;height:auto;display:block">`,`<img src="https://cbttesthub.vercel.app/tests/QPT-4/questions/CHM_MCQ_5/option_d.png" alt="option" style="max-width:240px;width:100%;height:auto;display:block">`],ans:2,exp:`For an ideal solution of liquids X and Y, \\(P_{\\text{total}} = P_Y^\\circ + (P_X^\\circ - P_Y^\\circ)x_X\\). When mole fraction of X is 0, total vapour pressure equals pure vapour pressure \\(P_Y^\\circ > 0\\). Option B correctly shows a non-zero intercept at \\(x_X = 0\\).`},
+  {id:31,sub:'chemistry',sec:'scq',q:`If hydrogen and oxygen are mixed and kept in the same vessel at room temperature, the reaction does not take place to form water because`,opts:[`activation energy for the reaction is very high at room temperature`,`molecules have no proper orientation to react to form water`,`the frequency of collisions is not high enough for the reaction to take place`,`no catalyst is present in the reaction mixture.`],ans:1,exp:`The reaction between \\(H_2\\) and \\(O_2\\) to form water has a very high activation energy at room temperature due to strong H-H and O=O bond dissociation energies.`},
+  {id:32,sub:'chemistry',sec:'scq',q:`Suppose that gold is being plated on to another metal in an electrolytic cell. The half-cell reaction producing the Au(s) is \\(\\text{AuCl}_4^- + 3e^- \\to \\text{Au}(s) + 4\\text{Cl}^-\\). If a \\(0.30\\text{ A}\\) current runs for \\(15.00\\text{ minute}\\), what mass of Au(s) will be plated, assume all the electrons are used in the reduction of \\(\\text{AuCl}_4^-\\)? The Faraday constant is \\(96485\\text{ C/mol}\\) and molar mass of Au is \\(197\\text{ g/mol}\\).`,opts:[`\\(0.184\\text{ g}\\)`,`\\(0.551\\text{ g}\\)`,`\\(1.84\\text{ g}\\)`,`\\(0.613\\text{ g}\\)`],ans:1,exp:`Charge \\(Q = I t = 0.30 \\times (15 \\times 60) = 270\\text{ C}\\). Moles of electrons \\(= \\frac{270}{96485} = 0.0028\\text{ mol}\\). Moles of Au deposited \\(= \\frac{0.0028}{3} = 0.000933\\text{ mol}\\). Mass of Au \\(= 0.000933 \\times 197 = 0.184\\text{ g}\\).`},
+  {id:33,sub:'chemistry',sec:'scq',q:`\\(\\text{FeCl}_3\\) on reaction with \\(\\text{K}_4[\\text{Fe(CN)}_6]\\) in aqueous solution gives blue colour. These are separated by a semipermeable membrane AB as shown. Due to osmosis there is<div class="diag"><img src="https://cbttesthub.vercel.app/tests/QPT-4/questions/CHM_MCQ_8/image.png" alt="diagram" style="max-width:420px;width:100%;height:auto;display:block"></div>`,opts:[`blue colour formation in side X`,`blue colour formation in side Y`,`blue colour formation in both of the side X and Y`,`no blue colour formation`],ans:4,exp:`Semipermeable membranes allow only solvent (water) molecules to pass through, while solute ions \\(\\text{Fe}^{3+}\\) and \\([\\text{Fe(CN)}_6]^{4-}\\) cannot cross. Thus no reaction occurs and no blue colour is formed.`},
+  {id:34,sub:'chemistry',sec:'scq',q:`For the electrochemical cell, \\(M | M^+ || X^- | X, \\)<br>\\(E^\\circ(M^+ | M) = 0.44\\text{ V}\\) and \\(E^\\circ(X | X^-) = 0.33\\text{ V}\\). From this data one can deduce that`,opts:[`\\(M + X \\to M^+ + X^-\\) is the spontaneous reaction`,`\\(M^+ + X^- \\to M + X\\) is the spontaneous reaction`,`\\(E_{\\text{cell}} = 0.77\\text{ V}\\)`,`\\(E_{\\text{cell}} = -0.77\\text{ V}\\)`],ans:2,exp:`For cell \\(M | M^+ || X^- | X\\), \\(E^\\circ_{\\text{cell}} = E^\\circ(X|X^-) - E^\\circ(M^+|M) = 0.33 - 0.44 = -0.11\\text{ V} < 0\\). Since \\(E^\\circ_{\\text{cell}} < 0\\), the forward reaction is non-spontaneous, making the reverse reaction \\(M^+ + X^- \\to M + X\\) spontaneous.`},
+  {id:35,sub:'chemistry',sec:'scq',q:`The voltage of the cell consisting of \\(\\text{Li}(s)\\) and \\(\\text{F}_2(g)\\) electrodes is \\(5.92\\text{ V}\\) at standard condition at \\(298\\text{ K}\\). What is the voltage if the electrolyte consists of \\(2\\text{M LiF}\\)?<br><br>\\(\\left( \\ln 2 = 0.693, \\text{R} = 8.314 \\text{ J K}^{-1} \\text{ mol}^{-1} \\text{ and } \\text{F} = 96500 \\text{ C mol}^{-1} \\right)\\)`,opts:[`\\(5.90\\text{ V}\\)`,`\\(5.937\\text{ V}\\)`,`\\(5.88\\text{ V}\\)`,`\\(4.9\\text{ V}\\)`],ans:3,exp:`For cell \\(2\\text{Li}(s) + \\text{F}_2(g) \\rightleftharpoons 2\\text{Li}^+ + 2\\text{F}^-\\), \\(n=2\\). \\(Q = [\\text{Li}^+]^2 [\\text{F}^-]^2 = 2^2 \\times 2^2 = 16\\). By Nernst equation, \\(E = E^\\circ - \\frac{RT}{nF}\\ln Q = 5.92 - \\frac{8.314 \\times 298}{2 \\times 96500}\\ln(16) = 5.92 - 0.0356 = 5.88\\text{ V}\\).`},
+  {id:36,sub:'chemistry',sec:'scq',q:`Consider the following statements:<br>The rate law for the acid catalysed hydrolysis of an ester being given as<br><br>Rate \\(= k[\\text{H}^+][\\text{ester}] = k'[\\text{ester}]\\). <br><br>If the acid concentration is doubled at constant ester concentration:<br><br>1. The second order rate constant, \\(k\\) is doubled.<br>2. The pseudo first order rate constant, \\(k'\\) is doubled.<br>3. The rate of the reaction is doubled.<br><br>Which of the above statements are correct?`,opts:[`1 and 2`,`2 and 3`,`1 and 3`,`1, 2 and 3`],ans:2,exp:`Rate constant \\(k\\) depends only on temperature. Pseudo first order rate constant \\(k' = k[\\text{H}^+]\\) doubles when \\([\\text{H}^+]\\) doubles. Rate \\(= k'[\\text{ester}]\\) also doubles. Statements 2 and 3 are correct.`},
+  {id:37,sub:'chemistry',sec:'scq',q:`Boiling point of benzene is \\(353.23\\text{ K}\\). When \\(1.8\\text{ g}\\) of non-volatile solute is dissolved in \\(90\\text{ g}\\) of benzene, the boiling point is raised to \\(354.11\\text{ K}\\). Given \\(K_b(\\text{benzene}) = 2.53\\text{ K kg mol}^{-1}\\). The molecular mass of non-volatile substance is`,opts:[`\\(98\\text{ g mol}^{-1}\\)`,`\\(120\\text{ g mol}^{-1}\\)`,`\\(116\\text{ g mol}^{-1}\\)`,`\\(60\\text{ g mol}^{-1}\\)`],ans:4,exp:`\\(\\Delta T_b = 354.11 - 353.23 = 0.88\\text{ K}\\). Molar mass \\(M_b = \\frac{1000 K_b w_b}{\\Delta T_b w_a} = \\frac{1000 \\times 2.53 \\times 1.8}{0.88 \\times 90} = 57.5 \\approx 60\\text{ g mol}^{-1}\\).`},
+  {id:38,sub:'chemistry',sec:'scq',q:`Consider this reaction: <br><br>\\(2\\text{NO}_2(g) + \\text{O}_3(g) \\to \\text{N}_2\\text{O}_5(g) + \\text{O}_2(g)\\)<br><br>The rate law for the above reaction is given as rate \\(= k[\\text{NO}_2][\\text{O}_3]\\). Which of the following mechanism is/are consistent with the rate law?<br>Mechanism I:<br><br>\\(\\text{NO}_2(g) + \\text{O}_3(g) \\xrightarrow{slow} \\text{NO}_3(g) + \\text{O}_2(g)\\)<br>\\(\\text{NO}_3(g) + \\text{NO}_2(g) \\xrightarrow{fast} \\text{N}_2\\text{O}_5(g)\\)<br><br>Mechanism II:<br>\\(\\text{O}_3(g) \\rightleftharpoons \\text{O}_2(g) + \\text{O}\\)<br>\\(\\text{NO}_2(g) + \\text{O} \\xrightarrow{slow} \\text{NO}_3(g)\\)<br>\\(\\text{NO}_3(g) + \\text{NO}_2(g) \\xrightarrow{fast} \\text{N}_2\\text{O}_5(g)\\)`,opts:[`I only`,`II only`,`Both I & II`,`Neither I nor II`],ans:1,exp:`For Mechanism I, slow step is \\(\\text{NO}_2 + \\text{O}_3 \\to \\text{NO}_3 + \\text{O}_2\\), giving rate \\(= k[\\text{NO}_2][\\text{O}_3]\\), which matches the experimental rate law. Mechanism II yields rate \\(\\propto \\frac{[\\text{NO}_2][\\text{O}_3]}{[\\text{O}_2]}\\).`},
+  {id:39,sub:'chemistry',sec:'scq',q:`A \\(200\\text{ W}, 100\\text{ V}\\) bulb is connected in series with an electrolytic cell. If an aqueous solution of an Sn-salt is electrolysed for \\(5\\text{ hrs}\\), \\(11.1\\text{ g}\\) of Sn gets deposited. The chemical formula of the compound is (Given atomic weight of Sn is \\(118.7\\text{ g mol}^{-1}\\))`,opts:[`\\(\\text{SnO}\\)`,`\\(\\text{SnCl}_2\\)`,`\\(\\text{SnCl}_4\\)`,`\\(\\text{SnO}_2\\)`],ans:3,exp:`Current \\(I = P/V = 200/100 = 2\\text{ A}\\). \\(Q = I t = 2 \\times (5 \\times 3600) = 36000\\text{ C}\\). Moles of \\(e^- = \\frac{36000}{96500} = 0.373\\text{ mol}\\). Moles of Sn \\(= \\frac{11.1}{118.7} = 0.0935\\text{ mol}\\). \\(n = \\frac{0.373}{0.0935} = 4 \\implies \\text{SnCl}_4\\).`},
+  {id:40,sub:'chemistry',sec:'scq',q:`If energy of activation of the reaction is \\(53.6\\text{ kJ mol}^{-1}\\) and the temperature changes from \\(27^\\circ\\text{C}\\) to \\(37^\\circ\\text{C}\\), then the value of (\\(\\frac{k_{37^\\circ\\text{C}}}{k_{27^\\circ\\text{C}}}\\)) is`,opts:[`2.5`,`1.0`,`2.0`,`1.5`],ans:3,exp:`Using Arrhenius equation \\(\\ln\\left(\\frac{k_2}{k_1}\\right) = \\frac{E_a}{R}\\left(\\frac{T_2 - T_1}{T_1 T_2}\\right) = \\frac{53600}{8.314}\\left(\\frac{10}{300 \\times 310}\\right) = 0.693 \\implies \\frac{k_2}{k_1} = e^{0.693} = 2.0\\).`},
+  {id:41,sub:'chemistry',sec:'scq',q:`The conductivity of a weak acid HA of concentration \\(0.001\\text{ mol L}^{-1}\\) is \\(2.0 \\times 10^{-5}\\text{ S cm}^{-1}\\). If \\(\\Lambda_m^\\circ(\\text{HA}) = 190\\text{ S cm}^2\\text{mol}^{-1}\\), the ionization constant (\\(K_a\\)) of HA is equal to ___ \\(\\times 10^{-6}\\) (Round off to Nearest Integer)`,opts:[`11`,`13`,`12`,`14`],ans:3,exp:`Molar conductivity \\(\\Lambda_m = \\frac{1000\\kappa}{c} = \\frac{1000 \\times 2.0 \\times 10^{-5}}{0.001} = 20\\text{ S cm}^2\\text{mol}^{-1}\\). Degree of dissociation \\(\\alpha = \\frac{20}{190} = \\frac{2}{19}\\). Ionization constant \\(K_a = \\frac{c \\alpha^2}{1 - \\alpha} \\approx 12.38 \\times 10^{-6} \\approx 12 \\times 10^{-6}\\).`},
+  {id:42,sub:'chemistry',sec:'scq',q:`<strong>Assertion:</strong> Azeotropic mixtures are formed only by non-ideal solutions and they may have boiling points either greater than both the components or lesser than both the components.<br><strong>Reason:</strong> The composition of the vapour phase is same as that of the liquid phase of an azeotropic mixture.`,opts:[`If both assertion and reason are true and reason is the correct explanation of assertion.`,`If both assertion and reason are true but reason is not the correct explanation of assertion.`,`If assertion is true but reason is false.`,`If both assertion and reason are false.`],ans:2,exp:`Azeotropes are binary mixtures formed by non-ideal solutions having same composition in liquid and vapour phase (Reason true). However, azeotropes form due to large positive or negative deviations from Raoult's law, so Reason is not the correct explanation for Assertion.`},
+  {id:43,sub:'chemistry',sec:'scq',q:`A \\(1.0\\text{M}\\) solution with respect to each of the metal halides \\(\\text{AX}_3, \\text{BX}_2, \\text{CX}_3\\) and \\(\\text{DX}_2\\) is electrolysed using platinum electrodes. <br><br>If \\(E_{\\text{A}^{3+}/\\text{A}}^\\circ = 1.50\\text{ V}, E_{\\text{B}^{2+}/\\text{B}}^\\circ = 0.3\\text{ V}, E_{\\text{C}^{3+}/\\text{C}}^\\circ = -0.74\\text{ V}, E_{\\text{D}^{2+}/\\text{D}}^\\circ = -2.37\\text{ V}\\). The correct sequence in which the various metals are deposited at the cathode is`,opts:[`A, B, C, D`,`A, B, C`,`D, C, B, A`,`C, B, A`],ans:2,exp:`During electrolysis, cations with higher (more positive) reduction potentials get reduced first at the cathode. Reduction potentials: \\(E^\\circ(\\text{A}^{3+}/\\text{A}) = 1.50\\text{ V} > E^\\circ(\\text{B}^{2+}/\\text{B}) = 0.30\\text{ V} > E^\\circ(\\text{C}^{3+}/\\text{C}) = -0.74\\text{ V}\\). Sequence of deposition is A, B, C.`},
+  {id:44,sub:'chemistry',sec:'scq',q:`Regarding to Henry's law which of the following is not correct statement ?`,opts:[`Different gases have different \\(K_H\\) (Henry's law constant) values at the same temperature`,`The partial pressure of the gas in vapour phase is proportional to the mole fraction of the gas in the solution`,`Higher the value of \\(K_H\\) at a given pressure, higher is the solubility of the gas in the liquids`,`The value of \\(K_H\\) increases with increase of temperature and \\(K_H\\) is function of the nature of the gas`],ans:3,exp:`According to Henry's Law \\(p = K_H x \\implies x = p / K_H\\). Higher \\(K_H\\) value at a given pressure indicates LOWER solubility of the gas in liquid.`},
+  {id:45,sub:'chemistry',sec:'scq',q:`Mark the correct statement(s) for corrosion.`,opts:[`It quickly coats the surfaces of the metallic object.`,`Its examples are- Rusting of iron, tarnishing of silver`,`It does not cause damage to buildings, ship made metals especially that are made up of iron.`,`All of the above`],ans:2,exp:`Corrosion is a slow electrochemical process causing degradation of metals. Examples include rusting of iron and tarnishing of silver.`},
+  {id:46,sub:'chemistry',sec:'nat',q:`If the freezing point of a \\(0.01\\text{ molal}\\) aqueous solution of a cobalt (III) bromide-ammonia complex (which behaves as a strong electrolyte) is \\(-0.0557^\\circ\\text{C}\\), the number of bromide(s) in the coordination sphere of the complex is [\\(K_f\\) for water \\(= 1.86\\text{ K kg mol}^{-1}\\)]`,opts:null,ans:'1',exp:`\\(\\Delta T_f = i K_f m \\implies 0.0557 = i \\times 1.86 \\times 0.01 \\implies i = 3\\). A van't Hoff factor of \\(3\\) indicates dissociation into 3 ions: \\([\\text{Co}(\\text{NH}_3)_5\\text{Br}]\\text{Br}_2 \\to [\\text{Co}(\\text{NH}_3)_5\\text{Br}]^{2+} + 2\\text{Br}^-\\). Hence 1 bromide is inside the coordination sphere.`},
+  {id:47,sub:'chemistry',sec:'nat',q:`Standard free energies of formation (in \\(\\text{kJ/mol}\\)) at \\(298\\text{ K}\\) are \\(-237.2, -394.4\\) and \\(-8.2\\) for \\(\\text{H}_2\\text{O}(l), \\text{CO}_2(g)\\) and pentane (\\(g\\)), respectively. The value \\(E_{\\text{cell}}^\\circ\\) for the pentane-oxygen fuel cell is (mark answer to nearest integer)`,opts:null,ans:'1',exp:`\\(\\Delta G^\\circ_{\\text{rxn}} = 5(-394.4) + 6(-237.2) - (-8.2) = -3387\\text{ kJ/mol}\\). For pentane oxidation \\(\\text{C}_5\\text{H}_{12} + 8\\text{O}_2 \\to 5\\text{CO}_2 + 6\\text{H}_2\\text{O}\\), \\(n=32\\) electrons. \\(E^\\circ_{\\text{cell}} = \\frac{3.387 \\times 10^6}{32 \\times 96500} = 1.096\\text{ V} \\approx 1\\).`},
+  {id:48,sub:'chemistry',sec:'nat',q:`A and B decompose via first order kinetics with half-lives \\(94.0\\text{ min}\\) and \\(18.0\\text{ min}\\) respectively. Starting from an equimolar non-reactive mixture of A and B, the time taken for the concentration of A to become 16 times that of B is (in min, round off to nearest integer):`,opts:null,ans:'89',exp:`\\([A] = C_0 e^{-k_A t}\\) and \\([B] = C_0 e^{-k_B t}\\). \\([A] = 16[B] \\implies e^{(k_B - k_A)t} = 16 \\implies (k_B - k_A)t = 4\\ln 2\\). \\(\\left(\\frac{1}{18} - \\frac{1}{94}\\right)t = 4 \\implies \\frac{76}{1692}t = 4 \\implies t = 89\\text{ min}\\).`},
+  {id:49,sub:'chemistry',sec:'nat',q:`The forward rate constant for the reversible gaseous reaction, \\(\\text{C}_2\\text{H}_6 \\rightleftharpoons 2\\text{CH}_3\\) is \\(3.14 \\times 10^2\\text{ s}^{-1}\\) at \\(200\\text{ K}\\). If \\(10^{-5}\\text{ moles}\\) of \\(\\text{CH}_3\\) and \\(100\\text{ mol}\\) of \\(\\text{C}_2\\text{H}_6\\) are present in \\(10\\text{ L}\\) vessel at equilibrium, then the rate constant for the backward reaction at this temperature is ____ \\(\\times 10^{15}\\text{ L mol}^{-1}\\text{ s}^{-1}\\) (mark answer to nearest integer)`,opts:null,ans:'3',exp:`\\(K_c = \\frac{[\\text{CH}_3]^2}{[\\text{C}_2\\text{H}_6]} = \\frac{(10^{-6})^2}{10} = 10^{-13}\\text{ M}\\). \\(k_b = \\frac{k_f}{K_c} = \\frac{3.14 \\times 10^2}{10^{-13}} = 3.14 \\times 10^{15}\\text{ L mol}^{-1}\\text{ s}^{-1} \\approx 3 \\times 10^{15}\\).`},
+  {id:50,sub:'chemistry',sec:'nat',q:`A current of \\(2.0\\text{ A}\\) when passed for 5 hours through a molten metal salt deposits \\(22.2\\text{ g}\\) of metal of atomic weight 177. The oxidation state of the metal in the metal salt is (integer only without + or -)`,opts:null,ans:'3',exp:`\\(Q = I t = 2.0 \\times 18000 = 36000\\text{ C} = 0.373\\text{ mol } e^-\\). Moles of metal \\(= \\frac{22.2}{177} = 0.1254\\text{ mol}\\). Oxidation state \\(= \\frac{0.373}{0.1254} \\approx 3\\).`},
+  {id:51,sub:'math',sec:'scq',q:`A point \\(P\\) moves on \\(xy\\)-plane such that \\(PS + PS' = 4\\), where \\(S(K, 0)\\) and \\(S'(-K, 0)\\), then which of the following is not true about the locus of \\(P\\)?`,opts:[`Ellipse if \\(K \\in (-2, 2)\\)`,`Line segment if \\(K = \\pm 2\\)`,`Empty if \\(K \\in (-\\infty, -2) \\cup (2, \\infty)\\)`,`None of these`],ans:4,exp:`\\(PS + PS' = 4\\). \\(SS' = 2|K|\\). Locus is an ellipse if \\(2|K| < 4 \\implies K \\in (-2,2)\\); line segment if \\(2|K| = 4 \\implies K = \\pm 2\\); empty set if \\(2|K| > 4 \\implies K \\in (-\\infty,-2) \\cup (2,\\infty)\\). Thus all A, B, C are true.`},
+  {id:52,sub:'math',sec:'scq',q:`\\(OA\\) and \\(OB\\) are two mutually perpendicular chords of \\(y^2 = 4ax\\), \\(O\\) being the origin. Line \\(AB\\) will always pass through the point`,opts:[`\\((6a, 0)\\)`,`\\((8a, 0)\\)`,`\\((4a, 0)\\)`,`\\((a, 0)\\)`],ans:3,exp:`Let \\(A(a t_1^2, 2a t_1)\\) and \\(B(a t_2^2, 2a t_2)\\). Perpendicular chords \\(OA \\perp OB \\implies t_1 t_2 = -4\\). Equation of chord \\(AB\\) reduces to \\(2(x - 4a) - (t_1 + t_2)y = 0\\), which always passes through \\((4a, 0)\\).`},
+  {id:53,sub:'math',sec:'scq',q:`If the three distinct lines \\(x + 2ay + a = 0\\), \\(x + 3by + b = 0\\) and \\(x + 4ay + a = 0\\) are concurrent, then the point \\((a, b)\\) lies on a`,opts:[`circle`,`straight line`,`parabola`,`hyperbola`],ans:2,exp:`Intersection of 1st and 3rd lines gives \\(x = -a, y = 0\\). Substituting into 2nd line \\(-a + b = 0 \\implies b = a\\), which represents a straight line.`},
+  {id:54,sub:'math',sec:'scq',q:`If a variable line \\(3x + 4y - \\lambda = 0\\) is such that the two circles \\(x^2 + y^2 - 2x - 2y + 1 = 0\\) and \\(x^2 + y^2 - 18x - 2y + 78 = 0\\) are on its opposite sides, then the set of all values of \\(\\lambda\\) is the interval :`,opts:[`\\([13, 23]\\)`,`\\((23, 31)\\)`,`\\([12, 21]\\)`,`\\((2, 17)\\)`],ans:3,exp:`Circles have centers \\(C_1(1,1), R_1=1\\) and \\(C_2(9,1), R_2=2\\). For circles to be on opposite sides of \\(3x+4y-\\lambda=0\\), \\((7-\\lambda)(31-\\lambda)<0 \\implies 7 < \\lambda < 31\\). Line must not intersect circles: \\(|7-\\lambda|>5\\) and \\(|31-\\lambda|>10 \\implies 12 < \\lambda < 21\\), interval \\([12,21]\\).`},
+  {id:55,sub:'math',sec:'scq',q:`The number of rational point(s) (a point \\((a, b)\\) is rational, if \\(a\\) and \\(b\\) both are rational numbers) on the circumference of a circle having centre \\((\\pi, e)\\) is`,opts:[`at most one`,`at least two`,`exactly two`,`infinite`],ans:1,exp:`If a circle has two rational points, its perpendicular bisector has rational slope and passes through center \\((\\pi, e)\\), implying a linear rational relation between \\(\\pi\\) and \\(e\\), which is impossible. Hence at most one rational point exists.`},
+  {id:56,sub:'math',sec:'scq',q:`If two points \\(P\\) and \\(Q\\) lie on the hyperbola \\(\\frac{x^2}{a^2} - \\frac{y^2}{b^2} = 1\\ (a < b)\\), whose centre \\(C\\) be such that \\(CP\\) is perpendicular to \\(CQ\\), then the value of \\(\\frac{1}{CP^2} + \\frac{1}{CQ^2}\\) is`,opts:[`\\(\\frac{b^2-a^2}{2ab}\\)`,`\\(\\frac{1}{a^2} + \\frac{1}{b^2}\\)`,`\\(\\frac{2ab}{b^2-a^2}\\)`,`\\(\\frac{1}{a^2} - \\frac{1}{b^2}\\)`],ans:4,exp:`In polar coordinates, \\(\\frac{1}{CP^2} = \\frac{\\cos^2\\theta}{a^2} - \\frac{\\sin^2\\theta}{b^2}\\) and \\(\\frac{1}{CQ^2} = \\frac{\\sin^2\\theta}{a^2} - \\frac{\\cos^2\\theta}{b^2}\\). Adding both gives \\(\\frac{1}{CP^2} + \\frac{1}{CQ^2} = \\frac{1}{a^2} - \\frac{1}{b^2}\\).`},
+  {id:57,sub:'math',sec:'scq',q:`A straight line \\(L\\) through the point \\((3, -2)\\) is inclined at an angle \\(60^\\circ\\) to the line \\(\\sqrt{3}x + y = 1\\). If \\(L\\) also intersects the x-axis, then the equation of \\(L\\) is`,opts:[`\\(y + \\sqrt{3}x + 2 - 3\\sqrt{3} = 0\\)`,`\\(y - \\sqrt{3}x + 2 + 3\\sqrt{3} = 0\\)`,`\\(\\sqrt{3}y - x + 3 + 2\\sqrt{3} = 0\\)`,`\\(\\sqrt{3}y + x - 3 + 2\\sqrt{3} = 0\\)`],ans:2,exp:`Slope of given line is \\(-\\sqrt{3}\\) (inclination \\(120^\\circ\\)). Inclination of \\(L\\) is \\(120^\\circ \\pm 60^\\circ\\). \\(180^\\circ\\) is horizontal (\\(y=-2\\), doesn't intersect x-axis). \\(60^\\circ\\) has slope \\(\\sqrt{3}\\). Equation through \\((3,-2)\\): \\(y - \\sqrt{3}x + 2 + 3\\sqrt{3} = 0\\).`},
+  {id:58,sub:'math',sec:'scq',q:`The points \\(A(3, 6)\\) and \\(B\\) lie on the parabola \\(y^2 = 4ax\\), such that the chord \\(AB\\) subtends \\(90^\\circ\\) at the origin, then the length of the chord \\(AB\\) is equal to`,opts:[`\\(15\\sqrt{13}\\) units`,`\\(12\\sqrt{17}\\) units`,`\\(9\\sqrt{17}\\) units`,`\\(9\\sqrt{10}\\) units`],ans:1,exp:`For \\(y^2 = 4ax\\), \\(A(3,6) \\implies a = 3, t_1 = 1\\). Since \\(AB\\) subtends \\(90^\\circ\\) at origin, \\(t_1 t_2 = -4 \\implies t_2 = -4 \\implies B(48, -24)\\). Length \\(AB = \\sqrt{45^2 + (-30)^2} = 15\\sqrt{13}\\) units.`},
+  {id:59,sub:'math',sec:'scq',q:`Suppose \\(S\\) and \\(S'\\) are foci of the ellipse \\(\\frac{x^2}{25} + \\frac{y^2}{16} = 1\\). If \\(P\\) is a variable point on the ellipse and if \\(\\Delta\\) is the area (in sq. units) of the triangle \\(PSS'\\), then the maximum value of \\(\\Delta\\) is double of`,opts:[`Minimum value of \\(\\frac{2a^8+2b^4}{a^4 b^2} \\quad \\forall a, b \\in \\mathbb{R}\\)`,`Minimum value of \\(\\frac{3a^8+3b^4}{a^4 b^2} \\quad \\forall a, b \\in \\mathbb{R}\\)`,`Minimum value of \\(\\frac{4a^8+4b^4}{a^4 b^2} \\quad \\forall a, b \\in \\mathbb{R}\\)`,`Minimum value of \\(\\frac{6a^8+6b^4}{a^4 b^2} \\quad \\forall a, b \\in \\mathbb{R}\\)`],ans:2,exp:`Foci distance \\(SS' = 2ae = 6\\). Area \\(\\Delta = \\frac{1}{2}(6)|y_P| = 3|y_P|\\). Maximum \\(\\Delta = 3(4) = 12\\). AM-GM on \\(\\frac{3a^8 + 3b^4}{a^4 b^2} \\ge 3 \\times 2 = 6\\). Max \\(\\Delta = 12\\) is double of 6.`},
+  {id:60,sub:'math',sec:'scq',q:`Two straight lines having variable slopes \\(m_1\\) and \\(m_2\\) pass through the fixed points \\((a, 0)\\) and \\((-a, 0)\\) respectively. If \\(m_1 m_2 = 2\\), then the eccentricity of the locus of the point of intersection of the lines is`,opts:[`\\(\\sqrt{2}\\)`,`\\(\\sqrt{3}\\)`,`2`,`\\(\\sqrt{\\frac{3}{2}}\\)`],ans:2,exp:`\\(m_1 = \\frac{y}{x-a}\\) and \\(m_2 = \\frac{y}{x+a}\\). \\(m_1 m_2 = 2 \\implies \\frac{y^2}{x^2-a^2} = 2 \\implies \\frac{x^2}{a^2} - \\frac{y^2}{2a^2} = 1\\). Eccentricity \\(e = \\sqrt{1 + \\frac{2a^2}{a^2}} = \\sqrt{3}\\).`},
+  {id:61,sub:'math',sec:'scq',q:`Let \\(L\\) be the line passing through the point \\(P(1, 2)\\) such that its intercepted segment between the co-ordinate axes is bisected at \\(P\\). If \\(L_1\\) is the line perpendicular to \\(L\\) and passing through the point \\((-2, 1)\\), then the point of intersection of \\(L\\) and \\(L_1\\) is`,opts:[`\\((\\frac{3}{5}, \\frac{23}{10})\\)`,`\\((\\frac{4}{5}, \\frac{12}{5})\\)`,`\\((\\frac{11}{20}, \\frac{29}{10})\\)`,`\\((\\frac{3}{10}, \\frac{17}{5})\\)`],ans:2,exp:`Intercepted segment bisected at \\((1,2) \\implies x\\)-intercept is 2, \\(y\\)-intercept is 4. Line \\(L: 2x + y = 4\\). Perpendicular line \\(L_1\\) through \\((-2,1)\\) is \\(x - 2y + 4 = 0\\). Intersection is \\((4/5, 12/5)\\).`},
+  {id:62,sub:'math',sec:'scq',q:`Let \\((x, y)\\) be a variable point on the curve \\(4x^2 + 9y^2 - 8x - 36y + 15 = 0\\). Then \\(\\min(x^2 - 2x + y^2 - 4y + 5) + \\max(x^2 - 2x + y^2 - 4y + 5)\\) is -`,opts:[`\\(\\frac{325}{36}\\)`,`\\(\\frac{36}{325}\\)`,`\\(\\frac{13}{25}\\)`,`\\(\\frac{25}{13}\\)`],ans:1,exp:`Ellipse equation \\(\\frac{(x-1)^2}{(5/2)^2} + \\frac{(y-2)^2}{(5/3)^2} = 1\\). Expression is distance squared from center \\((1,2)\\), having \\(\\min = (5/3)^2 = 25/9\\) and \\(\\max = (5/2)^2 = 25/4\\). Sum \\(= 25/9 + 25/4 = 325/36\\).`},
+  {id:63,sub:'math',sec:'scq',q:`The locus of the point \\((x, y)\\) whose distance from the line \\(y = 2x + 2\\) is equal to the distance from \\((2,0)\\), is a parabola with the length of latus rectum same as that of the parabola \\(y = Kx^2\\), then the value of \\(K\\) is equal to`,opts:[`\\(\\frac{\\sqrt{5}}{12}\\)`,`\\(\\frac{\\sqrt{5}}{4}\\)`,`\\(\\frac{4}{\\sqrt{5}}\\)`,`\\(\\frac{12}{\\sqrt{5}}\\)`],ans:1,exp:`Distance of focus \\((2,0)\\) from directrix \\(2x-y+2=0\\) is \\(2a = \\frac{6}{\\sqrt{5}} \\implies \\text{latus rectum } 4a = \\frac{12}{\\sqrt{5}}\\). For parabola \\(y=Kx^2\\), latus rectum \\(= \\frac{1}{K}\\). Equating \\(\\frac{1}{K} = \\frac{12}{\\sqrt{5}} \\implies K = \\frac{\\sqrt{5}}{12}\\).`},
+  {id:64,sub:'math',sec:'scq',q:`The vertices of the triangle \\(ABC\\) are \\((2, 1)\\), \\((4, 3)\\) and \\((2, 5)\\). \\(D, E, F\\) are the mid-points of the sides. The area of the triangle \\(DEF\\) is`,opts:[`1`,`1.5`,`3`,`4`],ans:1,exp:`Area of \\(\\Delta ABC = \\frac{1}{2}|2(3-5) + 4(5-1) + 2(1-3)| = 4\\). Midpoint triangle \\(\\Delta DEF\\) has area \\(\\frac{1}{4} \\text{Area}(\\Delta ABC) = 1\\).`},
+  {id:65,sub:'math',sec:'scq',q:`The equation of a circle with origin as centre and passing through the vertices of an equilateral triangle whose median is of length \\(3a\\) is`,opts:[`\\(x^2 + y^2 = 9a^2\\)`,`\\(x^2 + y^2 = 16a^2\\)`,`\\(x^2 + y^2 = 4a^2\\)`,`\\(x^2 + y^2 = a^2\\)`],ans:3,exp:`Centroid/circumcenter divides median of length \\(3a\\) in ratio \\(2:1\\), so circumradius \\(R = 2a\\). Circle equation is \\(x^2 + y^2 = R^2 = 4a^2\\).`},
+  {id:66,sub:'math',sec:'scq',q:`Suppose the parabola \\((y - k)^2 = 4(x - h)\\), with vertex \\(A\\), passes through \\(O = (0, 0)\\) and \\(L = (0, 2)\\). Let \\(D\\) be an end point of the latus rectum. Let the y-axis intersect the axis of the parabola at \\(P\\). Then \\(\\angle PDA\\) is equal to`,opts:[`\\(\\tan^{-1} \\frac{1}{19}\\)`,`\\(\\tan^{-1} \\frac{2}{19}\\)`,`\\(\\tan^{-1} \\frac{4}{19}\\)`,`\\(\\tan^{-1} \\frac{8}{19}\\)`],ans:2,exp:`Parabola \\((y-1)^2 = 4(x+1/4)\\) has vertex \\(A(-1/4,1)\\), focus \\(S(3/4,1)\\), latus rectum endpoint \\(D(3/4,3)\\), and axis-y-intercept \\(P(0,1)\\). Slopes \\(m_{DA} = 2, m_{DP} = 8/3\\). \\(\\tan\\theta = \\left|\\frac{8/3 - 2}{1 + 16/3}\\right| = \\frac{2}{19} \\implies \\theta = \\tan^{-1}(2/19)\\).`},
+  {id:67,sub:'math',sec:'scq',q:`On a rectangular hyperbola \\(x^2 - y^2 = a^2, a > 0\\), three points \\(A, B, C\\) are taken as follows : \\(A = (-a, 0)\\) ; \\(B\\) and \\(C\\) are placed symmetrically with respect to the \\(X\\)-axis on the branch of the hyperbola not containing \\(A\\). Suppose that the \\(\\Delta ABC\\) is equilateral. If the side length of the \\(\\Delta ABC\\) is \\(ka\\), then \\(k\\) lies in the interval`,opts:[`\\((0, 2]\\)`,`\\((2, 4]\\)`,`\\((4, 6]\\)`,`\\((6, 8]\\)`],ans:2,exp:`Points \\(B, C\\) on hyperbola \\(x^2 - y^2 = a^2\\) are \\((a\\sec\\theta, \\pm a\\tan\\theta)\\). Equilateral triangle \\(\\Delta ABC\\) with \\(A(-a,0)\\) gives \\(a(\\sec\\theta + 1) = \\sqrt{3} a \\tan\\theta \\implies \\sec\\theta = 2 \\implies \\tan\\theta = \\sqrt{3}\\). Side length \\(BC = 2\\sqrt{3}a \\implies k = 2\\sqrt{3} \\approx 3.46 \\in (2,4]\\).`},
+  {id:68,sub:'math',sec:'scq',q:`The point \\(P(2, 1)\\) is shifted parallel to the line \\(x + y = 1\\), by a distance of \\(5\\sqrt{2}\\) in the direction of increasing ordinate, to reach the point \\(Q\\). The image of \\(Q\\) in the line \\(y = -x\\) is`,opts:[`(-3, 6)`,`(6, 3)`,`(-4, -7)`,`(6, -3)`],ans:4,exp:`Point \\(P(2,1)\\) shifted by \\(5\\sqrt{2}\\) along direction angle \\(135^\\circ\\) gives \\(Q(-3,6)\\). Reflection of \\((-3,6)\\) in line \\(y = -x\\) gives \\((6,-3)\\).`},
+  {id:69,sub:'math',sec:'scq',q:`Length of the focal chord of the parabola \\((y + 3)^2 = -8(x - 1)\\), which lies at a distance of 2 units from the vertex of the parabola, is`,opts:[`8`,`\\(6\\sqrt{2}\\)`,`9`,`\\(5\\sqrt{3}\\)`],ans:1,exp:`For parabola with \\(a=2\\), focal chord distance from vertex \\(d = a \\sin\\theta = 2 \\implies \\theta = 90^\\circ\\), so the focal chord is the latus rectum of length \\(4a = 8\\).`},
+  {id:70,sub:'math',sec:'scq',q:`The orthocentre of the triangle with vertices \\((-2, -6)\\), \\((-2, 4)\\) and \\((1, 3)\\) is`,opts:[`\\((-3, 1)\\)`,`\\((-1, 1/3)\\)`,`\\((1, 3)\\)`,`None of these`],ans:3,exp:`Vertices \\(A(-2,-6)\\) and \\(B(-2,4)\\) form vertical line \\(x=-2\\). Altitude from \\(C(1,3)\\) is \\(y=3\\). Altitude from \\(A\\) to \\(BC\\) (slope \\(-1/3\\)) has equation \\(y=3x\\). Intersection of \\(y=3\\) and \\(y=3x\\) is \\((1,3)\\).`},
+  {id:71,sub:'math',sec:'nat',q:`Let \\(C_1\\) be the graph of \\(xy = 1\\) and the reflection of \\(C_1\\) in the line \\(y = 2x\\) is \\(C_2\\). If the equation of \\(C_2\\) is expressed as \\(12x^2 + bxy + cy^2 + d = 0\\), then the value of \\((b + c + d)\\) is equal to`,opts:null,ans:'6',exp:`Reflection of \\(xy=1\\) in line \\(y=2x\\): \\(x' = -3/5 x + 4/5 y, y' = 4/5 x + 3/5 y\\). Substituting into \\(xy=1\\) gives \\(12x^2 - 7xy - 12y^2 + 25 = 0\\). Thus \\(b = -7, c = -12, d = 25\\), so \\(b+c+d = 6\\).`},
+  {id:72,sub:'math',sec:'nat',q:`The vertices of the triangle \\(ABC\\) are \\(A(0,0)\\), \\(B(3,0)\\) and \\(C(3,4)\\), where \\(A\\) and \\(C\\) are foci of an ellipse and \\(B\\) lies on the ellipse. If the length of the latus rectum of the ellipse is \\(\\frac{12}{p}\\) units, then the value of \\(2p\\) is`,opts:null,ans:'7',exp:`Foci \\(A(0,0)\\) and \\(C(3,4) \\implies 2ae = 5\\). Point \\(B(3,0)\\) on ellipse gives \\(2a = BA + BC = 3 + 4 = 7 \\implies a = 7/2\\). \\(b^2 = a^2(1 - e^2) = 6\\). Latus rectum \\(= \\frac{2b^2}{a} = \\frac{24}{7} = \\frac{12}{3.5} = \\frac{12}{p} \\implies 2p = 7\\).`},
+  {id:73,sub:'math',sec:'nat',q:`Let in \\(\\Delta ABC\\) coordinates of vertex \\(A\\) is \\((0, 0)\\). Equation of the internal angle bisector of \\(\\angle ABC\\) is \\(x + y - 1 = 0\\) and mid-point of \\(BC\\) is \\((1, 3)\\). The ordinate of vertex \\(C\\) is`,opts:null,ans:'6',exp:`Image of \\(A(0,0)\\) in bisector \\(x+y-1=0\\) is \\(A'(1,1)\\), which lies on line \\(BC\\). Midpoint of \\(BC\\) is \\(M(1,3)\\), so line \\(BC\\) is \\(x=1\\). \\(B = (1,0)\\) on bisector \\(\\implies\\) ordinate of \\(C\\) is \\(y_C = 2(3) - 0 = 6\\).`},
+  {id:74,sub:'math',sec:'nat',q:`Let \\(PQ\\) be the focal chord of the parabola \\(y^2 = 4x\\). If the centre of the circle having \\(PQ\\) as its diameter lies on the line \\(y = \\frac{-4}{\\sqrt{5}}\\), then the length (in units) of chord \\(PQ\\) is \\(M\\), find \\(10M\\)`,opts:null,ans:'72',exp:`Focal chord \\(PQ\\) of \\(y^2=4x\\) has midpoint \\(y_C = t - 1/t = -4/\\sqrt{5}\\). Length \\(PQ = (t - 1/t)^2 + 4 = 16/5 + 4 = 36/5 = 7.2 \\implies 10M = 72\\).`},
+  {id:75,sub:'math',sec:'nat',q:`If the circle \\((x - a)^2 + y^2 = 25\\) intersects the circle \\(x^2 + (y - b)^2 = 16\\) in such a way that the length of the common chord is 8 units, then the value of \\(a^2 + b^2\\) is`,opts:null,ans:'9',exp:`Common chord length 8 equals diameter of smaller circle \\(R_2=4\\). Center distance \\(C_1 C_2 = \\sqrt{R_1^2 - R_2^2} = \\sqrt{25-16} = 3 \\implies a^2 + b^2 = 3^2 = 9\\).`},
+];
+
+const AK = {
+  1:2,2:1,3:1,4:3,5:4,6:3,7:2,8:4,9:3,10:3,11:1,12:2,13:1,14:4,15:1,16:1,17:1,18:3,19:1,20:1,21:'2',22:'5',23:'4',24:'2',25:'25',26:3,27:1,28:3,29:3,30:2,31:1,32:1,33:4,34:2,35:3,36:2,37:4,38:1,39:3,40:3,41:3,42:2,43:2,44:3,45:2,46:'1',47:'1',48:'89',49:'3',50:'3',51:4,52:3,53:2,54:3,55:1,56:4,57:2,58:1,59:2,60:2,61:2,62:1,63:1,64:1,65:3,66:2,67:2,68:4,69:1,70:3,71:'6',72:'7',73:'6',74:'72',75:'9'
+};
+
+// ── ENGINE STATE ──────────────────────────────────────────────────────────────
+const S = {cur:1, subj:'physics', submitted:false, resp:{}, marks:{}, timeLeft:10800};
+
+let tmr;
+function startTimer(){
+  tmr = setInterval(()=>{
+    S.timeLeft--;
+    const h=Math.floor(S.timeLeft/3600), m=Math.floor((S.timeLeft%3600)/60), s=S.timeLeft%60;
+    document.getElementById('timer').textContent=`${p(h)}:${p(m)}:${p(s)}`;
+    if(S.timeLeft<600) document.getElementById('timer').classList.add('urgent');
+    if(S.timeLeft<=0){clearInterval(tmr);doSubmit();}
+  },1000);
+}
+function p(n){return String(n).padStart(2,'0');}
+
+function subjQs(subj){return QS.filter(q=>q.sub===subj);}
+function switchSubject(subj){
+  S.subj=subj;
+  document.querySelectorAll('.stab').forEach(t=>t.classList.remove('active'));
+  const btn = document.querySelector(`.stab[onclick*="${subj}"]`);
+  if(btn) btn.classList.add('active');
+  const qs=subjQs(subj);
+  if(qs.length) goQ(qs[0].id);
+  renderPalette();
+}
+function goQ(id){
+  S.cur=id;
+  renderPalette();
+  renderQ();
+}
+function nav(d){
+  const subj=QS.find(q=>q.id===S.cur)?.sub||S.subj;
+  const qs=subjQs(subj);
+  const i=qs.findIndex(q=>q.id===S.cur);
+  if(i+d>=0&&i+d<qs.length) goQ(qs[i+d].id);
+}
+
+function renderPalette(){
+  const grid=document.getElementById('palette');
+  const qs=subjQs(S.subj);
+  grid.innerHTML='';
+  qs.forEach(q=>{
+    const b=document.createElement('button');
+    b.className='pq';
+    b.textContent=q.id;
+    if(q.id===S.cur) b.classList.add('cur');
+    const r=S.resp[q.id], mk=S.marks[q.id];
+    if(mk && r!==undefined) b.classList.add('mrkans');
+    else if(mk) b.classList.add('mrk');
+    else if(r!==undefined) b.classList.add('ans');
+    b.onclick=()=>goQ(q.id);
+    grid.appendChild(b);
+  });
+}
+
+function renderQ(){
+  const q=QS.find(x=>x.id===S.cur);
+  if(!q) return;
+  const sn={math:'Mathematics',physics:'Physics',chemistry:'Chemistry'};
+  const ss={scq:'Single Correct',nat:'Numerical Answer'};
+  const mk='+4 / −1';
+  document.getElementById('sec-hdr').innerHTML=
+    `<strong>${sn[q.sub]}</strong> &nbsp;|&nbsp; ${ss[q.sec]} &nbsp;|&nbsp; Marking: <strong>${mk}</strong> &nbsp;|&nbsp; Q <strong>${q.id}</strong> / 75`;
+
+  const resp=S.resp[q.id];
+  const marked=S.marks[q.id];
+  const rev=S.submitted;
+  const correct=AK[q.id];
+  let optsHTML='';
+
+  if(q.sec==='scq' && q.opts){
+    optsHTML='<div class="opts">';
+    q.opts.forEach((opt,i)=>{
+      const num=i+1;
+      let cls='opt';
+      if(rev){
+        if(num===correct) cls+=' corr';
+        else if(resp===num) cls+=' incorr';
+      } else if(resp===num) cls+=' sel';
+      optsHTML+=`<button class="${cls}" onclick="${rev?'':'selectOpt('+num+')'}">
+        <span class="opt-l">${'ABCD'[i]}</span>
+        <span class="opt-txt">${opt}</span>
+      </button>`;
+    });
+    optsHTML+='</div>';
+  } else if(q.sec==='nat'){
+    const ic=rev?(String(resp)===String(correct)?'corr':'incorr'): '';
+    optsHTML=`<div class="nat-wrap">
+      <div class="nat-lbl">TYPE YOUR NUMERICAL ANSWER</div>
+      <input class="nat-inp ${ic}" type="number" step="any"
+        placeholder="Enter value..."
+        value="${resp!==undefined?resp:''}"
+        ${rev?'disabled':''}
+        oninput="updateNAT(this.value)">
+      ${rev?`<div class="nat-ans">✓ Correct Answer: ${correct}</div>`:''}
+    </div>`;
+  }
+
+  const card=document.getElementById('qcard');
+  card.innerHTML=`
+    <div class="q-hdr">
+      <span class="q-num">Q${q.id}</span>
+      <span class="q-badge">${ss[q.sec]}</span>
+      <span class="q-mark-badge">${mk}</span>
+    </div>
+    <div class="q-text">${q.q}</div>
+    ${optsHTML}
+    <div class="q-actions">
+      ${!rev?`
+        <button class="btn btn-mrk ${marked?'on':''}" onclick="toggleMark()">⚑ ${marked?'Unmark':'Mark for Review'}</button>
+        <button class="btn btn-clr" onclick="clearResp()">✕ Clear</button>
+      `:`
+        <button class="btn btn-sec" onclick="toggleSol(${q.id})">💡 View Answer Key</button>
+      `}
+    </div>
+    <div class="sol" id="sol-${q.id}">
+      <strong style="color:var(--acc)">Correct Solution Key:</strong>
+      ${q.sec==='nat'?correct:'Option '+'ABCD'[correct-1]+' — '+q.opts[correct-1]}
+      <br><br><strong style="color:var(--acc)">Explanation:</strong> ${q.exp||''}
+    </div>`;
+
+  typeset(card);
+}
+
+function typeset(el){
+  if(window.MathJax && MathJax.typesetPromise){
+    MathJax.typesetPromise([el]).catch(e=>console.warn(e));
+  }
+}
+
+function selectOpt(n){
+  if(S.submitted) return;
+  S.resp[S.cur]=n;
+  renderPalette(); renderQ();
+}
+function updateNAT(v){
+  if(v!=='') S.resp[S.cur]=v; else delete S.resp[S.cur];
+  renderPalette();
+}
+function toggleMark(){
+  S.marks[S.cur]=!S.marks[S.cur];
+  renderPalette(); renderQ();
+}
+function clearResp(){
+  delete S.resp[S.cur];
+  renderPalette(); renderQ();
+}
+function toggleSol(id){
+  document.getElementById('sol-'+id)?.classList.toggle('on');
+}
+
+function confirmSubmit(){
+  const att=Object.keys(S.resp).length;
+  if(!confirm(`Are you sure you want to finish and submit your test answers?\n\nAttempted: ${att}\nUnattempted: ${75-att}`)) return;
+  doSubmit();
+}
+
+function doSubmit(){
+  clearInterval(tmr);
+  S.submitted=true;
+  let tot=0, co=0, wr=0;
+  const sd={physics:{s:0,c:0,w:0,tot:25},chemistry:{s:0,c:0,w:0,tot:25},math:{s:0,c:0,w:0,tot:25}};
+  QS.forEach(q=>{
+    const r=S.resp[q.id]; if(r===undefined) return;
+    const a=AK[q.id];
+    let s=0, c=0, w=0;
+    if(q.sec==='scq'){ if(r===a){s=4;c=1;}else{s=-1;w=1;} }
+    else{ if(String(r)===String(a)){s=4;c=1;}else{s=0;w=1;} }
+    tot+=s; co+=c; wr+=w;
+    if(sd[q.sub]) { sd[q.sub].s+=s; sd[q.sub].c+=c; sd[q.sub].w+=w; }
+  });
+
+  document.getElementById('r-tot').textContent=tot;
+  document.getElementById('r-pct').textContent=Math.round(tot/300*100)+'%';
+  document.getElementById('r-rnk').textContent=Math.min(99,Math.max(1,Math.round(tot/300*90+10)))+'%ile';
+  
+  const sn={math:'Mathematics',physics:'Physics',chemistry:'Chemistry'};
+  document.getElementById('r-subjs').innerHTML=
+    ['physics','chemistry','math'].map(s=>`
+      <div class="r-subj">
+        <h3>${sn[s]}</h3>
+        <div class="r-row"><span>Subjective Score</span><span class="rv" style="color:var(--acc)">${sd[s].s}</span></div>
+        <div class="r-row"><span>Correct</span><span class="rv" style="color:var(--ok)">${sd[s].c}</span></div>
+        <div class="r-row"><span>Incorrect</span><span class="rv" style="color:var(--err)">${sd[s].w}</span></div>
+      </div>`).join('');
+  document.getElementById('result').style.display='block';
+  document.body.style.overflow='hidden';
+}
+
+function reviewMode(){
+  document.getElementById('result').style.display='none';
+  document.body.style.overflow='';
+  renderQ();
+}
+
+renderPalette();
+renderQ();
+startTimer();
+</script>
+</body>
+</html>
