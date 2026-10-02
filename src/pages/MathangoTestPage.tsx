@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { MATHANGO_TESTS, isUnlocked } from '@/lib/mathango';
+import { MATHANGO_TESTS, isUnlocked, loadMathangoHtml } from '@/lib/mathango';
+import RankersLoader from '@/components/RankersLoader';
 
 const DESKTOP_W = 1280;
 
@@ -13,6 +14,14 @@ export default function MathangoTestPage() {
   const test = MATHANGO_TESTS.find(t => String(t.n) === n);
   const boxRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: DESKTOP_W, h: 800 });
+  const [html, setHtml] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!test) return;
+    let alive = true;
+    loadMathangoHtml(test.n).then(h => { if (alive) setHtml(h); });
+    return () => { alive = false; };
+  }, [test]);
 
   useEffect(() => {
     const el = boxRef.current; if (!el) return;
@@ -35,8 +44,9 @@ export default function MathangoTestPage() {
         <p className="truncate text-sm font-semibold">Mathango 2027 · {test.name}</p>
       </div>
       <div ref={boxRef} className="relative flex-1 overflow-hidden">
+        {!html && <div className="absolute inset-0 z-10"><RankersLoader label="Opening Test" /></div>}
         <iframe
-          src={test.url}
+          srcDoc={html ?? ''}
           title={test.name}
           style={{ width: frameW, height: size.h / scale, transform: `scale(${scale})`, transformOrigin: 'top left' }}
           className="border-0 bg-white"

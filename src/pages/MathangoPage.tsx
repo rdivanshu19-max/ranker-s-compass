@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, ArrowRight, BookOpen, Lock, Monitor, PlayCircle, KeyRound } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { MATHANGO_TESTS, countdown, isUnlocked, tryUnlockCode } from '@/lib/mathango';
 
@@ -15,9 +16,12 @@ export default function MathangoPage() {
 
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t); }, []);
 
-  const submit = () => {
-    if (tryUnlockCode(code)) { toast.success('All Mathango tests unlocked'); setCode(''); setShowCode(false); setNow(Date.now()); }
-    else toast.error('Invalid code');
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [codeError, setCodeError] = useState('');
+  const submit = async () => {
+    if (await tryUnlockCode(code)) {
+      toast.success('Mathango tests unlocked'); setCode(''); setCodeError(''); setShowCode(false); setDialogOpen(false); setNow(Date.now());
+    } else { setCodeError('Incorrect code. Please try again.'); toast.error('Incorrect code'); }
   };
 
   return (
@@ -84,6 +88,9 @@ export default function MathangoPage() {
                       Live on {new Date(t.unlockAt).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })} ·{' '}
                       <span className="font-semibold text-foreground">{countdown(t.unlockAt - now)}</span>
                     </p>
+                    <Button variant="outline" size="sm" className="mt-3 gap-1.5" onClick={() => { setCode(''); setCodeError(''); setDialogOpen(true); }}>
+                      <KeyRound className="h-3.5 w-3.5" /> Unlock with Code
+                    </Button>
                   </div>
                 )}
               </div>
@@ -91,6 +98,18 @@ export default function MathangoPage() {
           );
         })}
       </div>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Unlock with Code</DialogTitle>
+            <DialogDescription>Enter your unlock code to access the locked Mathango 2027 tests.</DialogDescription>
+          </DialogHeader>
+          <Input autoFocus value={code} onChange={e => { setCode(e.target.value); setCodeError(''); }} onKeyDown={e => e.key === 'Enter' && submit()} placeholder="Unlock code" />
+          {codeError && <p className="text-sm text-destructive">{codeError}</p>}
+          <Button onClick={submit} disabled={!code.trim()}>Unlock</Button>
+        </DialogContent>
+      </Dialog>
 
       <div className="flex justify-end">
         {showCode ? (
