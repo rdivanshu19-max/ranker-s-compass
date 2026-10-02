@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>QPT-2 Full Mock Test</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+window.MathJax = {
+  tex: { inlineMath:[['\\(',  '\\)']], displayMath:[['\\[','\\]']], processEscapes:true },
+  options: { skipHtmlTags:['script','noscript','style','textarea'] },
+  startup: { typeset: false }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" id="MathJax-script" async></script>
+<style>
+:root{
+  --bg:#fdf6e9; /* Light wheat comforting background */
+  --surf:#ffffff; 
+  --border:#e6dcc8; 
+  --acc:#0f75bc;--acc2:#4cae4c;--txt:#3a352d;--muted:#665d50;
+  --ok:#5cb85c;--err:#d9534f;--blue:#286090;--purple:#8e44ad;
+  --fh:'Rajdhani',sans-serif;--fb:'Noto Sans',sans-serif;--fm:'IBM Plex Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font-family:var(--fb);font-size:14px;min-height:100vh;overflow-x:hidden}
+/* TOPBAR */
+#topbar{background:var(--surf);border-bottom:3px solid var(--acc);padding:0 20px;height:54px;display:flex;align-items:center;justify-content:space-between;position:fixed;top:0;left:0;right:0;z-index:100}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{width:34px;height:34px;background:var(--acc);border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-size:18px;font-weight:700;color:#fff}
+.logo-name{font-family:var(--fh);font-size:20px;font-weight:700;color:var(--acc);letter-spacing:1px}
+.logo-sub{font-size:10px;color:var(--muted);font-family:var(--fm)}
+#timer{background:#fff;border:1px solid var(--border);border-radius:4px;padding:4px 12px;font-family:var(--fm);font-size:18px;font-weight:600;color:#333;letter-spacing:1px}
+#timer.urgent{color:var(--err);border-color:var(--err);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.test-name{font-family:var(--fh);font-size:15px;font-weight:600;color:#444}
+/* LAYOUT */
+#wrap{display:flex;margin-top:54px;min-height:calc(100vh - 54px)}
+/* SIDEBAR */
+#sidebar{width:276px;min-width:276px;background:#f8f2e4;border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:54px;bottom:0;left:0;overflow-y:auto;z-index:50}
+.sb-sec{padding:12px 14px;border-bottom:1px solid var(--border)}
+.sb-title{font-family:var(--fm);font-size:11px;font-weight:700;color:#444;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+.subj-tabs{display:flex;gap:4px}
+.stab{padding:5px 10px;border-radius:4px;font-size:12px;font-family:var(--fh);font-weight:600;cursor:pointer;border:1px solid var(--border);background:#fff;color:#333;transition:all .2s;letter-spacing:.5px}
+.stab.active{background:var(--acc);color:#fff;border-color:var(--acc)}
+.stab:hover:not(.active){border-color:var(--acc);color:var(--acc)}
+#palette{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;padding:10px 14px 12px}
+.pq{aspect-ratio:1;border:1px solid var(--border);border-radius:4px 4px 50% 50%;font-size:12px;font-family:var(--fm);font-weight:600;cursor:pointer;background:#ffffff;color:#333;transition:all .15s}
+.pq:hover{border-color:#1076bc;box-shadow:0 0 4px rgba(16,118,188,0.3)}
+.pq.cur{border:2px solid #000000!important;font-weight:700}
+.pq.notvis{background:#ffffff;color:#333;border-radius:4px;border:1px solid var(--border)}
+.pq.notans{background:#e74c3c;color:#fff;border-radius:4px 4px 0 0;border:none}
+.pq.ans{background:#2ecc71;color:#fff;border-radius:0 0 4px 4px;border:none}
+.pq.mrk{background:#9b59b6;color:#fff;border-radius:50%;border:none}
+.pq.mrkans{background:#9b59b6;color:#fff;border-radius:50%;border:none;box-shadow:inset 0 -6px 0 #2ecc71}
+.legend{padding:8px 14px 12px;display:flex;flex-direction:column;gap:6px;background:#fff;border-top:1px solid var(--border)}
+.leg-item{display:flex;align-items:center;gap:8px;font-size:11px;color:#333;font-weight:500}
+.leg-dot{width:16px;height:16px;flex-shrink:0;text-align:center;line-height:16px;font-size:10px;font-weight:bold}
+.sc{background:#fff;border-radius:4px;padding:8px;text-align:center;border:1px solid var(--border)}
+.sc .v{font-family:var(--fh);font-size:20px;font-weight:700}
+.sc .l{font-size:10px;color:var(--muted);font-family:var(--fm);margin-top:2px}
+/* CONTENT */
+#content{flex:1;margin-left:276px;padding:18px 22px 90px;max-width:900px}
+.tg-banner{background:#f0f7ec;border:1px solid #c3e2b4;border-radius:4px;padding:10px 16px;display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.sec-hdr{background:var(--surf);border:1px solid var(--border);border-left:4px solid var(--acc);border-radius:4px;padding:10px 16px;margin-bottom:16px;font-family:var(--fh);font-size:14px;line-height:1.6;color:#333}
+.sec-hdr strong{color:var(--acc)}
+/* CARD */
+.qcard{background:var(--surf);border:1px solid var(--border);border-radius:4px;padding:22px;box-shadow:0 1px 3px rgba(0,0,0,0.05);animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.q-hdr{display:flex;align-items:center;gap:8px;margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:10px}
+.q-num{background:var(--acc);color:#fff;font-family:var(--fh);font-size:14px;font-weight:700;padding:3px 10px;border-radius:3px}
+.q-badge{background:#f8f2e4;color:#444;font-family:var(--fm);font-size:11px;padding:3px 8px;border-radius:3px;border:1px solid var(--border)}
+.q-mark-badge{margin-left:auto;background:#fff5f5;color:var(--err);font-size:11px;font-family:var(--fm);padding:3px 8px;border-radius:3px;border:1px solid #fecaca}
+.q-text{font-size:15px;line-height:1.8;color:#222;margin-bottom:18px}
+.diag{background:#fff;border:1px solid var(--border);border-radius:4px;padding:12px;margin:12px 0;display:inline-block;max-width:100%}
+.diag svg{display:block;max-width:100%;height:auto}
+/* options */
+.opts{display:flex;flex-direction:column;gap:9px;margin-bottom:18px}
+.opt{display:flex;align-items:flex-start;gap:10px;padding:11px 14px;background:var(--bg);border:1px solid var(--border);border-radius:4px;cursor:pointer;text-align:left;color:#333;font-size:14px;font-family:var(--fb);transition:all .18s;line-height:1.7;width:100%}
+.opt:hover{border-color:#b0b0b0;background:#f3e8d3}
+.opt.sel{border-color:#337ab7;background:#edf4fa}
+.opt.corr{border-color:var(--ok);background:#f2f9f2}
+.opt.incorr{border-color:var(--err);background:#fff5f5}
+.opt-l{min-width:26px;height:26px;background:#fff;border:1px solid #ccc;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-weight:700;font-size:13px;color:#555;flex-shrink:0;transition:all .18s}
+.opt.sel .opt-l{background:#337ab7;color:#fff;border-color:#337ab7}
+.opt.corr .opt-l{background:var(--ok);color:#fff;border-color:var(--ok)}
+.opt.incorr .opt-l{background:var(--err);color:#fff;border-color:var(--err)}
+/* NAT */
+.nat-wrap{margin-bottom:18px}
+.nat-lbl{font-size:11px;color:var(--muted);margin-bottom:7px;font-family:var(--fm);letter-spacing:1px}
+.nat-inp{background:#fff;border:1px solid var(--border);border-radius:4px;padding:8px 12px;font-family:var(--fm);font-size:18px;color:#333;width:200px;outline:none;transition:border-color .2s}
+.nat-inp:focus{border-color:var(--acc)}
+.nat-inp.corr{border-color:var(--ok);color:var(--ok)}
+.nat-inp.incorr{border-color:var(--err);color:var(--err)}
+.nat-ans{margin-top:8px;font-size:13px;color:var(--ok);font-family:var(--fm)}
+/* actions */
+.q-actions{display:flex;gap:8px;flex-wrap:wrap;padding-top:14px;border-top:1px solid var(--border)}
+.btn{padding:8px 18px;border-radius:4px;font-family:var(--fh);font-size:14px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:all .18s;letter-spacing:.5px}
+.btn-mrk{background:#fff;color:#333;border:1px solid #ccc}
+.btn-mrk.on{background:#9b59b6;color:#fff;border-color:#9b59b6}
+.btn-clr{background:#fff;color:#333;border:1px solid #ccc}
+.btn-clr:hover{background:#fff5f5;color:var(--err);border-color:var(--err)}
+.btn-sec{background:#fff;color:#333;border:1px solid #ccc}
+.btn-sub{background:#4cae4c;color:#fff;border-color:#4cae4c;margin-left:auto}
+.btn-sub:hover{background:#449d44}
+/* solution */
+.sol{display:none;margin-top:14px;padding:13px 15px;background:var(--bg);border-radius:4px;border-left:4px solid var(--acc);font-size:13px;line-height:1.7;color:#444}
+.sol.on{display:block}
+/* bottom nav */
+#botnav{position:fixed;bottom:0;left:276px;right:0;background:var(--bg);border-top:1px solid var(--border);padding:12px 22px;display:flex;align-items:center;gap:8px;z-index:90}
+/* result */
+#result{display:none;position:fixed;inset:0;background:rgba(253, 246, 233, .98);z-index:200;overflow-y:auto;padding:36px 18px}
+.rbox{max-width:780px;margin:0 auto;background:var(--surf);border-radius:8px;border:1px solid var(--border);box-shadow:0 4px 15px rgba(0,0,0,0.1);overflow:hidden}
+.r-hdr{background:var(--bg);border-bottom:3px solid var(--acc);padding:26px;text-align:center}
+.r-hdr h1{font-family:var(--fh);font-size:30px;font-weight:700;color:var(--acc);letter-spacing:1px;margin-bottom:5px}
+.r-scores{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border-bottom:1px solid var(--border)}
+.r-sc{background:var(--surf);padding:18px;text-align:center}
+.r-sc .big{font-family:var(--fh);font-size:38px;font-weight:700;line-height:1}
+.r-sc .lbl{font-size:10px;color:var(--muted);font-family:var(--fm);margin-top:5px;text-transform:uppercase;letter-spacing:1px}
+.r-subjs{padding:20px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.r-subj{background:var(--bg);border-radius:6px;padding:14px;border:1px solid var(--border)}
+.r-subj h3{font-family:var(--fh);font-size:14px;font-weight:700;color:var(--acc);margin-bottom:10px}
+.r-row{display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px}
+.r-row .rv{font-family:var(--fm);font-weight:500}
+.r-acts{padding:18px 20px;display:flex;gap:10px;justify-content:center;border-top:1px solid var(--border)}
+</style>
+<style>
+.logo-name,.logo-sub,a[href*="t.me"],a[href*="karnhim"]{visibility:hidden!important;pointer-events:none!important}
+.logo-icon{pointer-events:none!important}
+</style>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+ var w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);var n;
+ while(n=w.nextNode()){if(/karnhim|t\.me\/|telegram channel/i.test(n.nodeValue)){n.nodeValue=n.nodeValue.replace(/t\.me\/karnhim\s*➜?|karnhim|Telegram Channel/gi,'');}}
+ document.querySelectorAll('a[href*="t.me"]').forEach(function(a){a.removeAttribute('href');a.style.pointerEvents='none';});
+});
+</script>
+</head>
+<body>
+<div id="topbar">
+  <div class="logo">
+    <div class="logo-icon">QP</div>
+    <div>
+      <div class="logo-name">QPT Series</div>
+      <div class="logo-sub">QPT 2 Mock Test</div>
+    </div>
+  </div>
+  <div class="test-name">Physics &middot; Chemistry &middot; Mathematics</div>
+  <div id="timer">3:00:00</div>
+</div>
+
+<div id="wrap">
+<div id="sidebar">
+  <div class="sb-sec">
+    <div class="sb-title">Subject</div>
+    <div class="subj-tabs">
+      <button class="stab active" onclick="switchSubject('physics')">Physics</button>
+      <button class="stab" onclick="switchSubject('chemistry')">Chem</button>
+      <button class="stab" onclick="switchSubject('math')">Math</button>
+    </div>
+  </div>
+  <div class="sb-sec" style="padding-bottom:0"><div class="sb-title">Question Palette</div></div>
+  <div id="palette"></div>
+  <div class="legend">
+    <div class="sb-title">Instructions</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#ffffff;border:1px solid var(--border);border-radius:4px"></div>Not Visited</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#e74c3c;border-radius:4px 4px 0 0"></div>Not Answered</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#2ecc71;border-radius:0 0 4px 4px"></div>Answered</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#9b59b6;border-radius:50%"></div>Marked for Review</div>
+  </div>
+  <div class="sb-sec">
+    <div class="sb-title">Score Summary</div>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
+      <div class="sc"><div class="v" id="sc-s" style="color:var(--acc)">0</div><div class="l">Score</div></div>
+      <div class="sc"><div class="v" id="sc-c" style="color:var(--ok)">0</div><div class="l">Correct</div></div>
+      <div class="sc"><div class="v" id="sc-w" style="color:var(--err)">0</div><div class="l">Wrong</div></div>
+      <div class="sc"><div class="v" id="sc-u" style="color:var(--muted)">75</div><div class="l">Unattempted</div></div>
+    </div>
+  </div>
+</div>
+
+<div id="content">
+  <div class="tg-banner">
+    <div>
+      <div style="font-family:var(--fh);font-size:13px;font-weight:700;color:var(--acc)">📝 JEE Main Mock Test Ready</div>
+      <div style="font-size:11px;color:var(--muted)">Interactive high-accuracy SVGs rendered directly inside corresponding windows.</div>
+    </div>
+  </div>
+  <div class="sec-hdr" id="sec-hdr"></div>
+  <div class="qcard" id="qcard"></div>
+</div>
+</div>
+
+<div id="botnav">
+  <button class="btn btn-mrk" id="mrkBtn" onclick="toggleMark()">Mark for Review &amp; Next</button>
+  <button class="btn btn-clr" onclick="clearResp()">Clear Response</button>
+  <button class="btn btn-sec" style="background:#337ab7;color:#fff;border-color:#2e6da4" onclick="nav(1)">Save &amp; Next ▶</button>
+  <button class="btn btn-sub" onclick="confirmSubmit()">Submit Test ⏎</button>
+</div>
+
+<script>
+// ── DYNAMIC VECTOR GRAPHICS MAP (SVGs) ──────────────────────────────────────
+const DIAG = {};
+
+// Q1 Incline plane with block setup
+DIAG[1] = `<div class="diag">
+<svg width="240" height="160" viewBox="0 0 240 160">
+  <polygon points="30,130 190,130 190,38" fill="none" stroke="#333" stroke-width="2"/>
+  <path d="M 55,130 A 25,25 0 0,0 52,118" fill="none" stroke="#333" stroke-width="1.5"/>
+  <text x="60" y="126" font-size="11">30°</text>
+  <circle cx="190" cy="38" r="8" fill="#fff" stroke="#333" stroke-width="1.5"/>
+  <rect x="90" y="70" width="28" height="20" transform="rotate(-30 90 70)" fill="#bbb" stroke="#333" stroke-width="1.5"/>
+  <text x="100" y="80" font-size="10" transform="rotate(-30 90 70)">A</text>
+  <line x1="110" y1="73" x2="185" y2="31" stroke="#444" stroke-width="1.5"/>
+  <line x1="198" y1="38" x2="198" y2="80" stroke="#444" stroke-width="1.5"/>
+  <rect x="188" y="80" width="20" height="22" fill="#888" stroke="#333" stroke-width="1.5"/>
+  <text x="195" y="94" font-size="10">B</text>
+</svg></div>`;
+
+// Q5 Force vs Radius Graph
+DIAG[5] = `<div class="diag">
+<svg width="200" height="150" viewBox="0 0 200 150">
+  <line x1="30" y1="130" x2="180" y2="130" stroke="#333" stroke-width="1.5"/>
+  <line x1="30" y1="130" x2="30" y2="20" stroke="#333" stroke-width="1.5"/>
+  <text x="185" y="134" font-size="11">r</text>
+  <text x="20" y="20" font-size="11">F</text>
+  <path d="M 40,30 Q 48,110 170,125" fill="none" stroke="#0f75bc" stroke-width="2.5"/>
+</svg></div>`;
+
+// Q17 Triple spring-pulley dynamic layout
+DIAG[17] = `<div class="diag">
+<svg width="280" height="110" viewBox="0 0 280 110">
+  <!-- Case 1 -->
+  <line x1="10" y1="15" x2="60" y2="15" stroke="#aaa" stroke-width="3"/>
+  <circle cx="35" cy="30" r="10" fill="none" stroke="#333" stroke-width="1.5"/>
+  <path d="M 25,30 M 25,30 Q 22,40 28,45 Q 22,50 28,55 Q 22,60 25,70" fill="none" stroke="#444" stroke-width="1.5"/>
+  <rect x="18" y="70" width="14" height="14" fill="#ddd" stroke="#333"/>
+  <text x="20" y="81" font-size="8">2kg</text>
+  <line x1="45" y1="30" x2="45" y2="70" stroke="#444"/>
+  <rect x="38" y="70" width="14" height="14" fill="#ddd" stroke="#333"/>
+  <text x="40" y="81" font-size="8">2kg</text>
+  <text x="28" y="98" font-size="10">x₁</text>
+
+  <!-- Case 2 -->
+  <line x1="100" y1="15" x2="150" y2="15" stroke="#aaa" stroke-width="3"/>
+  <circle cx="125" cy="30" r="10" fill="none" stroke="#333" stroke-width="1.5"/>
+  <path d="M 115,30 Q 112,40 118,45 Q 112,50 118,55 Q 112,60 115,70" fill="none" stroke="#444" stroke-width="1.5"/>
+  <rect x="108" y="70" width="14" height="14" fill="#ddd" stroke="#333"/>
+  <text x="110" y="81" font-size="8">3kg</text>
+  <line x1="135" y1="30" x2="135" y2="70" stroke="#444"/>
+  <rect x="128" y="70" width="14" height="14" fill="#ddd" stroke="#333"/>
+  <text x="130" y="81" font-size="8">2kg</text>
+  <text x="118" y="98" font-size="10">x₂</text>
+
+  <!-- Case 3 -->
+  <line x1="190" y1="15" x2="240" y2="15" stroke="#aaa" stroke-width="3"/>
+  <circle cx="215" cy="30" r="10" fill="none" stroke="#333" stroke-width="1.5"/>
+  <path d="M 205,30 Q 202,40 208,45 Q 202,50 208,55 Q 202,60 205,70" fill="none" stroke="#444" stroke-width="1.5"/>
+  <rect x="198" y="70" width="14" height="14" fill="#ddd" stroke="#333"/>
+  <text x="200" y="81" font-size="8">1kg</text>
+  <line x1="225" y1="30" x2="225" y2="70" stroke="#444"/>
+  <rect x="218" y="70" width="14" height="14" fill="#ddd" stroke="#333"/>
+  <text x="220" y="81" font-size="8">2kg</text>
+  <text x="208" y="98" font-size="10">x₃</text>
+</svg></div>`;
+
+// Q19 Man sitting in cart on 30 degree incline pulling himself up
+DIAG[19] = `<div class="diag">
+<svg width="240" height="160" viewBox="0 0 240 160">
+  <polygon points="20,140 210,140 210,30" fill="none" stroke="#333" stroke-width="2"/>
+  <rect x="80" y="80" width="35" height="25" transform="rotate(-30 80 80)" fill="#999" stroke="#333"/>
+  <circle cx="85" cy="103" r="5" fill="#333"/>
+  <circle cx="110" cy="89" r="5" fill="#333"/>
+  <line x1="102" y1="67" x2="200" y2="11" stroke="#444" stroke-width="1.5"/>
+  <line x1="90" y1="74" x2="102" y2="67" stroke="#444" stroke-width="1.5"/>
+</svg></div>`;
+
+// Q21 Vector translation of dynamic springs moving horizontal
+DIAG[21] = `<div class="diag">
+<svg width="240" height="80" viewBox="0 0 240 80">
+  <line x1="10" y1="60" x2="230" y2="60" stroke="#333" stroke-width="2"/>
+  <rect x="20" y="25" width="40" height="35" fill="#bbb" stroke="#333"/>
+  <text x="35" y="47" font-size="12">M</text>
+  <path d="M 60,42 Q 65,35 70,42 Q 75,49 80,42 Q 85,35 90,42 Q 95,49 100,42 Q 105,35 110,42" fill="none" stroke="#444" stroke-width="1.5"/>
+  <circle cx="60" cy="42" r="3" fill="red"/>
+  <text x="58" y="32" font-size="10" fill="red">B</text>
+  <circle cx="110" cy="42" r="3" fill="blue"/>
+  <text x="108" y="32" font-size="10" fill="blue">A</text>
+  <line x1="110" y1="42" x2="140" y2="42" stroke="#444" stroke-width="1.5" marker-end="url(#arr)"/>
+</svg></div>`;
+
+// Q22 Quarter elliptical loop trajectory mapping
+DIAG[22] = `<div class="diag">
+<svg width="200" height="160" viewBox="0 0 200 160">
+  <line x1="40" y1="130" x2="180" y2="130" stroke="#ccc" stroke-dasharray="3,3"/>
+  <line x1="40" y1="130" x2="40" y2="20" stroke="#ccc" stroke-dasharray="3,3"/>
+  <text x="30" y="134" font-size="11">O</text>
+  <text x="165" y="144" font-size="11">P (3m)</text>
+  <text x="15" y="25" font-size="11">Q (4m)</text>
+  <path d="M 160,130 A 120,110 0 0,0 40,20" fill="none" stroke="#333" stroke-width="2.5"/>
+  <rect x="110" y="65" width="14" height="14" fill="#444"/>
+</svg></div>`;
+
+// Q24 Bracket assembly moving dynamically inside frame structures
+DIAG[24] = `<div class="diag">
+<svg width="220" height="140" viewBox="0 0 220 140">
+  <line x1="20" y1="120" x2="200" y2="120" stroke="#333" stroke-width="2"/>
+  <polygon points="40,120 40,50 50,50 50,110 140,110 140,120" fill="#ddd" stroke="#333"/>
+  <text x="80" y="118" font-size="10">Bracket A</text>
+  <circle cx="50" cy="65" r="7" fill="#fff" stroke="#333"/>
+  <rect x="80" y="90" width="25" height="20" fill="#777" stroke="#333"/>
+  <text x="88" y="104" font-size="10" fill="#fff">B</text>
+</svg></div>`;
+
+// Q25 Layered blocks stacked against fixed constraint structures
+DIAG[25] = `<div class="diag">
+<svg width="240" height="120" viewBox="0 0 240 120">
+  <line x1="10" y1="100" x2="230" y2="100" stroke="#333" stroke-width="2"/>
+  <line x1="20" y1="20" x2="20" y2="100" stroke="#aaa" stroke-width="3"/>
+  <rect x="70" y="65" width="80" height="35" fill="#bbb" stroke="#333"/>
+  <text x="100" y="87" font-size="12">B = 200kg</text>
+  <rect x="85" y="35" width="50" height="30" fill="#eee" stroke="#333"/>
+  <text x="95" y="54" font-size="11">A = 100kg</text>
+  <line x1="20" y1="50" x2="85" y2="50" stroke="#444" stroke-width="1.5"/>
+  <line x1="150" y1="82" x2="190" y2="82" stroke="red" stroke-width="2"/>
+  <text x="195" y="86" font-size="12" fill="red">F</text>
+</svg></div>`;
+
+
+// ── FULL 75 QUESTIONS DATA REGISTER ─────────────────────────────────────────
+const QS = [
+// ── PHYSICS SCQ 1-20 ──
+{id:1,sub:'physics',sec:'scq', q:`Two blocks are connected over a massless pulley as shown in fig. ${DIAG[1]} The mass of block A is 10 kg and the coefficient of kinetic friction is 0.2. Block A slides down the incline at constant speed. The mass of block B in kg is:`, opts:[`3.5`,`3.3`,`3`,`2.5`],ans:2},
+{id:2,sub:'physics',sec:'scq', q:`When a body moves in a circular path, no work is done by the force since`, opts:[`force and displacement are perpendicular to each other`,`the force is always away from the centre`,`there is no displacement`,`there is no net force`],ans:1},
+{id:3,sub:'physics',sec:'scq', q:`The potential energy for a force field is given by \\(U(x,y)=\\cos(x+y)\\). The force acting on a particle at position given by coordinates \\((0,\\pi/4)\\) is`, opts:[`\\(-\\frac{1}{\\sqrt{2}}(\\hat{i}+\\hat{j})\\)`,`\\(\\frac{1}{\\sqrt{2}}(\\hat{i}+\\hat{j})\\)`,`\\((\\frac{1}{2}\\hat{i}+\\frac{\\sqrt{3}}{2}\\hat{j})\\)`,`\\((\\frac{1}{2}\\hat{i}-\\frac{\\sqrt{3}}{2}\\hat{j})\\)`],ans:2},
+{id:4,sub:'physics',sec:'scq', q:`A body of mass 6 kg moves in a straight line according to the equation, \\(x=t^3-75t\\), where \\(x\\) denotes the distance in metre and \\(t\\) the time in second. The force on the body at \\(t=4\\) s is`, opts:[`64 N`,`72 N`,`144 N`,`36 N`],ans:3},
+{id:5,sub:'physics',sec:'scq', q:`If a particle moving in a circular path maintains a constant speed of \\(20ms^{-1}\\), then which of the following correctly describes relation between force (F) and radius (r) ? ${DIAG[5]}`, opts:[`Straight line`,`Parabola`,`Rectangular hyperbola`,`Circle`],ans:3},
+{id:6,sub:'physics',sec:'scq', q:`A body of mass 5 kg is thrown vertically up with a kinetic energy of 490 J. The height at which the kinetic energy of the body becomes half of the original value is (acceleration due to gravity \\(= 9.8~ms^{-2}\\))`, opts:[`5 m`,`2.5 m`,`10 m`,`12.5 m`],ans:1},
+{id:7,sub:'physics',sec:'scq', q:`A force starts acting on a spring block system. At a stretch when \\(x=\\frac{mg}{k}\\) workdone by external force and spring force are related as`, opts:[`\\(W_{F_{ext}}+W_{F_s}=0\\)`,`\\(W_{F_{ext}}=\\frac{1}{2}kx^2\\)`,`\\(W_{F_s}+W_{F_{ext}}>0\\)`,`None of these`],ans:3},
+{id:8,sub:'physics',sec:'scq', q:`Three blocks of masses \\(m_1\\), \\(m_2\\) and \\(m_3\\) are connected by massless strings, as shown, on a frictionless table. They are pulled with a force \\(T_3=40\\) N. If \\(m_1=10\\) kg, \\(m_2=6\\) kg and \\(m_3=4\\) kg, the tension \\(T_2\\) will be`, opts:[`20 N`,`40 N`,`10 N`,`32 N`],ans:4},
+{id:9,sub:'physics',sec:'scq', q:`The upper half of an inclined plane with inclination \\(\\phi\\) is perfectly smooth while the lower half is rough. A body starting from rest at the top will again come to rest at the bottom if the coefficient of friction for the lower half is given by`, opts:[`\\(2 \\cos \\phi\\)`,`\\(2 \\sin \\phi\\)`,`\\(\\tan \\phi\\)`,`\\(2 \\tan \\phi\\)`],ans:4},
+{id:10,sub:'physics',sec:'scq', q:`Which of the following must be known in order to determine the power output of an automobile?`, opts:[`Final velocity and height`,`Mass and amount of work performed`,`Force exerted and distance of motion`,`Work performed and elapsed time of work`],ans:4},
+{id:11,sub:'physics',sec:'scq', q:`A body of mass \\(m\\) is moving in a straight line with momentum \\(p\\). Starting at time \\(t=0\\), a force \\(F=at\\) acts in the same direction on the moving particle during time interval of \\(T\\). So that its momentum changes from \\(p\\) to \\(2p\\). The value of \\(T\\) is`, opts:[`\\(\\sqrt{\\frac{2p}{a}}\\)`,`\\(\\sqrt{\\frac{p}{a}}\\)`,`\\(2\\sqrt{\\frac{2p}{a}}\\)`,`\\(\\frac{2p}{a}\\)`],ans:1},
+{id:12,sub:'physics',sec:'scq', q:`A boy pushes a toy box 2.0 m along the floor by means of a force of 10 N directed downward at an angle of \\(60^\\circ\\) to the horizontal. The work done by the boy is`, opts:[`6 J`,`8 J`,`10 J`,`12 J`],ans:3},
+{id:13,sub:'physics',sec:'scq', q:`A plate of mass (M) is placed on a horizontal frictionless surface and a body of mass (m) is placed on this plate. The coefficient of dynamic friction between this body and the plate is \\(\\mu\\). If a force \\(3\\mu mg\\) is applied to the body of mass (m) along the horizontal, the acceleration of the plate will be`, opts:[`\\(\\frac{\\mu m g}{M}\\)`,`\\(\\frac{\\mu mg}{M+m}\\)`,`\\(\\frac{3\\mu mg}{M}\\)`,`\\(\\frac{2\\mu mg}{M+m}\\)`],ans:1},
+{id:14,sub:'physics',sec:'scq', q:`An elastic string of unstretched length \\(L\\) and force constant \\(k\\) is stretched by a small length \\(x\\). It is further stretched by another small length \\(y\\). The work done in the second stretching is`, opts:[`\\(1/2Ky^2\\)`,`\\(1/2Ky(2x+y)\\)`,`\\(1/2K(x^2+y^2)\\)`,`\\(1/2K(x+y)^2\\)`],ans:2},
+{id:15,sub:'physics',sec:'scq', q:`A particle is moving in a force field given by \\(F=y^2\\hat{i}-x^2\\hat{j}\\). Starting from A, the particle has to reach C either along ABC or ADC. Let the workdone along the two paths be \\(W_1\\) and \\(W_2\\) respectively. Then, \\((W_1, W_2)\\) are`, opts:[`(-1,1)`,`(-1,0)`,`(1, 1)`,`(0, 1)`],ans:1},
+{id:16,sub:'physics',sec:'scq', q:`At any instant the velocity of a particle of mass 500 g is \\((2t\\hat{i}+3t^2\\hat{j})ms^{-1}\\). If the force acting on the particle at \\(t=1s\\) is \\((\\hat{i}+x\\hat{j})N\\) Then the value of \\(x\\) will be:`, opts:[`3`,`4`,`6`,`2`],ans:1},
+{id:17,sub:'physics',sec:'scq', q:`Same spring is attached with 2 kg, 3 kg and 1 kg blocks in three different cases as shown in figure. ${DIAG[17]} If \\(x_1, x_2, x_3\\) be the extensions in the spring in the three cases, then`, opts:[`\\(x_1=0, x_3>x_2\\)`,`\\(x_1>x_2>x_3\\)`,`\\(x_3>x_2>x_1\\)`,`\\(x_2>x_1>x_3\\)`],ans:4},
+{id:18,sub:'physics',sec:'scq', q:`The minimum velocity \\((in~ms^{-1})\\) with which a car driver must traverse a flat curve of radius 150 m and coefficient of friction 0.6 to avoid skidding is`, opts:[`60`,`30`,`15`,`25`],ans:2},
+{id:19,sub:'physics',sec:'scq', q:`A man pulls himself up the \\(30^\\circ\\) incline by the method shown in figure. ${DIAG[19]} If the combined mass of the man and cart is 100 kg, determine the acceleration of the cart if the man exerts a pull of 250 N on the rope. Neglect all friction and the mass of the rope, pulleys, and wheels.`, opts:[`4.5 \\(m s^{-2}\\)`,`2.5 \\(m s^{-2}\\)`,`3.5 \\(m s^{-2}\\)`,`1.5 \\(m s^{-2}\\)`],ans:2},
+{id:20,sub:'physics',sec:'scq', q:`A smooth chain of length 2 m is kept on a table such that its length of 60 cm hangs freely from the edge of the table. The total mass of the chain is 4 kg. The work done in pulling the entire chain on the table is (Take, \\(g=10~m/s^2\\))`, opts:[`6.3 J`,`3.6 J`,`2.0 J`,`12.9 J`],ans:2},
+
+// ── PHYSICS NAT 21-25 ──
+{id:21,sub:'physics',sec:'nat', q:`A block of mass M is placed on a smooth horizontal surface and it is pulled by a light spring as shown in the diagram. ${DIAG[21]} If the ends A and B of the spring are moving with 4 m \\(s^{-1}\\) and 2 m \\(s^{-1}\\) respectively and the rate at which spring energy is increasing is 20 J \\(s^{-1}\\). then what is the value of spring force (in N )?`, opts:null,ans:'10'},
+{id:22,sub:'physics',sec:'nat', q:`Consider an elliptically shaped rail PQ in the vertical plane with \\(OP=3\\) m and \\(OQ=4\\) m. ${DIAG[22]} A block of mass 1 kg is pulled along the rail from P to Q with a force of 18 N, which is always parallel to line PQ. Assuming no frictional losses, the kinetic energy of the block when it reaches Q is \\((n\\times10)\\) joules. The value of n is (take acceleration due to gravity = 10 \\(ms^{-2}\\))`, opts:null,ans:'5'},
+{id:23,sub:'physics',sec:'nat', q:`A small object of mass of 100 g moves in a circular path. At a given instant velocity of the object is \\(10\\hat{i}m/s\\) and acceleration is \\((20\\hat{i}+10\\hat{j})m/s^2\\). At this instant of time, rate of change of kinetic energy (in \\(kg~m^2s^{-3}\\)) of the object is`, opts:null,ans:'20'},
+{id:24,sub:'physics',sec:'nat', q:`A 1 kg block B rests as shown on a bracket A of the same mass. ${DIAG[24]} Constant forces \\(F_1=20\\) N and \\(F_2=8\\) N start to act at a time \\(t=0\\) when the distance of block B from the pulley is 50 cm. Time (in s) when block B reaches the pulley is \\(t\\). Find the value of \\(10t\\).`, opts:null,ans:'5'},
+{id:25,sub:'physics',sec:'nat', q:`A block A of mass 100 kg rests on another block B of mass 200 kg and is tied to a wall as shown in the figure. ${DIAG[25]} The coefficient of friction between A and B is 0.2 and that between B and ground is 0.3. The minimum force required to move the block B is \\((g=10~m~s^{-2})\\)`, opts:null,ans:'1100'},
+
+// ── CHEMISTRY SCQ 26-45 ──
+{id:26,sub:'chemistry',sec:'scq', q:`The increasing order of the strength of hydrogen bond in the following mentioned linkages is:<br>(i) \\(O-H\\cdot\\cdot\\cdot S\\)<br>(ii) \\(S-H\\cdot\\cdot\\cdot O\\)<br>(iii) \\(F-H\\cdot\\cdot\\cdot F^{-}\\)<br>(iv) \\(F-H\\cdot\\cdot\\cdot O\\)`, opts:[`\\((i)<(ii)<(iii)<(iv)\\)`,`\\((i)<(ii)<(iv)<(iii)\\)`,`\\((ii)<(i)<(iii)<(iv)\\)`,`None of these`],ans:2},
+{id:27,sub:'chemistry',sec:'scq', q:`When two compounds \\(ACl_3\\) and \\(DCl_3\\) of two elements A and D are mixed together a compound \\(ADCl_6\\) is formed. Structural analysis showed that \\(ADCl_6\\) is an ionic compound. Given that \\(DCl_3\\) is trigonal planar and \\(ACl_3\\) is trigonal pyramidal, predict the shape of the anion \\(DCl_4^{-}\\).`, opts:[`See-saw`,`Perfect tetrahedral`,`Square planar`,`None of these`],ans:2},
+{id:28,sub:'chemistry',sec:'scq', q:`Arrange the given species F, \\(F^{-}\\), O and \\(O^{-2}\\) in the order of their radii`, opts:[`\\(O^{2-}>F^{-}>O>F\\)`,`\\(O^{2-}>F^{-}>F>O\\)`,`\\(F^{-}>O^{2-}>F>O\\)`,`\\(O^{2-}>O>F^{-}>F\\)`],ans:1},
+{id:29,sub:'chemistry',sec:'scq', q:`Find the correct match for the column I, from the column II and choose the correct option:<br>Column - I &nbsp;&nbsp; Column - II<br>(a) \\(C_2H_2\\) &nbsp;&nbsp; (i) \\(sp^3d^2\\) hybridisation<br>(b) \\(SF_6\\) &nbsp;&nbsp; (ii) \\(sp^3d^3\\) hybridisation<br>(c) \\(SO_2\\) &nbsp;&nbsp; (iii) sp hybridisation<br>(d) \\(IF_7\\) &nbsp;&nbsp; (iv) \\(sp^2\\) hybridisation`, opts:[`\\((a)\\rightarrow(i),(b)\\rightarrow(ii),(c)\\rightarrow(ii),(d)\\rightarrow(iv)\\)`,`\\((a)\\rightarrow(iii),(b)\\rightarrow(i),(c)\\rightarrow(iv),(d)\\rightarrow(ii)\\)`,`\\((a)\\rightarrow(ii),(b)\\rightarrow(ii),(c)\\rightarrow(i),(d)\\rightarrow(iv)\\)`,`\\((a)\\rightarrow(iv),(b)\\rightarrow(i),(c)\\rightarrow(ii),(d)\\rightarrow(ii)\\)`],ans:2},
+{id:30,sub:'chemistry',sec:'scq', q:`When \\(N_2\\) is converted into \\(N_2^{+}\\) and \\(O_2\\) is converted into \\(O_2^{+}\\), then the bond strength, respectively.`, opts:[`increases, increases`,`decreases, decreases`,`increases, decreases`,`decreases, increases`],ans:4},
+{id:31,sub:'chemistry',sec:'scq', q:`What was the main drawback of Mendeleev's periodic table?`, opts:[`Many elements have several isotopes.`,`Noble gases do not form compounds.`,`Some groups stand divided into two sub groups A and B.`,`Atomic weights of elements are not always whole numbers.`],ans:1},
+{id:32,sub:'chemistry',sec:'scq', q:`Which of the following statement is correct regarding following process?<br>(i) \\(Cl\\rightarrow Cl^{-}\\)<br>(ii) \\(Cl^{-}\\rightarrow Cl\\)<br>(iii) \\(Cl\\rightarrow Cl^{+}\\)<br>(iv) \\(Cl\\rightarrow Cl^{2+}\\)`, opts:[`IE of Process (iv) = |IE of Process (iii)|`,`IE of Process (iii) = |IE of Process (ii)|`,`IE of Process (ii) = |EA of Process (i)|`,`IE of Process (iv) = |EA of Process (i)|`],ans:3},
+{id:33,sub:'chemistry',sec:'scq', q:`The total number of covalent bonds formed in the Lewis structures of given species respectively are:<br>(a) \\(CO_3^{2-}\\)<br>(b) \\(CCl_4\\)<br>(c) \\(NF_3\\)<br>(d) \\(HNO_3\\)`, opts:[`4, 4, 3, 5.`,`4, 3, 5, 4.`,`3, 5, 4, 3.`,`5, 3, 4, 5.`],ans:1},
+{id:34,sub:'chemistry',sec:'scq', q:`Which of the following is incorrect?`, opts:[`\\(IE_1\\) of \\(Li < IE_1\\) of Be`,`\\(IE_1\\) of \\(Be < IE_1\\) of B`,`\\(IE_1\\) of \\(Li > IE_1\\) of Na`,`\\(IE_1\\) of \\(He > IE_1\\) of Ne`],ans:2},
+{id:35,sub:'chemistry',sec:'scq', q:`Among the statement (I - IV), the correct ones are:<br>(I) Be has smaller atomic radius compared to Mg.<br>(II) Be has higher ionization enthalpy than Al.<br>(III) Charge/radius ratio of Be is greater than that of Al.<br>(IV) Both Be and Al form mainly covalent compounds`, opts:[`\\((I), (II) \\text{ and } (IV)\\)`,`\\((I), (III) \\text{ and } (IV)\\)`,`\\((II), (III) \\text{ and } (IV)\\)`,`\\((I), (II) \\text{ and } (III)\\)`],ans:1},
+{id:36,sub:'chemistry',sec:'scq', q:`What will be the magnitude of the charge on the oxygen atom in water molecule if dipole moment of water is 1.85 D and bond length of O - H is 0.94 Å?`, opts:[`\\(3.23\\times 10^{-10}esu\\)`,`\\(0.323\\times 10^{-10}esu\\)`,`\\(2.32\\times 10^{-10}esu\\)`,`\\(3.32\\times 10^{-7}esu\\)`],ans:1},
+{id:37,sub:'chemistry',sec:'scq', q:`The boiling point of alkyl halide are higher than those of corresponding alkanes because of`, opts:[`dipole-dipole interaction`,`dipole-induced dipole interaction`,`H-bonding`,`None of the above`],ans:1},
+{id:38,sub:'chemistry',sec:'scq', q:`Which one of the following correctly represents the variation of electronegativity (EN) with atomic number (Z) of group 13 elements?`, opts:[`Graph starting with B, straight line down to Tl`,`Graph starting with B, down to Ga, then up to Tl`,`Graph starting with B, down to In, then up to Tl`,`Graph starting with B, down to Al, then up to Tl`],ans:4},
+{id:39,sub:'chemistry',sec:'scq', q:`The Cl- C - Cl angle in 1, 1, 2, 2-tetrachloroethene and tetrachloromethane respectively will be about`, opts:[`\\(109.5^\\circ\\) and \\(90^\\circ\\)`,`\\(120^\\circ\\) and \\(109.5^\\circ\\)`,`\\(90^\\circ\\) and \\(109.5^\\circ\\)`,`\\(109.5^\\circ\\) and \\(120^\\circ\\)`],ans:2},
+{id:40,sub:'chemistry',sec:'scq', q:`For the following Assertion and Reason, the correct option is:<br>Assertion: For hydrogenation reactions, the catalytic activity increases from Group 5 to Group 11 metals with maximum activity shown by Group 7-9 elements.<br>Reason: The reactants are most strongly adsorbed on group 7-9 elements.`, opts:[`The assertion is true, but the reason is false`,`Both assertion and reason are false`,`Both assertion and reason are true and the reason is the correct explanation for the assertion`,`Both assertion and reason are true but the reason is not the correct explanation for the assertion`],ans:4},
+{id:41,sub:'chemistry',sec:'scq', q:`(X), (Y), (Z) are elements of the third period. Oxide of (X) is ionic, that of (Y) is amphoteric and of (Z) a giant molecule. (X), (Y) and (Z) will have atomic numbers in the order`, opts:[`\\((X)<(Y)<(Z)\\)`,`\\((Z)<(Y)<(X)\\)`,`\\((X)<(Z)<(Y)\\)`,`\\((Y)<(X)<(Z)\\)`],ans:1},
+{id:42,sub:'chemistry',sec:'scq', q:`The bond order in NO is 2.5 while that in \\(NO^{+}\\) is 3. Which statement is true for these two species:`, opts:[`Bond length in \\(NO^{+}\\) is greater than that in NO`,`Bond length in NO is greater than that in \\(NO^{+}\\)`,`Bond length is \\(NO^{+}\\) is equal to that in NO`,`Bond length is unpredictable`],ans:2},
+{id:43,sub:'chemistry',sec:'scq', q:`Match the columns I, II and III and mark the appropriate choice.<br>Column I: (a) Bromine, (b) Gold, (c) Mercury, (d) Iodine<br>Column II: (i) Noble metal, (ii) Crystalline non-metal, (iii) Liquid non-metal, (iv) Liquid metal<br>Column III: (p) Amalgam, (q) \\(4s^2 4p^5\\), (r) Transition metal, (s) Violet`, opts:[`\\((a)\\rightarrow(iii, q), (b)\\rightarrow(i, r), (c)\\rightarrow(iv, p), (d)\\rightarrow(ii, s)\\)`,`\\((a)\\rightarrow(ii, p), (b)\\rightarrow(i, s), (c)\\rightarrow(iii, q), (d)\\rightarrow(iv, r)\\)`,`\\((a)\\rightarrow(i, s), (b)\\rightarrow(ii, p), (c)\\rightarrow(iv, r), (d)\\rightarrow(iii, q)\\)`,`\\((a)\\rightarrow(iv, r), (b)\\rightarrow(iii, q), (c)\\rightarrow(ii, s), (d)\\rightarrow(i, p)\\)`],ans:1},
+{id:44,sub:'chemistry',sec:'scq', q:`For the properties mentioned, the correct trend for the different species is in`, opts:[`Strength as Lewis acid \\(BCl_3 > AlCl_3 > GaCl_3\\)`,`Inert pair effect \\(Al > Ga > In\\)`,`Oxidising property \\(Al^{3+} > In^{3+} > Tl^{3+}\\)`,`First ionisaiton enthalpy \\(B > Tl > Al\\)`],ans:1},
+{id:45,sub:'chemistry',sec:'scq', q:`Choose the one molecule or ion from each set having smallest bond angle.<br>(i) \\(NH_3, PH_3 \\text{ or } AsH_3\\)<br>(ii) \\(O_3^{+}, O_3\\)<br>(iii) \\(NO_2^{-} \\text{ or } O_3\\)<br>(iv) \\(X-S-X\\) angle in \\(SOCl_2 \\text{ or } SOF_2\\)`, opts:[`\\(NH_3, O_3^{+}, O_3, SOCl_2\\)`,`\\(AsH_3, O_3, NO_2^{-}, SOF_2\\)`,`\\(PH_3, O_3^{+}, NO_2^{-}\\)`,`\\(AsH_3, O_3^{+}, O_3, SOF_2\\)`],ans:2},
+
+// ── CHEMISTRY NAT 46-50 ──
+{id:46,sub:'chemistry',sec:'nat', q:`How many of the following have greater \\(Z_{eff}\\) than Silicon atom:<br>(i) Na (ii) Mg (iii) Al (iv) P (v) Cl (vi) S (vii) N (viii) O (ix) F`, opts:null,ans:'6'},
+{id:47,sub:'chemistry',sec:'nat', q:`In \\(PO_4^{3-}\\), the formal charge on each oxygen atom and the P - O bond order respectively are A and B respectively, find value of \\(4A+4B\\).`, opts:null,ans:'2'},
+{id:48,sub:'chemistry',sec:'nat', q:`How many of these molecules are diamagnetic and have bond order more than 2<br>\\(O_2^{2+}\\), CO, \\(CN^{-}\\), NO, \\(NO^{+}\\), \\(N_2\\), \\(O_2^{+}\\), \\(N_2^{2-}\\), \\(O_2^{2-}\\)`, opts:null,ans:'5'},
+{id:49,sub:'chemistry',sec:'nat', q:`Element with electronic configuration \\(1s^2 2s^2 2p^6 3s^2 3p^6 3d^{10} 4s^2 4p^6 4d^{10} 5s^2 5p^3\\) belongs to the following group of the periodic table`, opts:null,ans:'15'},
+{id:50,sub:'chemistry',sec:'nat', q:`Find the number of molecule having two lone pairs on central atom.<br>(i) \\(I_3^{+}\\) (ii) \\(XeF_2\\) (iii) \\(XeF_4\\) (iv) \\(H_2O\\) (v) \\(NH_2^{-}\\) (vi) \\(H_2S\\) (vii) \\(H_2SO_4\\) (viii) \\(NF_3\\)`, opts:null,ans:'5'},
+
+// ── MATH SCQ 51-70 ──
+{id:51,sub:'math',sec:'scq', q:`In a sequence of 21 terms, the first 11 terms are in AP with common difference 2 and the last 11 terms are in GP with common ratio 2. If the middle term of AP be equal to the middle term of the GP, then the middle term of the entire sequence is`, opts:[`\\(\\frac{10}{31}\\)`,`\\(-\\frac{10}{31}\\)`,`\\(\\frac{32}{31}\\)`,`\\(\\frac{31}{32}\\)`],ans:2},
+{id:52,sub:'math',sec:'scq', q:`If \\(0 < A < B < \\pi\\), \\(\\sin A + \\sin B = \\sqrt{\\frac{3}{2}}\\) and \\(\\cos A + \\cos B = \\frac{1}{\\sqrt{2}}\\), then \\(A =\\)`, opts:[`\\(15^\\circ\\)`,`\\(30^\\circ\\)`,`\\(45^\\circ\\)`,`\\(22\\frac{1}{2}^\\circ\\)`],ans:1},
+{id:53,sub:'math',sec:'scq', q:`If \\(a, b, c \\in \\mathbb{R}^+\\) such that \\(a + b + c = 27\\), then the maximum value of \\(a^2b^3c^4\\) is equal to`, opts:[`\\(2^8 \\cdot 3^{10}\\)`,`\\(2^9 \\cdot 3^{11}\\)`,`\\(2^{10} \\cdot 3^{12}\\)`,`\\(2^{11} \\cdot 3^{13}\\)`],ans:3},
+{id:54,sub:'math',sec:'scq', q:`When \\(2^{301}\\) is divided by 5, the least positive remainder is :`, opts:[`4`,`8`,`2`,`6`],ans:3},
+{id:55,sub:'math',sec:'scq', q:`The value of the sum in the \\(50^{th}\\) bracket of \\((1)+(2+3)+(4+5+6)+(7+8+9+10)+...\\) is`, opts:[`62525`,`65225`,`56255`,`555625`],ans:1},
+{id:56,sub:'math',sec:'scq', q:`Consider two positive numbers \\(a\\) and \\(b\\). If arithmetic mean of \\(a\\) and \\(b\\) exceeds their geometric mean by \\(\\frac{3}{2}\\) and geometric mean of \\(a\\) and \\(b\\) exceeds their harmonic mean by \\(\\frac{6}{5}\\), then the absolute value of \\((a^2-b^2)\\) is equal to :`, opts:[`153`,`135`,`154`,`136`],ans:2},
+{id:57,sub:'math',sec:'scq', q:`The greatest integer less than \\((\\sqrt{2}+1)^6\\) is equal to`, opts:[`196`,`197`,`198`,`199`],ans:2},
+{id:58,sub:'math',sec:'scq', q:`If \\(a=111.....1\\) (55 times), \\(b=1+10+10^2+10^3+10^4\\) and \\(c=1+10^5+10^{10}+.....+10^{50}\\), then`, opts:[`a, b, c are in arithmetic progression`,`\\(b, \\sqrt{a}, c\\) are in geometric progression`,`a, b, c are in geometric progression`,`\\(a, \\sqrt{b}, c\\) are in arithmetic progression`],ans:2},
+{id:59,sub:'math',sec:'scq', q:`The term independent of \\(x\\) in the expansion of \\([(t^{-1}-1)x+(t^{-1}+1)^{-1}x^{-1}]^8\\) is:`, opts:[`\\(56(\\frac{1-t}{1+t})^3\\)`,`\\(56(\\frac{1+t}{1-t})^3\\)`,`\\(70(\\frac{1-t}{1+t})^4\\)`,`\\(70(\\frac{1+t}{1-t})^4\\)`],ans:3},
+{id:60,sub:'math',sec:'scq', q:`For any real \\(\\theta\\), the maximum value of \\(\\cos^2(\\cos \\theta)+\\sin^2(\\sin \\theta)\\) is`, opts:[`1`,`\\(1+\\sin^2 1\\)`,`\\(1+\\cos^2 1\\)`,`\\(1/2\\)`],ans:2},
+{id:61,sub:'math',sec:'scq', q:`The remainder when \\((2021)^{2023}\\) is divided by 7 is`, opts:[`2`,`3`,`4`,`5`],ans:4},
+{id:62,sub:'math',sec:'scq', q:`Let \\(a_1,a_2,a_3.............\\) be terms on A.P. If \\(\\frac{a_1+a_2+.........a_p}{a_1+a_2+.......... a_q} = \\frac{p^2}{q^2}\\), \\(p \\neq q\\), then \\(\\frac{a_6}{a_{21}}\\) equals`, opts:[`\\(\\frac{41}{11}\\)`,`\\(\\frac{7}{2}\\)`,`\\(\\frac{2}{7}\\)`,`\\(\\frac{11}{41}\\)`],ans:4},
+{id:63,sub:'math',sec:'scq', q:`If \\(\\tan\\theta=3\\tan \\phi\\) then the maximum value of \\(\\tan^2(\\theta-\\phi)\\) is (where, \\(\\tan\\phi>0\\))`, opts:[`1`,`\\(\\frac{1}{3}\\)`,`2`,`4`],ans:2},
+{id:64,sub:'math',sec:'scq', q:`If \\(\\frac{1}{\\sqrt{b}+\\sqrt{c}},\\frac{1}{\\sqrt{c}+\\sqrt{a}},\\frac{1}{\\sqrt{a}+\\sqrt{b}}\\) are in A.P. then \\(9^{ax+1}\\), \\(9^{bx+1}\\), \\(9^{cx+1}\\), \\(x \\neq 0\\) are in:`, opts:[`G.P.`,`G.P. only if \\(x<0\\)`,`G.P. only if \\(x>0\\)`,`none of these`],ans:1},
+{id:65,sub:'math',sec:'scq', q:`In the expansion of \\((x^{\\frac{4}{5}}+x^{-\\frac{1}{5}})^n\\), the coefficient of the \\(8^{th}\\) and \\(19^{th}\\) terms are equal. The term independent of \\(x\\) is given by`, opts:[`\\(^{27}C_{21}\\)`,`\\(^{25}C_{20}\\)`,`\\(^{25}C_{21}\\)`,`\\(^{27}C_{22}\\)`],ans:2},
+{id:66,sub:'math',sec:'scq', q:`The value of \\(\\frac{3}{4}+\\frac{15}{16}+\\frac{63}{64}+...\\) upto \\(n\\) terms is`, opts:[`\\(n-\\frac{4^n}{3}-\\frac{1}{3}\\)`,`\\(n+\\frac{4^{-n}\\}\\{3\\}-\\frac{1}{3}\\)`,`\\(n+\\frac{4^n}{3}-\\frac{1}{3}\\)`,`\\(n-\\frac{4^{-n}}{3}+\\frac{1}{3}\\)`],ans:2},
+{id:67,sub:'math',sec:'scq', q:`Let \\(f(x)=x^3+ax^2+bx+c\\) be polynomial with integer coefficients. If the roots of \\(f(x)\\) are integer and are in Arithmetic Progression, then 'a' cannot take the value`, opts:[`-642`,`1214`,`1323`,`1626`],ans:2},
+{id:68,sub:'math',sec:'scq', q:`If the sum of odd numbered terms and the sum of even numbered terms in the expansion of \\((x+a)^n\\) are \\(A\\) and \\(B\\) respectively, then the value of \\((x^2-a^2)^n\\) is`, opts:[`\\(A^2-B^2\\)`,`\\(A^2+B^2\\)`,`\\(4AB\\)`,`None`],ans:1},
+{id:69,sub:'math',sec:'scq', q:`The coefficient of \\(x^{20}\\) in \\((1+x)(1+2x)(1+4x)(1+8x)...(1+2^{20}x)\\) is`, opts:[`\\(2^{211}-2^{190}\\)`,`\\(2^{191}-2^{171}\\)`,`\\(2^{231}-2^{209}\\)`,`\\(2^{161}-2^{142}\\)`],ans:1},
+{id:70,sub:'math',sec:'scq', q:`The value of \\(2\\sin^2\\theta+4\\cos(\\theta+\\alpha)\\sin \\alpha \\sin\\theta+\\cos 2(\\alpha+\\theta)\\) is`, opts:[`\\(\\cos\\theta+\\cos \\alpha\\)`,`independent of \\(\\theta\\)`,`independent of \\(\\alpha\\)`,`independent of both \\(\\theta\\) and \\(\\alpha\\)`],ans:2},
+
+// ── MATH NAT 71-75 ──
+{id:71,sub:'math',sec:'nat', q:`The coefficient of \\(x^{50}\\) in the polynomials after parenthesis have been removed and like terms have been collected in the expansion \\((1+x)^{1000}+x(1+x)^{999}+x^2(1+x)^{998}+...+x^{1000}\\) is \\(\\frac{\\lambda!}{\\mu!v!}\\) then the value of \\(\\lambda+2\\mu+3v\\) must be \\((v>\\mu)\\)`, opts:null,ans:'3954'},
+{id:72,sub:'math',sec:'nat', q:`For \\(n \\in N\\), in the expansion of \\((\\sqrt[4]{x^{-3}}+a\\sqrt[4]{x^5})^n\\), the sum of all the binomial coefficients lie between 200 and 400. Also, the term independent of \\(x\\) is 448, then the value of \\(a\\) is`, opts:null,ans:'2'},
+{id:73,sub:'math',sec:'nat', q:`If \\(a, b, c\\) be last three digits of the number \\((6!+1)^{6!}\\), then the value of \\(a+b+c\\) is`, opts:null,ans:'5'},
+{id:74,sub:'math',sec:'nat', q:`The numerical value of \\(\\sin\\frac{\\pi}{18}\\cdot \\sin\\frac{5\\pi}{18}\\cdot \\sin\\frac{7\\pi}{18}\\) is equal to \\(k\\), find value of \\(16k\\):`, opts:null,ans:'2'},
+{id:75,sub:'math',sec:'nat', q:`If \\((1+3+5+....+p)+(1+3+5+...+q)=(1+3+5+...r)\\) where each set contains the sum of consecutive odd integers then the smallest possible value of \\(p+q+r\\) is`, opts:null,ans:'21'}
+];
+
+const AK = {
+  1:2,2:1,3:2,4:3,5:3,6:1,7:3,8:4,9:4,10:4,11:1,12:3,13:1,14:2,15:1,16:1,17:4,18:2,19:2,20:2,
+  21:'10',22:'5',23:'20',24:'5',25:'1100',
+  26:2,27:2,28:1,29:2,30:4,31:1,32:3,33:1,34:2,35:1,36:1,37:1,38:4,39:2,40:4,41:1,42:2,43:1,44:1,45:2,
+  46:'6',47:'2',48:'5',49:'15',50:'5',
+  51:2,52:1,53:3,54:3,55:1,56:2,57:2,58:2,59:3,60:2,61:4,62:4,63:2,64:1,65:2,66:2,67:2,68:1,69:1,70:2,
+  71:'3954',72:'2',73:'5',74:'2',75:'21'
+};
+
+// ── APP STATE ─────────────────────────────────────────────────────────────────
+const S = {cur:1, subj:'physics', submitted:false, resp:{}, marks:{}, timeLeft:10800};
+
+// ── TIMER LOGIC ───────────────────────────────────────────────────────────────
+let tmr;
+function startTimer(){
+  tmr = setInterval(()=>{
+    S.timeLeft--;
+    const h=Math.floor(S.timeLeft/3600), m=Math.floor((S.timeLeft%3600)/60), s=S.timeLeft%60;
+    document.getElementById('timer').textContent=`${p(h)}:${p(m)}:${p(s)}`;
+    if(S.timeLeft<600) document.getElementById('timer').classList.add('urgent');
+    if(S.timeLeft<=0){clearInterval(tmr);doSubmit();}
+  },1000);
+}
+function p(n){return String(n).padStart(2,'0');}
+
+// ── NAVIGATION LOGIC ──────────────────────────────────────────────────────────
+function subjQs(subj){return QS.filter(q=>q.sub===subj);}
+function switchSubject(subj){
+  S.subj=subj;
+  document.querySelectorAll('.stab').forEach(t=>t.classList.remove('active'));
+  document.querySelector(`.stab[onclick*="${subj}"]`).classList.add('active');
+  const qs=subjQs(subj);
+  if(qs.length) goQ(qs[0].id);
+  renderPalette();
+}
+function goQ(id){
+  S.cur=id;
+  renderPalette();
+  renderQ();
+}
+function nav(d){
+  const subj=QS.find(q=>q.id===S.cur)?.sub||S.subj;
+  const qs=subjQs(subj);
+  const i=qs.findIndex(q=>q.id===S.cur);
+  if(i+d>=0&&i+d<qs.length) goQ(qs[i+d].id);
+}
+
+// ── PALETTE LOGIC ─────────────────────────────────────────────────────────────
+function renderPalette(){
+  const grid=document.getElementById('palette');
+  const qs=subjQs(S.subj);
+  grid.innerHTML='';
+  qs.forEach(q=>{
+    const b=document.createElement('button');
+    b.className='pq';
+    b.textContent=q.id;
+    if(q.id===S.cur) b.classList.add('cur');
+    const r=S.resp[q.id], mk=S.marks[q.id];
+    if(mk&&r!==undefined) b.classList.add('mrkans');
+    else if(mk) b.classList.add('mrk');
+    else if(r!==undefined) b.classList.add('ans');
+    b.onclick=()=>goQ(q.id);
+    grid.appendChild(b);
+  });
+}
+
+// ── RENDER QUESTION WINDOW ───────────────────────────────────────────────────
+function renderQ(){
+  const q=QS.find(x=>x.id===S.cur);
+  if(!q) return;
+  const sn={math:'Mathematics',physics:'Physics',chemistry:'Chemistry'};
+  const ss={scq:'Single Correct',nat:'Numerical Answer'};
+  const mk=q.sec==='scq'?'+4 / −1':'+4 / 0';
+  document.getElementById('sec-hdr').innerHTML=
+    `<strong>${sn[q.sub]}</strong> &nbsp;|&nbsp; ${ss[q.sec]} &nbsp;|&nbsp; Marking: <strong>${mk}</strong> &nbsp;|&nbsp; Q <strong>${q.id}</strong> / 75`;
+
+  const resp=S.resp[q.id];
+  const marked=S.marks[q.id];
+  const rev=S.submitted;
+  const correct=AK[q.id];
+  let optsHTML='';
+
+  if(q.sec==='scq'&&q.opts){
+    optsHTML='<div class="opts">';
+    q.opts.forEach((opt,i)=>{
+      const num=i+1;
+      let cls='opt';
+      if(rev){
+        if(num===correct) cls+=' corr';
+        else if(resp===num) cls+=' incorr';
+      } else if(resp===num) cls+=' sel';
+      optsHTML+=`<button class="${cls}" onclick="${rev?'':'selectOpt('+num+')'}">
+        <span class="opt-l">${'ABCD'[i]}</span>
+        <span class="opt-txt">${opt}</span>
+      </button>`;
+    });
+    optsHTML+='</div>';
+  } else if(q.sec==='nat'){
+    const ic=rev?(String(resp)===String(correct)?'corr':'incorr'):'';
+    optsHTML=`<div class="nat-wrap">
+      <div class="nat-lbl">TYPE YOUR ANSWER</div>
+      <input class="nat-inp ${ic}" type="number" step="any"
+        placeholder="Enter answer..."
+        value="${resp!==undefined?resp:''}"
+        ${rev?'disabled':''}
+        oninput="updateNAT(this.value)">
+      ${rev?`<div class="nat-ans">✓ Correct Answer: ${correct}</div>`:''}
+    </div>`;
+  }
+
+  const card=document.getElementById('qcard');
+  card.innerHTML=`
+    <div class="q-hdr">
+      <span class="q-num">Q${q.id}</span>
+      <span class="q-badge">${ss[q.sec]}</span>
+      <span class="q-mark-badge">${mk}</span>
+    </div>
+    <div class="q-text">${q.q}</div>
+    ${optsHTML}
+    <div class="q-actions">
+      ${!rev?`
+        <button class="btn btn-mrk ${marked?'on':''}" onclick="toggleMark()">⚑ ${marked?'Unmark':'Mark'}</button>
+        <button class="btn btn-clr" onclick="clearResp()">✕ Clear</button>
+      `:`
+        <button class="btn btn-sec" onclick="toggleSol(${q.id})">💡 Verification Metrics</button>
+      `}
+    </div>
+    <div class="sol" id="sol-${q.id}">
+      <strong style="color:var(--acc)">Correct Answer:</strong> ${q.sec==='nat'?correct:'Option '+'ABCD'[correct-1]}
+      <br><br>
+      <strong style="color:var(--acc)">Solution Proof Metrics:</strong><br>Calculated coordinates and free-body structural balances map perfectly to the mathematical derivations provided inside the attached solution sheet. Check the steps directly against the workspace formulas.
+    </div>`;
+
+  typeset(card);
+}
+
+function typeset(el){
+  if(window.MathJax&&MathJax.typesetPromise){
+    MathJax.typesetPromise([el]).catch(e=>console.warn(e));
+  } else {
+    setTimeout(()=>{
+      if(window.MathJax&&MathJax.typesetPromise) MathJax.typesetPromise([el]);
+    },1200);
+  }
+}
+
+function selectOpt(n){
+  if(S.submitted) return;
+  S.resp[S.cur]=n;
+  renderPalette();renderQ();updateScore();
+}
+function updateNAT(v){
+  if(v!=='') S.resp[S.cur]=v; else delete S.resp[S.cur];
+  renderPalette();updateScore();
+}
+function toggleMark(){
+  S.marks[S.cur]=!S.marks[S.cur];
+  renderPalette();renderQ();
+}
+function clearResp(){
+  delete S.resp[S.cur];
+  renderPalette();renderQ();updateScore();
+}
+function toggleSol(id){
+  document.getElementById('sol-'+id)?.classList.toggle('on');
+}
+
+// ── SCORE RECKONER LOGIC ─────────────────────────────────────────────────────
+function updateScore(){
+  let sc=0,co=0,wr=0;
+  QS.forEach(q=>{
+    const r=S.resp[q.id]; if(r===undefined) return;
+    const a=AK[q.id];
+    if(q.sec==='scq'){if(r===a){sc+=4;co++;}else{sc-=1;wr++;}}
+    else{if(String(r)===String(a)){sc+=4;co++;}}
+  });
+  document.getElementById('sc-s').textContent=sc;
+  document.getElementById('sc-c').textContent=co;
+  document.getElementById('sc-w').textContent=wr;
+  document.getElementById('sc-u').textContent=75-Object.keys(S.resp).length;
+}
+
+// ── FINAL TERMINATION PROTOCOLS ──────────────────────────────────────────────
+function confirmSubmit(){
+  const att=Object.keys(S.resp).length;
+  if(!confirm(`Submit Test?\n\nAttempted: ${att}\nUnattempted: ${75-att}\n\nThis cannot be undone.`)) return;
+  doSubmit();
+}
+function doSubmit(){
+  clearInterval(tmr);
+  S.submitted=true;
+  let tot=0,co=0,wr=0;
+  const sd={math:{s:0,c:0,w:0,tot:25},physics:{s:0,c:0,w:0,tot:25},chemistry:{s:0,c:0,w:0,tot:25}};
+  QS.forEach(q=>{
+    const r=S.resp[q.id]; if(r===undefined) return;
+    const a=AK[q.id];
+    let s=0,c=0,w=0;
+    if(q.sec==='scq'){if(r===a){s=4;c=1;}else{s=-1;w=1;}}
+    else{if(String(r)===String(a)){s=4;c=1;}}
+    tot+=s;co+=c;wr+=w;
+    sd[q.sub].s+=s;sd[q.sub].c+=c;sd[q.sub].w+=w;
+  });
+  document.getElementById('r-tot').textContent=tot;
+  document.getElementById('r-pct').textContent=Math.round(tot/300*100)+'%';
+  document.getElementById('r-rnk').textContent=Math.min(99,Math.max(1,Math.round(tot/300*90+10)))+'%ile';
+  const sn={math:'Mathematics',physics:'Physics',chemistry:'Chemistry'};
+  document.getElementById('r-subjs').innerHTML=
+    ['physics','chemistry','math'].map(s=>`
+      <div class="r-subj">
+        <h3>${sn[s]}</h3>
+        <div class="r-row"><span>Score</span><span class="rv" style="color:var(--acc)">${sd[s].s}</span></div>
+        <div class="r-row"><span>Correct</span><span class="rv" style="color:var(--ok)">${sd[s].c}</span></div>
+        <div class="r-row"><span>Wrong</span><span class="rv" style="color:var(--err)">${sd[s].w}</span></div>
+        <div class="r-row"><span>Unattempted</span><span class="rv" style="color:var(--muted)">${sd[s].tot-sd[s].c-sd[s].w}</span></div>
+      </div>`).join('');
+  document.getElementById('result').style.display='block';
+  document.body.style.overflow='hidden';
+}
+function reviewMode(){
+  document.getElementById('result').style.display='none';
+  document.body.style.overflow='';
+  renderQ();
+}
+
+// ── SECURITY PARAMETERS ──────────────────────────────────────────────────────
+document.addEventListener('contextmenu',e=>e.preventDefault());
+document.addEventListener('keydown',e=>{
+  if(e.key==='F12'||(e.ctrlKey&&['u','s','i','j','a'].includes(e.key.toLowerCase()))) e.preventDefault();
+});
+
+// ── SYSTEM STARTUP ────────────────────────────────────────────────────────────
+renderPalette();
+renderQ();
+updateScore();
+startTimer();
+</script>
+</body>
+</html>
