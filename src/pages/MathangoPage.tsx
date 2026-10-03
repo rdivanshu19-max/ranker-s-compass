@@ -6,13 +6,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { MATHANGO_TESTS, countdown, isUnlocked, tryUnlockCode } from '@/lib/mathango';
+import { MATHANGO_TESTS, countdown, isUnlocked, tryUnlockCode, fetchAccountUnlock } from '@/lib/mathango';
 
 export default function MathangoPage() {
   const navigate = useNavigate();
   const [now, setNow] = useState(Date.now());
   const [code, setCode] = useState('');
   const [showCode, setShowCode] = useState(false);
+  const [acct, setAcct] = useState(false);
+  useEffect(() => { fetchAccountUnlock().then(setAcct); }, []);
 
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t); }, []);
 
@@ -20,7 +22,7 @@ export default function MathangoPage() {
   const [codeError, setCodeError] = useState('');
   const submit = async () => {
     if (await tryUnlockCode(code)) {
-      toast.success('Mathango tests unlocked'); setCode(''); setCodeError(''); setShowCode(false); setDialogOpen(false); setNow(Date.now());
+      setAcct(true); toast.success('Mathango tests unlocked for your account'); setCode(''); setCodeError(''); setShowCode(false); setDialogOpen(false); setNow(Date.now());
     } else { setCodeError('Incorrect code. Please try again.'); toast.error('Incorrect code'); }
   };
 
@@ -42,7 +44,7 @@ export default function MathangoPage() {
 
       <div className="grid gap-5 lg:grid-cols-2">
         {MATHANGO_TESTS.map((t, i) => {
-          const open = isUnlocked(t, now);
+          const open = isUnlocked(t, now, acct);
           return (
             <motion.div key={t.n} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
               className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/60 p-5 backdrop-blur-xl sm:p-6">
