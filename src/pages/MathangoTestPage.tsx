@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { MATHANGO_TESTS, isUnlocked, loadMathangoHtml } from '@/lib/mathango';
+import { MATHANGO_TESTS, isUnlocked, loadMathangoHtml, fetchAccountUnlock } from '@/lib/mathango';
 import RankersLoader from '@/components/RankersLoader';
 
 const DESKTOP_W = 1280;
@@ -15,6 +15,8 @@ export default function MathangoTestPage() {
   const boxRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: DESKTOP_W, h: 800 });
   const [html, setHtml] = useState<string | null>(null);
+  const [acct, setAcct] = useState<boolean | null>(null);
+  useEffect(() => { fetchAccountUnlock().then(setAcct); }, []);
 
   useEffect(() => {
     if (!test) return;
@@ -30,7 +32,8 @@ export default function MathangoTestPage() {
     return () => ro.disconnect();
   }, []);
 
-  if (!test || !isUnlocked(test)) return <Navigate to="/app/mathango" replace />;
+  if (test && !isUnlocked(test) && acct === null) return <RankersLoader label="Opening Test" fullScreen />;
+  if (!test || !isUnlocked(test, Date.now(), !!acct)) return <Navigate to="/app/mathango" replace />;
 
   const scale = Math.min(1, size.w / DESKTOP_W);
   const frameW = scale < 1 ? DESKTOP_W : size.w;

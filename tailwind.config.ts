@@ -12,8 +12,10 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ['"Space Grotesk"', 'sans-serif'],
-        body: ['"Inter"', 'sans-serif'],
+        display: ['"Outfit"', 'sans-serif'],
+        body: ['"Outfit"', 'sans-serif'],
+        mono: ['"Space Mono"', 'monospace'],
+        hand: ['"Kalam"', 'cursive'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -27,6 +29,7 @@ export default {
         muted: { DEFAULT: "hsl(var(--muted))", foreground: "hsl(var(--muted-foreground))" },
         accent: { DEFAULT: "hsl(var(--accent))", foreground: "hsl(var(--accent-foreground))" },
         popover: { DEFAULT: "hsl(var(--popover))", foreground: "hsl(var(--popover-foreground))" },
+        highlight: "hsl(var(--highlight))",
         card: { DEFAULT: "hsl(var(--card))", foreground: "hsl(var(--card-foreground))" },
         hero: {
           bg: "hsl(var(--hero-bg))",

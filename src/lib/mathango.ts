@@ -1,5 +1,4 @@
-const CODE_HASH = 'f418aa3623d0a91042cf66b76b090981a639ae056aff597f2ebd3f46f7d2c084';
-const KEY = 'mathango-unlock-v1';
+import { supabase } from '@/lib/supabase';
 
 // QPT 1 open now; QPT 2–6 unlock every Sunday (00:00 IST) starting 4 Oct 2026.
 const FIRST_SUNDAY = new Date('2026-10-04T00:00:00+05:30').getTime();
@@ -20,21 +19,19 @@ export const loadMathangoHtml = (n: number) => {
   return fn ? fn() : Promise.reject(new Error('Test not found'));
 };
 
-export const isMasterUnlocked = () => {
-  try { return localStorage.getItem(KEY) === '1'; } catch { return false; }
-};
-
-const sha256 = async (s: string) => {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+// Account-based unlock: stored per user on the server, verified server-side.
+export const fetchAccountUnlock = async (): Promise<boolean> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return false;
+  const { data } = await supabase.from('mathango_unlocks').select('user_id').eq('user_id', user.id).maybeSingle();
+  return !!data;
 };
 
 export const tryUnlockCode = async (code: string) => {
-  if ((await sha256(code.trim().toUpperCase())) !== CODE_HASH) return false;
-  try { localStorage.setItem(KEY, '1'); } catch { /* ignore */ }
-  return true;
+  const { data, error } = await supabase.rpc('redeem_mathango_code', { _code: code });
+  return !error && data === true;
 };
-export const isUnlocked = (t: MathangoTest, now = Date.now()) => isMasterUnlocked() || now >= t.unlockAt;
+export const isUnlocked = (t: MathangoTest, now = Date.now(), accountUnlocked = false) => accountUnlocked || now >= t.unlockAt;
 
 export const countdown = (ms: number) => {
   const s = Math.max(0, Math.floor(ms / 1000));
