@@ -116,7 +116,7 @@ export default function AuthPage() {
         <div className="hero-card rounded-2xl p-8">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold font-display mb-2">
-              <span style={{ color: 'hsl(0 0% 100%)' }}>Rankers </span>
+              <span style={{ color: 'hsl(var(--foreground))' }}>Rankers </span>
               <span className="text-gradient">Star</span>
             </h1>
             <p style={{ color: 'hsl(220 15% 60%)' }}>{isSignUp ? 'Create your account' : 'Welcome back'}</p>

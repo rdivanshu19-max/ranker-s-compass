@@ -1,8 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&family=Kalam:wght@400;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&family=Kalam:wght@400;700&display=swap');
 
 @layer base {
   :root {
@@ -18,8 +18,9 @@
     --secondary-foreground: 222 47% 11%;
     --muted: 214 40% 95%;
     --muted-foreground: 215 20% 42%;
-    --accent: 45 96% 53%;
-    --accent-foreground: 222 47% 11%;
+    --accent: 204 94% 52%;
+    --accent-foreground: 0 0% 100%;
+    --highlight: 45 96% 53%;
     --destructive: 350 80% 52%;
     --destructive-foreground: 0 0% 100%;
     --border: 214 32% 89%;
@@ -61,8 +62,9 @@
     --secondary-foreground: 210 40% 98%;
     --muted: 222 35% 15%;
     --muted-foreground: 215 20% 65%;
-    --accent: 45 96% 56%;
-    --accent-foreground: 222 47% 11%;
+    --accent: 204 94% 58%;
+    --accent-foreground: 0 0% 100%;
+    --highlight: 45 96% 56%;
     --destructive: 350 72% 50%;
     --destructive-foreground: 0 0% 100%;
     --border: 222 30% 20%;
