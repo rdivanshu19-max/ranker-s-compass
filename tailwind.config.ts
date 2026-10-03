@@ -12,8 +12,10 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ['"Space Grotesk"', 'sans-serif'],
-        body: ['"Inter"', 'sans-serif'],
+        display: ['"Outfit"', 'sans-serif'],
+        body: ['"Outfit"', 'sans-serif'],
+        mono: ['"Space Mono"', 'monospace'],
+        hand: ['"Kalam"', 'cursive'],
       },
       colors: {
         border: "hsl(var(--border))",
