@@ -127,11 +127,11 @@ export default function LandingPage() {
 
             <motion.h1 variants={fadeUp} transition={{ duration: 0.8 }}
               className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold font-display mb-4 sm:mb-6 tracking-tight">
-              <span className="text-foreground drop-shadow-[0_2px_20px_rgba(0,0,0,0.6)]">Rankers </span>
+              <span className="text-foreground ">Rankers </span>
               <span className="text-gradient">Star</span>
               <motion.span animate={{ rotate: [0, 15, -15, 0] }} transition={{ repeat: Infinity, duration: 2, repeatDelay: 3 }}
                 className="inline-block ml-2 sm:ml-3">⭐</motion.span>
-              <span className="block mt-3 text-lg sm:text-2xl md:text-3xl font-semibold text-slate-200">
+              <span className="block mt-3 text-lg sm:text-2xl md:text-3xl font-semibold text-muted-foreground">
                 Free JEE &amp; NEET Study Materials, AI Mock Tests &amp; Mentor
               </span>
             </motion.h1>
@@ -142,7 +142,7 @@ export default function LandingPage() {
             </motion.p>
 
             <motion.p variants={fadeUp} transition={{ duration: 0.8 }}
-              className="text-base sm:text-lg md:text-xl font-medium max-w-2xl mx-auto mb-8 sm:mb-10 text-slate-200">
+              className="text-base sm:text-lg md:text-xl font-medium max-w-2xl mx-auto mb-8 sm:mb-10 text-muted-foreground">
               Premium lectures, books, PYQs, notes, adaptive practice, AI mock tests and a live student community — all completely free.
             </motion.p>
 
@@ -171,7 +171,7 @@ export default function LandingPage() {
                     <item.icon className="w-4 h-4 text-primary" />
                     <span className="font-bold text-foreground text-sm">{item.title}</span>
                   </div>
-                  <p className="text-xs text-slate-300 group-hover:text-foreground transition-colors">{item.text}</p>
+                  <p className="text-xs text-muted-foreground group-hover:text-foreground transition-colors">{item.text}</p>
                 </button>
               ))}
             </motion.div>
@@ -185,7 +185,7 @@ export default function LandingPage() {
                 className="hero-card rounded-xl p-4 sm:p-6 text-center hover:border-primary/40 transition-all duration-300 hover:-translate-y-2">
                 <stat.icon className={`w-5 sm:w-7 h-5 sm:h-7 mx-auto mb-2 sm:mb-3 ${stat.color}`} />
                 <div className="text-2xl sm:text-3xl font-bold font-display text-foreground">{stat.value}</div>
-                <div className="text-xs sm:text-sm mt-1 font-medium text-slate-300">{stat.label}</div>
+                <div className="text-xs sm:text-sm mt-1 font-medium text-muted-foreground">{stat.label}</div>
               </motion.div>
             ))}
           </motion.div>
@@ -216,7 +216,7 @@ export default function LandingPage() {
             <motion.h2 variants={fadeUp} className="text-3xl sm:text-4xl md:text-5xl font-bold font-display mb-3 sm:mb-4 text-foreground">
               Everything You Need to <span className="text-gradient">Crack It</span>
             </motion.h2>
-            <motion.p variants={fadeUp} className="text-base sm:text-lg max-w-2xl mx-auto text-slate-300">
+            <motion.p variants={fadeUp} className="text-base sm:text-lg max-w-2xl mx-auto text-muted-foreground">
               From study materials to AI-powered test practice, Rankers Star has everything to boost your preparation.
             </motion.p>
           </motion.div>
@@ -232,7 +232,7 @@ export default function LandingPage() {
                     <feature.icon className="w-6 sm:w-7 h-6 sm:h-7 text-primary" />
                   </div>
                   <h3 className="text-lg sm:text-xl font-bold font-display mb-2 sm:mb-3 text-foreground">{feature.title}</h3>
-                  <p className="text-sm sm:text-base leading-relaxed text-slate-300">{feature.desc}</p>
+                  <p className="text-sm sm:text-base leading-relaxed text-muted-foreground">{feature.desc}</p>
                 </div>
               </motion.div>
             ))}
@@ -254,7 +254,7 @@ export default function LandingPage() {
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold font-display mb-4 text-foreground">
                 Your Personal <span className="text-gradient">Study Coach</span> is Always Visible
               </h2>
-              <p className="text-base sm:text-lg text-slate-300 leading-relaxed mb-6">
+              <p className="text-base sm:text-lg text-muted-foreground leading-relaxed mb-6">
                 ASTRA creates daily task lists, voice-guided answers, weak topic attack plans, smart nudges, and mistake-journal style improvement steps for JEE, NEET and Boards.
               </p>
               <div className="grid sm:grid-cols-2 gap-3">
@@ -272,7 +272,7 @@ export default function LandingPage() {
                 </div>
                 <div>
                   <p className="font-bold text-foreground">Today&apos;s ASTRA flow</p>
-                  <p className="text-xs text-gray-400">Plan → Practice → Review → Celebrate</p>
+                  <p className="text-xs text-muted-foreground">Plan → Practice → Review → Celebrate</p>
                 </div>
               </div>
               <div className="space-y-3">
@@ -283,7 +283,7 @@ export default function LandingPage() {
                 ].map(([title, text], i) => (
                   <div key={title} className="rounded-xl bg-background/30 border border-white/5 p-3 flex items-center gap-3">
                     <span className="w-7 h-7 rounded-full bg-primary/15 text-primary flex items-center justify-center text-xs font-bold">{i + 1}</span>
-                    <div><p className="text-sm font-semibold text-foreground">{title}</p><p className="text-xs text-gray-400">{text}</p></div>
+                    <div><p className="text-sm font-semibold text-foreground">{title}</p><p className="text-xs text-muted-foreground">{text}</p></div>
                   </div>
                 ))}
               </div>
@@ -312,7 +312,7 @@ export default function LandingPage() {
             <motion.div key={currentTestimonial} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
               className="hero-card rounded-2xl p-6 sm:p-8 md:p-10 text-center relative">
               <Quote className="w-8 sm:w-10 h-8 sm:h-10 text-primary/30 mx-auto mb-4 sm:mb-6" />
-              <p className="text-base sm:text-lg md:text-xl leading-relaxed mb-4 sm:mb-6 italic text-gray-300">
+              <p className="text-base sm:text-lg md:text-xl leading-relaxed mb-4 sm:mb-6 italic text-muted-foreground">
                 "{testimonials[currentTestimonial].text}"
               </p>
               <div className="flex items-center justify-center gap-2">
@@ -353,14 +353,14 @@ export default function LandingPage() {
             <motion.h2 variants={fadeUp} className="text-3xl sm:text-4xl md:text-5xl font-bold font-display mb-4 sm:mb-6 text-foreground">
               About <span className="text-gradient">Us</span>
             </motion.h2>
-            <motion.p variants={fadeUp} className="text-base sm:text-lg leading-relaxed mb-4 sm:mb-6 text-gray-400">
+            <motion.p variants={fadeUp} className="text-base sm:text-lg leading-relaxed mb-4 sm:mb-6 text-muted-foreground">
               Rankers Star was born from a simple belief: <strong className="text-foreground">quality education should be accessible to everyone</strong>,
               regardless of their financial background. We are a community-driven platform built by students, for students.
             </motion.p>
-            <motion.p variants={fadeUp} className="text-base sm:text-lg leading-relaxed mb-4 sm:mb-6 text-gray-400">
+            <motion.p variants={fadeUp} className="text-base sm:text-lg leading-relaxed mb-4 sm:mb-6 text-muted-foreground">
               Our team curates the best study materials from across the internet and makes them available in one organized platform, completely free of charge.
             </motion.p>
-            <motion.p variants={fadeUp} className="text-base sm:text-lg leading-relaxed text-gray-400">
+            <motion.p variants={fadeUp} className="text-base sm:text-lg leading-relaxed text-muted-foreground">
               With AI-powered tools like RankerPulse chatbot and CBT-mode mock tests, we're building a complete ecosystem for exam preparation.
             </motion.p>
           </motion.div>
@@ -392,7 +392,7 @@ export default function LandingPage() {
                     <goal.icon className="w-7 sm:w-8 h-7 sm:h-8 text-primary" />
                   </div>
                   <h3 className="text-lg sm:text-xl font-bold font-display mb-2 sm:mb-3 text-foreground">{goal.title}</h3>
-                  <p className="text-sm sm:text-base text-gray-400">{goal.desc}</p>
+                  <p className="text-sm sm:text-base text-muted-foreground">{goal.desc}</p>
                 </motion.div>
               ))}
             </div>
@@ -411,7 +411,7 @@ export default function LandingPage() {
               <motion.h2 variants={fadeUp} className="text-2xl sm:text-3xl md:text-4xl font-bold font-display mb-3 sm:mb-4 text-foreground">
                 Ready to Start Your Journey?
               </motion.h2>
-              <motion.p variants={fadeUp} className="text-base sm:text-lg mb-6 sm:mb-8 text-gray-400">
+              <motion.p variants={fadeUp} className="text-base sm:text-lg mb-6 sm:mb-8 text-muted-foreground">
                 Join thousands of students who are already using Rankers Star to prepare smarter, not harder.
               </motion.p>
               <motion.div variants={fadeUp}>
@@ -432,11 +432,11 @@ export default function LandingPage() {
               <h3 className="text-xl sm:text-2xl font-bold font-display mb-2">
                 <span className="text-foreground">Rankers </span><span className="text-gradient">Star</span>
               </h3>
-              <p className="text-sm text-gray-400">Your free study companion for JEE, NEET & Board Exams.</p>
+              <p className="text-sm text-muted-foreground">Your free study companion for JEE, NEET & Board Exams.</p>
             </div>
             <div>
               <h4 className="font-bold mb-3 text-foreground">Quick Links</h4>
-              <ul className="space-y-2 text-sm text-gray-400">
+              <ul className="space-y-2 text-sm text-muted-foreground">
                 <li><a href="/terms" className="hover:text-primary transition-colors">Terms & Conditions</a></li>
                 <li><a href="/privacy" className="hover:text-primary transition-colors">Privacy Policy</a></li>
                 <li><a href="/adsense" className="hover:text-primary transition-colors">AdSense Disclaimer</a></li>
@@ -444,13 +444,13 @@ export default function LandingPage() {
             </div>
             <div>
               <h4 className="font-bold mb-3 text-foreground">Connect With Us</h4>
-              <ul className="space-y-2 text-sm text-gray-400">
+              <ul className="space-y-2 text-sm text-muted-foreground">
                 <li><a href="mailto:studyspacerankers@gmail.com" className="hover:text-primary transition-colors">📧 studyspacerankers@gmail.com</a></li>
                 <li><a href="https://t.me/pwrtsjee" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">✈️ Telegram Channel</a></li>
               </ul>
             </div>
           </div>
-          <div className="border-t border-white/5 pt-6 text-center text-sm text-gray-500">
+          <div className="border-t border-white/5 pt-6 text-center text-sm text-muted-foreground">
             © {new Date().getFullYear()} Rankers Star. All rights reserved. Made with ❤️ for students.
           </div>
         </div>
