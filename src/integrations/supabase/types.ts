@@ -414,6 +414,21 @@ export type Database = {
         }
         Relationships: []
       }
+      mathango_unlocks: {
+        Row: {
+          unlocked_at: string
+          user_id: string
+        }
+        Insert: {
+          unlocked_at?: string
+          user_id: string
+        }
+        Update: {
+          unlocked_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -1147,6 +1162,7 @@ export type Database = {
         Returns: boolean
       }
       is_banned: { Args: { _user_id: string }; Returns: boolean }
+      redeem_mathango_code: { Args: { _code: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "user" | "moderator"
