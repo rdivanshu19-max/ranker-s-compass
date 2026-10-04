@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import FeaturedInstitutions from '@/components/FeaturedInstitutions';
 import PromoBanners from '@/components/PromoBanners';
+import { RVHero, RVStages, RVFeed } from '@/components/landing/RVLanding';
 
 
 const fadeUp = { hidden: { opacity: 0, y: 40 }, visible: { opacity: 1, y: 0 } };
@@ -106,99 +107,9 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen overflow-x-hidden">
-      {/* Hero */}
-      <section className="relative bg-hero flex min-h-[100svh] items-center justify-center overflow-hidden py-24 sm:py-28">
-        <Particles />
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl animate-float" />
-          <div className="absolute bottom-20 right-10 w-96 h-96 bg-primary/8 rounded-full blur-3xl animate-float" style={{ animationDelay: '1.5s' }} />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] max-w-[140vw] bg-primary/3 rounded-full blur-[100px]" />
-          <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle, hsl(0 0% 100%) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
-        </div>
-
-        <motion.div style={{ opacity: heroOpacity, scale: heroScale }} className="relative z-10 container mx-auto w-full max-w-full px-4 text-center">
-
-          <motion.div initial="hidden" animate="visible" variants={stagger} className="max-w-4xl mx-auto">
-            <motion.div variants={scaleIn} transition={{ duration: 0.6 }}
-              className="inline-flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full border border-primary/30 bg-primary/10 mb-6 sm:mb-8 backdrop-blur-sm">
-              <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-primary animate-pulse" />
-              <span className="text-xs sm:text-sm font-medium text-foreground">100% Free Study Materials — No Hidden Charges</span>
-            </motion.div>
-
-            <motion.h1 variants={fadeUp} transition={{ duration: 0.8 }}
-              className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold font-display mb-4 sm:mb-6 tracking-tight">
-              <span className="text-foreground ">Rankers </span>
-              <span className="text-gradient">Star</span>
-              <motion.span animate={{ rotate: [0, 15, -15, 0] }} transition={{ repeat: Infinity, duration: 2, repeatDelay: 3 }}
-                className="inline-block ml-2 sm:ml-3">⭐</motion.span>
-              <span className="block mt-3 text-lg sm:text-2xl md:text-3xl font-semibold text-muted-foreground">
-                Free JEE &amp; NEET Study Materials, AI Mock Tests &amp; Mentor
-              </span>
-            </motion.h1>
-
-            <motion.p variants={fadeUp} transition={{ duration: 0.8 }}
-              className="text-2xl sm:text-3xl md:text-4xl font-extrabold font-display leading-tight tracking-tight mb-4 text-foreground">
-              Fix Weak Chapters. Clear Doubts.<br className="hidden sm:block" /> <span className="text-gradient">Score Higher in JEE &amp; NEET.</span>
-            </motion.p>
-
-            <motion.p variants={fadeUp} transition={{ duration: 0.8 }}
-              className="text-base sm:text-lg md:text-xl font-medium max-w-2xl mx-auto mb-8 sm:mb-10 text-muted-foreground">
-              Premium lectures, books, PYQs, notes, adaptive practice, AI mock tests and a live student community — all completely free.
-            </motion.p>
-
-            <motion.div variants={fadeUp} transition={{ duration: 0.8 }}
-              className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center px-4 sm:px-0">
-              <Button variant="hero" size="xl" onClick={() => navigate('/auth')} className="group w-full sm:w-auto min-w-[200px] animate-pulse-glow">
-                <Zap className="w-5 h-5" /> <span className="font-extrabold tracking-tight">Prep Now — It&apos;s Free</span> <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </Button>
-              <Button variant="heroOutline" size="xl" asChild className="w-full sm:w-auto min-w-[200px]">
-                <a href="https://t.me/pwrtsjee" target="_blank" rel="noopener noreferrer">
-                  <Send className="w-5 h-5" /> Join Telegram
-                </a>
-              </Button>
-            </motion.div>
-
-            <motion.div variants={fadeUp} transition={{ duration: 0.8 }}
-              className="mt-6 sm:mt-8 grid gap-3 sm:grid-cols-3 text-left">
-              {[
-                { icon: Sparkles, title: 'ASTRA Mentor', text: 'Daily plans, voice guidance, weak-topic attack' },
-                { icon: Target, title: 'AI Tests', text: 'JEE/NEET CBT mock tests with analysis' },
-                { icon: Users, title: 'Community', text: 'Doubts, spaces, stories and XP leaderboard' },
-              ].map((item) => (
-                <button key={item.title} onClick={() => navigate('/auth')}
-                  className="hero-card rounded-xl p-3 sm:p-4 hover:border-primary/50 transition-all group">
-                  <div className="flex items-center gap-2 mb-1">
-                    <item.icon className="w-4 h-4 text-primary" />
-                    <span className="font-bold text-foreground text-sm">{item.title}</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground group-hover:text-foreground transition-colors">{item.text}</p>
-                </button>
-              ))}
-            </motion.div>
-          </motion.div>
-
-          {/* Stats */}
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}
-            className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mt-12 sm:mt-20 max-w-4xl mx-auto">
-            {stats.map((stat) => (
-              <motion.div key={stat.label} variants={scaleIn} transition={{ duration: 0.5 }}
-                className="hero-card rounded-xl p-4 sm:p-6 text-center hover:border-primary/40 transition-all duration-300 hover:-translate-y-2">
-                <stat.icon className={`w-5 sm:w-7 h-5 sm:h-7 mx-auto mb-2 sm:mb-3 ${stat.color}`} />
-                <div className="text-2xl sm:text-3xl font-bold font-display text-foreground">{stat.value}</div>
-                <div className="text-xs sm:text-sm mt-1 font-medium text-muted-foreground">{stat.label}</div>
-              </motion.div>
-            ))}
-          </motion.div>
-        </motion.div>
-
-        <motion.div animate={{ y: [0, 10, 0] }} transition={{ repeat: Infinity, duration: 2 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 hidden sm:block">
-          <div className="w-6 h-10 rounded-full border-2 border-primary/40 flex items-start justify-center p-1.5">
-            <motion.div animate={{ y: [0, 12, 0] }} transition={{ repeat: Infinity, duration: 2 }}
-              className="w-1.5 h-1.5 rounded-full bg-primary" />
-          </div>
-        </motion.div>
-      </section>
+      <RVHero />
+      <RVStages />
+      <RVFeed />
 
       {/* Promotions & partner network */}
       <PromoBanners />
