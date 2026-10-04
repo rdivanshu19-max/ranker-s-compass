@@ -10,6 +10,7 @@ import { autoPoster, type TestSeries } from '@/lib/testSeries';
 import { PRACTICE_PACKS } from '@/lib/practicePacks';
 import PracticePackCard from '@/components/PracticePackCard';
 import PromoSpot from '@/components/PromoSpot';
+import MathangoPackCard from '@/components/MathangoPackCard';
 
 export default function TestSeriesPage() {
   const navigate = useNavigate();
@@ -69,6 +70,7 @@ export default function TestSeriesPage() {
           </p>
         </div>
         <div className="grid gap-5 lg:grid-cols-2">
+          <MathangoPackCard />
           {PRACTICE_PACKS.map((p, i) => <PracticePackCard key={p.slug} pack={p} index={i} />)}
         </div>
       </section>
@@ -87,24 +89,6 @@ export default function TestSeriesPage() {
         </div>
       ) : (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          <motion.button initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} whileHover={{ y: -5 }}
-            onClick={() => navigate('/app/mathango')}
-            className="group relative overflow-hidden rounded-2xl border border-border/70 bg-card/60 text-left backdrop-blur-xl transition-all duration-300 hover:border-primary/50 hover:shadow-[0_18px_50px_-22px_hsl(var(--primary)/0.55)]">
-            <div className="relative h-28 w-full overflow-hidden" style={{ backgroundImage: autoPoster('Mathango 2027') }}>
-              <div className="absolute inset-0 bg-gradient-to-t from-card via-card/40 to-transparent" />
-            </div>
-            <div className="relative -mt-8 p-5 pt-0">
-              <div className="grid h-16 w-16 place-items-center rounded-2xl border border-border/70 bg-gradient-to-br from-primary to-accent shadow-lg">
-                <ClipboardList className="h-7 w-7 text-primary-foreground" />
-              </div>
-              <h2 className="mt-3 font-display text-lg font-bold transition-colors group-hover:text-primary">Mathango 2027 · QFTs</h2>
-              <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">Six full-syllabus QFT mocks in desktop CBT view. New test every Sunday.</p>
-              <div className="mt-4 flex items-center justify-between">
-                <span className="rounded-full border border-primary/20 bg-primary/10 px-2.5 py-1 text-[11px] font-medium text-primary">6 tests</span>
-                <span className="flex items-center gap-1 text-xs font-semibold text-primary">View Test Series <ArrowRight className="h-3.5 w-3.5" /></span>
-              </div>
-            </div>
-          </motion.button>
           {filtered.map((s, i) => (
             <motion.button key={s.id} initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}
               transition={{ delay: Math.min(i * 0.05, 0.3) }} whileHover={{ y: -5 }}
