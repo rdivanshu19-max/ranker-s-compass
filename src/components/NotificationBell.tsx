@@ -153,7 +153,7 @@ export default function NotificationBell() {
                     <div className="flex items-center gap-2 pt-0.5">
                       {n.priority === 'urgent' && (
                         <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-destructive/15 text-destructive flex items-center gap-1">
-                          <AlertCircle className="w-2.5 h-2.5" /> Urgent
+                          <AlertCircle className="w-2.5 h-2.5" /> {n.type === 'mention' || n.type === 'reply' ? 'Admin' : 'Urgent'}
                         </span>
                       )}
                       {n.priority === 'important' && (

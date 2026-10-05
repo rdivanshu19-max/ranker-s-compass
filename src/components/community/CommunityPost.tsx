@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import MarkdownMath from '@/components/MarkdownMath';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import MentionSuggest from './MentionSuggest';
 import { timeAgo, tagsFor, type Comment, type Post, type Space, type UserStats } from '@/lib/community';
 
 type Props = {
@@ -177,8 +178,9 @@ export default function CommunityPost({ post, space, author, score, myVote, comm
           ))}
           {comments.length === 0 && <p className="text-sm text-muted-foreground">No replies yet — be the first to solve this.</p>}
           {user && (
-            <div className="flex gap-2">
-              <Input value={draft} onChange={e => setDraft(e.target.value)} placeholder="Write a reply..."
+            <div className="relative flex gap-2">
+              <MentionSuggest value={draft} onChange={setDraft} />
+              <Input value={draft} onChange={e => setDraft(e.target.value)} placeholder="Write a reply... (@ to mention)"
                 onKeyDown={e => { if (e.key === 'Enter') addComment(); }} className="h-11 rounded-xl" />
               <Button onClick={addComment} disabled={busy || !draft.trim()} className="h-11 gap-1.5 rounded-xl px-4">
                 <Send className="h-4 w-4" /> Reply
