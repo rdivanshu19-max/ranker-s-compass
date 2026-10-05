@@ -55,7 +55,7 @@ export function RVHero() {
           <div className="relative rounded-[3rem] border-[10px] border-foreground bg-foreground p-1 shadow-2xl">
             <div className="mx-auto mb-2 h-6 w-32 rounded-b-2xl bg-foreground" />
             <div className="min-h-[460px] rounded-[2.2rem] bg-[hsl(var(--hero-bg))] p-3 text-background">
-              <div className={`rounded-full bg-background/10 px-3 py-1.5 text-[10px] ${mono}`}>● rankerstar.app</div>
+              <div className={`rounded-full bg-background/10 px-3 py-1.5 text-[10px] ${mono}`}>● rankers-stars.vercel.app</div>
               <div className="mt-2 h-1 rounded-full bg-primary" />
               <div className="mt-3 flex items-center gap-2 text-[10px]">
                 <b className="text-sm">JEE</b>

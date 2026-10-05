@@ -108,11 +108,12 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen overflow-x-hidden">
       <RVHero />
+      <PromoBanners />
       <RVStages />
       <RVFeed />
 
       {/* Promotions & partner network */}
-      <PromoBanners />
+      {/* promos moved above */}
 
 
 
