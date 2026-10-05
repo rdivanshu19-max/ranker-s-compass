@@ -79,7 +79,7 @@ export default function NotificationBell() {
 
   const getPriorityStyle = (priority?: string) => {
     if (priority === 'important') return 'border-l-4 border-l-orange-500 bg-orange-500/5';
-    if (priority === 'urgent') return 'border-l-4 border-l-destructive bg-destructive/5';
+    if (priority === 'urgent') return 'border-l-[6px] border-l-destructive bg-destructive/10 ring-1 ring-inset ring-destructive/30';
     return '';
   };
 
