@@ -9,6 +9,7 @@ import LandingPage from "./pages/LandingPage";
 import AuthPage from "./pages/AuthPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import AppLayout from "./components/AppLayout";
+import JoinChannelsPopup from "./components/JoinChannelsPopup";
 import ProtectedRoute from "./components/ProtectedRoute";
 import DashboardPage from "./pages/DashboardPage";
 import LibraryPage from "./pages/LibraryPage";
@@ -50,6 +51,7 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
+          <JoinChannelsPopup />
           <BrowserRouter>
             <RouteSeo />
             <Routes>
