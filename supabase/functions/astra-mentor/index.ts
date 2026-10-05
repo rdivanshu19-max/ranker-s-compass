@@ -8,10 +8,9 @@ const corsHeaders = {
 
 const DAILY_LIMIT = 10;
 
+// Must match the DB trigger, which stamps usage_date with CURRENT_DATE (UTC).
 function istDate(): string {
-  const now = new Date();
-  const ist = new Date(now.getTime() + 5.5 * 3600 * 1000);
-  return ist.toISOString().split("T")[0];
+  return new Date().toISOString().split("T")[0];
 }
 
 serve(async (req) => {
