@@ -79,7 +79,7 @@ export default function NotificationBell() {
 
   const getPriorityStyle = (priority?: string) => {
     if (priority === 'important') return 'border-l-4 border-l-orange-500 bg-orange-500/5';
-    if (priority === 'urgent') return 'border-l-4 border-l-destructive bg-destructive/5';
+    if (priority === 'urgent') return 'border-l-[6px] border-l-destructive bg-destructive/10 ring-1 ring-inset ring-destructive/30';
     return '';
   };
 
@@ -153,7 +153,7 @@ export default function NotificationBell() {
                     <div className="flex items-center gap-2 pt-0.5">
                       {n.priority === 'urgent' && (
                         <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-destructive/15 text-destructive flex items-center gap-1">
-                          <AlertCircle className="w-2.5 h-2.5" /> Urgent
+                          <AlertCircle className="w-2.5 h-2.5" /> {n.type === 'mention' || n.type === 'reply' ? 'Admin' : 'Urgent'}
                         </span>
                       )}
                       {n.priority === 'important' && (

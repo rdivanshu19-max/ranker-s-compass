@@ -8,10 +8,9 @@ const corsHeaders = {
 
 const DAILY_LIMIT = 10;
 
+// Must match the DB trigger, which stamps usage_date with CURRENT_DATE (UTC).
 function istDate(): string {
-  const now = new Date();
-  const ist = new Date(now.getTime() + 5.5 * 3600 * 1000);
-  return ist.toISOString().split("T")[0];
+  return new Date().toISOString().split("T")[0];
 }
 
 serve(async (req) => {
@@ -136,17 +135,19 @@ MISTAKE PATTERNS: ${topics.filter(t => t.errors > 2).map(t => `${t.topic}: ${t.e
       taskContext = `\nTODAY'S TASKS: ${done}/${dailyTasks.length} completed (${Math.round((done / dailyTasks.length) * 100)}%). Consistency score: ${consistencyScore || 0}%`;
     }
 
-    const GROQ_API_KEY = Deno.env.get("GROQ_CHAT_API_KEY") || Deno.env.get("GROQ_API_KEY");
-    if (!GROQ_API_KEY) throw new Error("GROQ_CHAT_API_KEY is not configured");
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${GROQ_API_KEY}`,
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
+        "X-Lovable-AIG-SDK": "fetch",
       },
       body: JSON.stringify({
-        model: "qwen/qwen3.8-27b",
+        model: "openai/gpt-6-astra",
+        reasoning_effort: "low",
         messages: [
           {
             role: "system",
@@ -194,8 +195,13 @@ Rules:
           status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+      if (response.status === 402) {
+        return new Response(JSON.stringify({ error: "AI credits exhausted. Please contact the admin." }), {
+          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
       const t = await response.text();
-      console.error("ASTRA Groq error:", response.status, t);
+      console.error("ASTRA gateway error:", response.status, t);
       return new Response(JSON.stringify({ error: "AI service error. Please try again." }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });

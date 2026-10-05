@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import MentionSuggest from './MentionSuggest';
 import { uploadCommunityImage, type Post, type Space } from '@/lib/community';
 
 const MATH_SYMBOLS = ['√', 'π', '∫', 'Σ', '∞', '≈', '≤', '≥', '≠', 'Δ', 'θ', '°', '±', '→'];
@@ -92,9 +93,12 @@ export default function PostComposer({ open, spaces, onClose, onCreated }: Props
               placeholder="Title (optional) — e.g. Doubt in rotational motion"
               className="mt-4 h-12 rounded-xl" />
 
-            <Textarea ref={areaRef} value={content} onChange={e => setContent(e.target.value)} maxLength={4000}
-              placeholder="Ask your doubt, share a trick, or start a discussion..."
-              className="mt-3 min-h-[150px] rounded-2xl text-base" />
+            <div className="relative mt-3">
+              <MentionSuggest value={content} onChange={setContent} />
+              <Textarea ref={areaRef} value={content} onChange={e => setContent(e.target.value)} maxLength={4000}
+                placeholder="Ask your doubt, share a trick, or start a discussion... Type @ to mention"
+                className="min-h-[150px] rounded-2xl text-base" />
+            </div>
 
             <div className="mt-3 flex flex-wrap gap-1.5">
               {MATH_SYMBOLS.map(s => (
