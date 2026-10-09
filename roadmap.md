@@ -1,0 +1,5 @@
+- [ ] Recreate the CBT Nexus reference structure in the shared app shell and dashboard/test pages, with mobile layouts that preserve hierarchy.
+- [ ] Remove dead Acrolly practice cards and their iframe route; shorten and relabel the Nexus landing card.
+- [ ] Add private-by-default story likes, author-only liker names, and owner notifications.
+- [ ] Add confirmed comment deletion with a brief undo window.
+- [ ] Verify desktop/mobile rendering, tests, and current build status.
