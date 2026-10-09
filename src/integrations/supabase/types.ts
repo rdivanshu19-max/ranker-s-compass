@@ -306,6 +306,35 @@ export type Database = {
         }
         Relationships: []
       }
+      community_story_likes: {
+        Row: {
+          created_at: string
+          id: string
+          story_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          story_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          story_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_story_likes_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "community_stories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       courses: {
         Row: {
           created_at: string
@@ -1144,6 +1173,23 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_community_story_like_counts: {
+        Args: { _story_ids: string[] }
+        Returns: {
+          like_count: number
+          liked_by_me: boolean
+          story_id: string
+        }[]
+      }
+      get_community_story_likers: {
+        Args: { _story_id: string }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          user_id: string
+          username: string
+        }[]
+      }
       get_user_lookup: {
         Args: never
         Returns: {
