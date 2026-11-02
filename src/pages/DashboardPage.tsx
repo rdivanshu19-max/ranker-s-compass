@@ -261,10 +261,12 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <PromoSpot placement="dashboard" />
       <motion.div initial="hidden" animate="visible" variants={fadeUp} transition={{ duration: 0.5 }}>
-        <h1 className="text-3xl font-bold font-display">
-          Welcome, <span className="text-gradient">{profile?.display_name || 'Student'}</span> 👋
+        <p className={`rv-label text-primary`}>◉ YOUR HUB / TODAY</p>
+        <h1 className="rv-title mt-2 text-4xl sm:text-5xl">
+          Hey {profile?.display_name || 'Student'},
+          <span className="rv-underline ml-3">let&apos;s move the rank.</span>
         </h1>
-        <p className="text-muted-foreground mt-1">Here&apos;s your study dashboard</p>
+        <p className={`rv-note mt-4 text-lg text-muted-foreground`}>Small reps every day. That&apos;s the whole trick.</p>
       </motion.div>
 
       {/* ASTRA Mentor — top priority */}
