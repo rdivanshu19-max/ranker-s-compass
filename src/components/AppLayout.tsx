@@ -67,10 +67,13 @@ export default function AppLayout() {
       <nav className={`sticky bottom-0 z-50 bg-background/85 backdrop-blur-lg px-2 pb-2 ${mono}`}>
         <div className="container mx-auto rv-pill flex justify-around py-1.5 overflow-x-auto">
           {navItems.map(item => (
-            <NavLink key={item.to} to={item.to} end={item.to === '/app'}
-              className={({ isActive }) => `flex flex-col items-center rounded-full py-1.5 px-2 text-[10px] sm:text-[11px] tracking-[0.06em] uppercase shrink-0 transition-all ${isActive ? 'bg-foreground text-background font-bold shadow-sm' : item.highlight ? 'text-primary hover:text-primary' : 'text-muted-foreground hover:text-foreground'}`}>
-              <item.icon className={`w-4 h-4 mb-0.5 ${!isActive && item.highlight ? 'drop-shadow-[0_0_5px_hsl(var(--primary))]' : ''}`} />
-              <span>{item.label}</span>
+            <NavLink key={item.to} to={item.to} end={item.to === '/app'}>
+              {({ isActive }) => (
+                <span className={`flex flex-col items-center rounded-full py-1.5 px-2 text-[10px] sm:text-[11px] tracking-[0.06em] uppercase shrink-0 transition-all ${isActive ? 'bg-foreground text-background font-bold shadow-sm' : item.highlight ? 'text-primary hover:text-primary' : 'text-muted-foreground hover:text-foreground'}`}>
+                  <item.icon className={`w-4 h-4 mb-0.5 ${!isActive && item.highlight ? 'drop-shadow-[0_0_5px_hsl(var(--primary))]' : ''}`} />
+                  <span>{item.label}</span>
+                </span>
+              )}
             </NavLink>
           ))}
         </div>
