@@ -325,10 +325,10 @@ export default function DashboardPage() {
       </motion.div>
 
       <motion.div initial="hidden" animate="visible" variants={fadeUp} transition={{ delay: 0.3 }}
-        className="bg-card rounded-2xl border border-border p-6">
+        className="rv-card p-6">
         <div className="flex items-center gap-2 mb-4">
-          <Clock className="w-5 h-5 text-primary" />
-          <h2 className="text-lg font-bold font-display">Study Timer</h2>
+          <p className={`rv-label text-primary`}>05 / DEEP WORK</p>
+          <h2 className="text-xl font-black tracking-tight">Study Timer</h2>
         </div>
         <div className="flex flex-col lg:flex-row lg:items-center gap-6">
           <div className="text-5xl font-mono font-bold text-primary tracking-wider">{formatTimer(timerSeconds)}</div>
