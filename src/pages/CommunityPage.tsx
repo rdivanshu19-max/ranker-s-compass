@@ -163,13 +163,13 @@ export default function CommunityPage() {
         <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-primary/20 blur-3xl" />
         <div className="relative flex flex-wrap items-end justify-between gap-5">
           <div>
-            <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
-              <Sparkles className="h-3.5 w-3.5" /> Rankers Community
+            <span className={`inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 rv-label text-foreground shadow-sm`}>
+              <span className="h-2.5 w-2.5 rounded-full bg-[hsl(var(--highlight))]" /> RANKERS COMMUNITY
             </span>
-            <h1 className="mt-4 font-display text-3xl font-bold leading-tight sm:text-5xl">
-              Ask doubts. Solve doubts.<br /><span className="text-gradient">Rank together.</span>
+            <h1 className="rv-title mt-5 text-4xl sm:text-6xl">
+              Ask doubts. Solve doubts.<br /><span className="rv-underline">Rank together.</span>
             </h1>
-            <p className="mt-3 max-w-xl text-sm text-muted-foreground sm:text-base">
+            <p className={`rv-note mt-4 max-w-xl text-lg text-muted-foreground`}>
               A feed built for aspirants — post doubts with images and math, upvote the best answers, join spaces and climb the XP leaderboard.
             </p>
           </div>
