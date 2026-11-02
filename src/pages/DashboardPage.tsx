@@ -261,10 +261,12 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <PromoSpot placement="dashboard" />
       <motion.div initial="hidden" animate="visible" variants={fadeUp} transition={{ duration: 0.5 }}>
-        <h1 className="text-3xl font-bold font-display">
-          Welcome, <span className="text-gradient">{profile?.display_name || 'Student'}</span> 👋
+        <p className={`rv-label text-primary`}>◉ YOUR HUB / TODAY</p>
+        <h1 className="rv-title mt-2 text-4xl sm:text-5xl">
+          Hey {profile?.display_name || 'Student'},
+          <span className="rv-underline ml-3">let&apos;s move the rank.</span>
         </h1>
-        <p className="text-muted-foreground mt-1">Here&apos;s your study dashboard</p>
+        <p className={`rv-note mt-4 text-lg text-muted-foreground`}>Small reps every day. That&apos;s the whole trick.</p>
       </motion.div>
 
       {/* ASTRA Mentor — top priority */}
@@ -287,33 +289,33 @@ export default function DashboardPage() {
       </motion.button>
 
       <motion.div initial="hidden" animate="visible" variants={fadeUp} transition={{ delay: 0.08 }}
-        className="bg-gradient-to-r from-primary/10 via-transparent to-primary/5 rounded-2xl border border-primary/20 p-6">
+        className="rv-note -rotate-1 rounded-2xl border border-border bg-[hsl(var(--highlight))]/25 p-6 shadow-[var(--shadow-card)]">
         <div className="flex items-start gap-3">
-          <Sparkles className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-          <p className="text-lg italic text-muted-foreground">&quot;{quote}&quot;</p>
+          <Sparkles className="w-5 h-5 text-foreground mt-0.5 shrink-0" />
+          <p className="text-lg italic text-foreground">&quot;{quote}&quot;</p>
         </div>
       </motion.div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         {statCards.map((stat, i) => (
           <motion.div key={stat.label} initial="hidden" animate="visible" variants={fadeUp} transition={{ delay: 0.12 + i * 0.06 }}
-            className="bg-card rounded-2xl border border-border p-5 flex items-center gap-4">
-            <div className={`w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center ${stat.color}`}>
+            className="rv-card rounded-3xl p-5 flex items-center gap-4 transition-transform hover:-translate-y-0.5">
+            <div className={`w-11 h-11 rounded-2xl bg-foreground text-background flex items-center justify-center shadow-[var(--shadow-card)]`}>
               <stat.icon className="w-5 h-5" />
             </div>
             <div>
               <div className="text-xl font-bold font-display">{stat.value}</div>
-              <div className="text-xs text-muted-foreground">{stat.label}</div>
+              <div className={`rv-label text-muted-foreground`}>{stat.label}</div>
             </div>
           </motion.div>
         ))}
       </div>
 
       <motion.div initial="hidden" animate="visible" variants={fadeUp} transition={{ delay: 0.22 }}
-        className="bg-card rounded-2xl border border-border p-6">
+        className="rv-card p-6">
         <div className="flex items-center gap-2 mb-4">
-          <BookOpen className="w-5 h-5 text-primary" />
-          <h2 className="text-lg font-bold font-display">Library Coverage Progress</h2>
+          <p className={`rv-label text-primary`}>04 / LIBRARY COVERAGE</p>
+          <h2 className="text-xl font-black tracking-tight">How much have you explored?</h2>
         </div>
         <Progress value={libraryCoverage} className="h-3" />
         <p className="text-sm text-muted-foreground mt-3">
@@ -323,10 +325,10 @@ export default function DashboardPage() {
       </motion.div>
 
       <motion.div initial="hidden" animate="visible" variants={fadeUp} transition={{ delay: 0.3 }}
-        className="bg-card rounded-2xl border border-border p-6">
+        className="rv-card p-6">
         <div className="flex items-center gap-2 mb-4">
-          <Clock className="w-5 h-5 text-primary" />
-          <h2 className="text-lg font-bold font-display">Study Timer</h2>
+          <p className={`rv-label text-primary`}>05 / DEEP WORK</p>
+          <h2 className="text-xl font-black tracking-tight">Study Timer</h2>
         </div>
         <div className="flex flex-col lg:flex-row lg:items-center gap-6">
           <div className="text-5xl font-mono font-bold text-primary tracking-wider">{formatTimer(timerSeconds)}</div>

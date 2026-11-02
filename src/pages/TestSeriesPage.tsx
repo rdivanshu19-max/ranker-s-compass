@@ -47,14 +47,14 @@ export default function TestSeriesPage() {
         className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/50 px-5 py-10 backdrop-blur-xl sm:px-9 sm:py-14">
         <div className="pointer-events-none absolute -left-16 -bottom-16 h-56 w-56 rounded-full bg-primary/15 blur-3xl" />
         <div className="relative max-w-2xl">
-          <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
-            <Sparkles className="h-3.5 w-3.5" /> Test Series Hub
+          <span className={`inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 rv-label text-foreground shadow-sm`}>
+            <span className="h-2.5 w-2.5 rounded-full bg-[hsl(var(--highlight))]" /> TEST SERIES HUB
           </span>
-          <h1 className="mt-4 font-display text-3xl font-bold leading-tight sm:text-5xl">
-            Practice with the<br /><span className="text-gradient">tests that matter.</span>
+          <h1 className="rv-title mt-5 text-4xl sm:text-6xl">
+            Practice with the<br /><span className="rv-underline">tests that matter.</span>
           </h1>
-          <p className="mt-3 text-sm text-muted-foreground sm:text-base">
-            Live and upcoming test series from leading institutions, tracked in one place so you never miss an attempt.
+          <p className={`rv-note mt-4 text-lg text-muted-foreground`}>
+            Live and upcoming series, tracked in one place — so you never miss an attempt.
           </p>
         </div>
       </motion.section>

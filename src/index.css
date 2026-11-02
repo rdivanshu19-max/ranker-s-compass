@@ -167,3 +167,50 @@
   animation: shimmer 1.4s ease-in-out infinite;
 }
 @media (prefers-reduced-motion: reduce) { .skeleton-shimmer { animation: none; } }
+
+/* ---- RV inner-site design language (matches landing) ---- */
+@layer components {
+  .rv-label {
+    font-family: 'Space Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-weight: 700;
+    font-size: 0.72rem;
+  }
+  .rv-title {
+    font-weight: 900;
+    font-style: italic;
+    letter-spacing: -0.04em;
+    line-height: 1;
+  }
+  .rv-note {
+    font-family: 'Kalam', cursive;
+    font-style: italic;
+  }
+  .rv-card {
+    border-radius: 2rem;
+    border: 1px solid hsl(var(--border));
+    background: hsl(var(--card));
+    box-shadow: var(--shadow-card);
+  }
+  .rv-pill {
+    border-radius: 9999px;
+    border: 1px solid hsl(var(--border));
+    background: hsl(var(--card));
+    box-shadow: 0 6px 24px -14px hsl(222 47% 11% / 0.3);
+  }
+  .rv-underline {
+    position: relative;
+    display: inline-block;
+  }
+  .rv-underline::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -6px;
+    height: 6px;
+    width: 100%;
+    border-radius: 9999px;
+    background: hsl(var(--highlight));
+  }
+}

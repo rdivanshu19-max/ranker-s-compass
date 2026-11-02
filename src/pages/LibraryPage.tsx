@@ -74,10 +74,11 @@ export default function LibraryPage() {
     <div className="space-y-6">
       <PromoSpot placement="library" />
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-3xl font-bold font-display">
-          Rankers <span className="text-gradient">Library</span> 📚
+        <p className={`rv-label text-primary`}>◉ THE VAULT OF FREE MATERIALS</p>
+        <h1 className="rv-title mt-2 text-4xl sm:text-5xl">
+          Rankers <span className="rv-underline">Library.</span>
         </h1>
-        <p className="text-muted-foreground mt-1">Browse and access free study materials</p>
+        <p className={`rv-note mt-3 text-lg text-muted-foreground`}>Zero junk. Only what actually helps your rank.</p>
       </motion.div>
 
 
