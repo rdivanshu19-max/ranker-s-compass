@@ -95,7 +95,7 @@ export default function AppLayout() {
             </NavLink>
           ))}
           <button onClick={() => setMoreOpen(true)} className="flex justify-center" aria-label="More sections">
-            <span className={linkClass(isMoreActive, { highlight: false } as typeof navItems[number])}>
+            <span className={`flex flex-col items-center rounded-full py-1.5 px-2 text-[10px] tracking-[0.06em] uppercase shrink-0 transition-all ${isMoreActive ? 'bg-foreground text-background font-bold shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
               <Menu className="w-[18px] h-[18px] mb-0.5" />
               {renderLabel('More', 'More')}
             </span>
