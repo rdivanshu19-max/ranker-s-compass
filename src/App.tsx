@@ -10,6 +10,7 @@ import AuthPage from "./pages/AuthPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import AppLayout from "./components/AppLayout";
 import JoinChannelsPopup from "./components/JoinChannelsPopup";
+import NexusCbtPromo from "./components/NexusCbtPromo";
 import ProtectedRoute from "./components/ProtectedRoute";
 import DashboardPage from "./pages/DashboardPage";
 import LibraryPage from "./pages/LibraryPage";
@@ -52,6 +53,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <JoinChannelsPopup />
+          <NexusCbtPromo />
           <BrowserRouter>
             <RouteSeo />
             <Routes>

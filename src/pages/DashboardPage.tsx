@@ -258,13 +258,13 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <PromoSpot placement="dashboard" />
       <motion.div initial="hidden" animate="visible" variants={fadeUp} transition={{ duration: 0.5 }}>
         <p className={`rv-label text-primary`}>◉ YOUR HUB / TODAY</p>
-        <h1 className="rv-title mt-2 text-4xl sm:text-5xl">
+        <h1 className="rv-title mt-2 text-3xl sm:text-4xl lg:text-5xl">
           Hey {profile?.display_name || 'Student'},
-          <span className="rv-underline ml-3">let&apos;s move the rank.</span>
+          <span className="rv-underline sm:ml-3">let&apos;s move the rank.</span>
         </h1>
         <p className={`rv-note mt-4 text-lg text-muted-foreground`}>Small reps every day. That&apos;s the whole trick.</p>
       </motion.div>
@@ -289,19 +289,19 @@ export default function DashboardPage() {
       </motion.button>
 
       <motion.div initial="hidden" animate="visible" variants={fadeUp} transition={{ delay: 0.08 }}
-        className="rv-note -rotate-1 rounded-2xl border border-border bg-[hsl(var(--highlight))]/25 p-6 shadow-[var(--shadow-card)]">
+        className="rv-note -rotate-1 rounded-2xl border border-border bg-[hsl(var(--highlight))]/25 p-4 sm:p-6 shadow-[var(--shadow-card)]">
         <div className="flex items-start gap-3">
           <Sparkles className="w-5 h-5 text-foreground mt-0.5 shrink-0" />
-          <p className="text-lg italic text-foreground">&quot;{quote}&quot;</p>
+          <p className="text-base sm:text-lg italic text-foreground">&quot;{quote}&quot;</p>
         </div>
       </motion.div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
         {statCards.map((stat, i) => (
           <motion.div key={stat.label} initial="hidden" animate="visible" variants={fadeUp} transition={{ delay: 0.12 + i * 0.06 }}
-            className="rv-card rounded-3xl p-5 flex items-center gap-4 transition-transform hover:-translate-y-0.5">
-            <div className={`w-11 h-11 rounded-2xl bg-foreground text-background flex items-center justify-center shadow-[var(--shadow-card)]`}>
-              <stat.icon className="w-5 h-5" />
+            className="rv-card rounded-3xl p-3.5 sm:p-5 flex items-center gap-3 sm:gap-4 transition-transform hover:-translate-y-0.5">
+            <div className={`w-9 h-9 sm:w-11 sm:h-11 shrink-0 rounded-2xl bg-foreground text-background flex items-center justify-center shadow-[var(--shadow-card)]`}>
+              <stat.icon className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
             <div>
               <div className="text-xl font-bold font-display">{stat.value}</div>
@@ -312,10 +312,10 @@ export default function DashboardPage() {
       </div>
 
       <motion.div initial="hidden" animate="visible" variants={fadeUp} transition={{ delay: 0.22 }}
-        className="rv-card p-6">
-        <div className="flex items-center gap-2 mb-4">
+        className="rv-card p-4 sm:p-6">
+        <div className="flex flex-wrap items-center gap-2 mb-4">
           <p className={`rv-label text-primary`}>04 / LIBRARY COVERAGE</p>
-          <h2 className="text-xl font-black tracking-tight">How much have you explored?</h2>
+          <h2 className="text-lg sm:text-xl font-black tracking-tight">How much have you explored?</h2>
         </div>
         <Progress value={libraryCoverage} className="h-3" />
         <p className="text-sm text-muted-foreground mt-3">
@@ -325,13 +325,13 @@ export default function DashboardPage() {
       </motion.div>
 
       <motion.div initial="hidden" animate="visible" variants={fadeUp} transition={{ delay: 0.3 }}
-        className="rv-card p-6">
-        <div className="flex items-center gap-2 mb-4">
+        className="rv-card p-4 sm:p-6">
+        <div className="flex flex-wrap items-center gap-2 mb-4">
           <p className={`rv-label text-primary`}>05 / DEEP WORK</p>
-          <h2 className="text-xl font-black tracking-tight">Study Timer</h2>
+          <h2 className="text-lg sm:text-xl font-black tracking-tight">Study Timer</h2>
         </div>
         <div className="flex flex-col lg:flex-row lg:items-center gap-6">
-          <div className="text-5xl font-mono font-bold text-primary tracking-wider">{formatTimer(timerSeconds)}</div>
+          <div className="text-4xl sm:text-5xl font-mono font-bold text-primary tracking-wider">{formatTimer(timerSeconds)}</div>
           <div className="flex flex-wrap gap-2">
             {!isTimerRunning ? (
               <Button onClick={startTimer} className="gap-2"><Play className="w-4 h-4" /> Start</Button>
@@ -345,9 +345,9 @@ export default function DashboardPage() {
         </div>
       </motion.div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid lg:grid-cols-2 gap-4 sm:gap-6">
         <motion.div initial="hidden" animate="visible" variants={fadeUp} transition={{ delay: 0.38 }}
-          className="bg-card rounded-2xl border border-border p-6">
+          className="bg-card rounded-2xl border border-border p-4 sm:p-6">
           <div className="flex items-center gap-2 mb-4">
             <Clock className="w-5 h-5 text-primary" />
             <h2 className="text-lg font-bold font-display">Weekly Study Stats</h2>
@@ -365,7 +365,7 @@ export default function DashboardPage() {
         </motion.div>
 
         <motion.div initial="hidden" animate="visible" variants={fadeUp} transition={{ delay: 0.44 }}
-          className="bg-card rounded-2xl border border-border p-6">
+          className="bg-card rounded-2xl border border-border p-4 sm:p-6">
           <div className="flex items-center gap-2 mb-4">
             <Brain className="w-5 h-5 text-primary" />
             <h2 className="text-lg font-bold font-display">Chapter-wise Performance</h2>
@@ -443,7 +443,7 @@ export default function DashboardPage() {
 
       {pinnedMaterials.length > 0 && (
         <motion.div initial="hidden" animate="visible" variants={fadeUp} transition={{ delay: 0.5 }}
-          className="bg-card rounded-2xl border border-border p-6">
+          className="bg-card rounded-2xl border border-border p-4 sm:p-6">
           <div className="flex items-center gap-2 mb-4">
             <Pin className="w-5 h-5 text-primary" />
             <h2 className="text-lg font-bold font-display">📌 Pinned Materials ({pinnedMaterials.length})</h2>
