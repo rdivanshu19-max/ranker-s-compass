@@ -258,7 +258,7 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <PromoSpot placement="dashboard" />
       <motion.div initial="hidden" animate="visible" variants={fadeUp} transition={{ duration: 0.5 }}>
         <p className={`rv-label text-primary`}>◉ YOUR HUB / TODAY</p>
@@ -345,9 +345,9 @@ export default function DashboardPage() {
         </div>
       </motion.div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid lg:grid-cols-2 gap-4 sm:gap-6">
         <motion.div initial="hidden" animate="visible" variants={fadeUp} transition={{ delay: 0.38 }}
-          className="bg-card rounded-2xl border border-border p-6">
+          className="bg-card rounded-2xl border border-border p-4 sm:p-6">
           <div className="flex items-center gap-2 mb-4">
             <Clock className="w-5 h-5 text-primary" />
             <h2 className="text-lg font-bold font-display">Weekly Study Stats</h2>
@@ -365,7 +365,7 @@ export default function DashboardPage() {
         </motion.div>
 
         <motion.div initial="hidden" animate="visible" variants={fadeUp} transition={{ delay: 0.44 }}
-          className="bg-card rounded-2xl border border-border p-6">
+          className="bg-card rounded-2xl border border-border p-4 sm:p-6">
           <div className="flex items-center gap-2 mb-4">
             <Brain className="w-5 h-5 text-primary" />
             <h2 className="text-lg font-bold font-display">Chapter-wise Performance</h2>
@@ -443,7 +443,7 @@ export default function DashboardPage() {
 
       {pinnedMaterials.length > 0 && (
         <motion.div initial="hidden" animate="visible" variants={fadeUp} transition={{ delay: 0.5 }}
-          className="bg-card rounded-2xl border border-border p-6">
+          className="bg-card rounded-2xl border border-border p-4 sm:p-6">
           <div className="flex items-center gap-2 mb-4">
             <Pin className="w-5 h-5 text-primary" />
             <h2 className="text-lg font-bold font-display">📌 Pinned Materials ({pinnedMaterials.length})</h2>
