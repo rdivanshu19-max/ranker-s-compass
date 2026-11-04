@@ -39,8 +39,8 @@ export default function AppLayout() {
       isActive ? 'bg-foreground text-background font-bold shadow-sm' : item.highlight ? 'text-primary hover:text-primary' : 'text-muted-foreground hover:text-foreground'
     }`;
 
-  const renderLabel = (label: string, short: string) => (
-    <span className="max-w-[64px] truncate sm:max-w-none">{short}</span>
+  const renderLabel = (text: string) => (
+    <span className="max-w-[64px] truncate sm:max-w-none">{text}</span>
   );
 
   return (
