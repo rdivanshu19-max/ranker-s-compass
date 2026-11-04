@@ -89,7 +89,7 @@ export default function AppLayout() {
               {({ isActive }) => (
                 <span className={linkClass(isActive, item)}>
                   <item.icon className={`w-[18px] h-[18px] mb-0.5 ${!isActive && item.highlight ? 'drop-shadow-[0_0_5px_hsl(var(--primary))]' : ''}`} />
-                  {renderLabel(item.label, item.short)}
+                  {renderLabel(item.short)}
                 </span>
               )}
             </NavLink>
@@ -97,7 +97,7 @@ export default function AppLayout() {
           <button onClick={() => setMoreOpen(true)} className="flex justify-center" aria-label="More sections">
             <span className={`flex flex-col items-center rounded-full py-1.5 px-2 text-[10px] tracking-[0.06em] uppercase shrink-0 transition-all ${isMoreActive ? 'bg-foreground text-background font-bold shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
               <Menu className="w-[18px] h-[18px] mb-0.5" />
-              {renderLabel('More', 'More')}
+              {renderLabel('More')}
             </span>
           </button>
         </div>
