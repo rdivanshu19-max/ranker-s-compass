@@ -3,3 +3,4 @@
 - [ ] Add private-by-default story likes, author-only liker names, and owner notifications.
 - [ ] Add confirmed comment deletion with a brief undo window.
 - [ ] Verify desktop/mobile rendering, tests, and current build status.
+- [ ] Finish the protected Rankers Star MCP user/admin catalog, authorization, audit/rate limits, integration, and verification; document unsupported deployment/service boundaries.
