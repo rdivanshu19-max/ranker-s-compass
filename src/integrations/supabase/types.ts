@@ -1208,6 +1208,7 @@ export type Database = {
         Returns: boolean
       }
       is_banned: { Args: { _user_id: string }; Returns: boolean }
+      mcp_consume_rate_limit: { Args: never; Returns: boolean }
       redeem_mathango_code: { Args: { _code: string }; Returns: boolean }
     }
     Enums: {
