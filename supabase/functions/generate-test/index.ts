@@ -219,11 +219,27 @@ serve(async (req) => {
       ? difficulty : "moderate";
     const integerRatio = integerQuestions ? 0.2 : 0;
 
+    // Cap the fan-out: each question is an upstream model call.
+    const MAX_QUESTIONS = 50;
+    if (numQuestions !== undefined && numQuestions !== null) {
+      const requested = Number(numQuestions);
+      if (!Number.isFinite(requested) || requested < 1 || requested > MAX_QUESTIONS) {
+        return new Response(JSON.stringify({
+          error: `numQuestions must be between 1 and ${MAX_QUESTIONS}.`,
+        }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+    }
+
     const GROQ_API_KEY = Deno.env.get("GROQ_TEST_API_KEY") || Deno.env.get("GROQ_API_KEY");
     if (!GROQ_API_KEY) throw new Error("GROQ_TEST_API_KEY is not configured");
 
-    // Enforce daily limit
+    // This endpoint spends money on every call: authentication is required, not optional.
     const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Authentication required." }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     if (authHeader) {
       const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
       const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
@@ -231,6 +247,11 @@ serve(async (req) => {
         global: { headers: { Authorization: authHeader } },
       });
       const { data: { user } } = await userClient.auth.getUser();
+      if (!user) {
+        return new Response(JSON.stringify({ error: "Invalid or expired session." }), {
+          status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
       if (user) {
         const { data: roles } = await userClient.from("user_roles").select("role").eq("user_id", user.id);
         const isAdmin = !!roles?.some((r: any) => r.role === "admin");
