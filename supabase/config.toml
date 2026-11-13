@@ -1,10 +1,10 @@
 project_id = "obwsfwlknwgrfzkznglq"
 
 [functions.chat]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-test]
-verify_jwt = false
+verify_jwt = true
 
 [functions.delete-account]
 verify_jwt = false

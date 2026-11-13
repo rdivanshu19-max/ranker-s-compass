@@ -21,6 +21,12 @@ serve(async (req) => {
     const { messages, hasImage } = await req.json();
     const authHeader = req.headers.get("Authorization");
 
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Authentication required." }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     let isAdmin = false;
     if (authHeader) {
       const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -29,6 +35,11 @@ serve(async (req) => {
         global: { headers: { Authorization: authHeader } },
       });
       const { data: { user } } = await userClient.auth.getUser();
+      if (!user) {
+        return new Response(JSON.stringify({ error: "Invalid or expired session." }), {
+          status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
       if (user) {
         const { data: roles } = await userClient.from("user_roles").select("role").eq("user_id", user.id);
         isAdmin = !!roles?.some((r: any) => r.role === "admin");
