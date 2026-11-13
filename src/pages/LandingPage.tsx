@@ -349,7 +349,10 @@ export default function LandingPage() {
             <div>
               <h4 className="font-bold mb-3 text-foreground">Quick Links</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="/terms" className="hover:text-primary transition-colors">Terms & Conditions</a></li>
+                <li>
+                  <a href="/terms" className="hover:text-primary transition-colors">Terms & Conditions</a>
+                  <span className="block text-xs text-muted-foreground/70">Please read this</span>
+                </li>
                 <li><a href="/privacy" className="hover:text-primary transition-colors">Privacy Policy</a></li>
                 <li><a href="/adsense" className="hover:text-primary transition-colors">AdSense Disclaimer</a></li>
               </ul>
